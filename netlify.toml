@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA-Fallback: App.jsx routet manuell über window.location.pathname
+# (kein react-router), es gibt keinen serverseitigen Router — ein direkter
+# Aufruf von z.B. /family/reset-password oder /trainer/students muss trotzdem
+# index.html liefern, sonst 404 auf einem statischen Host. Nur für Pfade ohne
+# Dateiendung, damit echte Assets (JS/CSS/Bilder aus dist/assets) weiterhin
+# direkt und mit korrektem Content-Type ausgeliefert werden, nicht als HTML
+# umgeleitet.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
