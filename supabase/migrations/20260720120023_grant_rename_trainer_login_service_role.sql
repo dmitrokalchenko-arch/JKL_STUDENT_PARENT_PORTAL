@@ -1,0 +1,14 @@
+-- НАЙДЕНО ФАКТИЧЕСКИМ ТЕСТОМ локального прогона Edge Function
+-- manage-trainer-account (не предположением): вызов rename_trainer_login()
+-- от имени service_role падал с "permission denied for function
+-- rename_trainer_login".
+--
+-- migration 011 оставила эту функцию БЕЗ единого grant ("GRANT никому не
+-- выдан, вызывается вручную (service_role/Dashboard)") — предположение,
+-- что service_role может вызывать её без явного grant, не подтвердилось на
+-- практике (revoke all from public убирает право и у service_role, если
+-- не выдано отдельно; service_role — обычная роль в терминах EXECUTE-грантов,
+-- а не автоматический bypass, это отдельное свойство только для RLS).
+-- Единственный легитимный вызывающий — manage-trainer-account Edge Function
+-- (через service_role), поэтому grant ей и добавлен.
+grant execute on function public.rename_trainer_login(uuid, text) to service_role;

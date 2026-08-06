@@ -1,0 +1,22 @@
+.statusAchieved {
+  color: var(--color-success);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.statusPending {
+  color: var(--color-warning);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.remaining {
+  color: var(--color-warning);
+}

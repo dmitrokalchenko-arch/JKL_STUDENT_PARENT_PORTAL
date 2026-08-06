@@ -1,0 +1,18 @@
+-- НАЙДЕНО ФАКТИЧЕСКИМ ТЕСТОМ локального прогона Edge Function
+-- manage-trainer-account (не предположением): resolve_trainer_login_email
+-- (migration 012) выдана только `anon, authenticated` — service_role
+-- получал "permission denied" при попытке вызвать её из Edge Function для
+-- построения технического email тем же способом, что использует вход.
+--
+-- Аналог в семейном модуле (family_auth_helpers, migration 002) решает это
+-- иначе — там ЕСТЬ отдельная низкоуровневая функция family_login_email(club_id,
+-- nickname), которую create-family-account вызывает напрямую, в обход
+-- анти-enumeration обёртки resolve_family_login_email. У тренерского модуля
+-- такого разделения на два уровня нет — resolve_trainer_login_email сама
+-- содержит и разрешение club_short_name→club_id, и построение email одним
+-- куском (migration 012). Вместо того чтобы ретроактивно редактировать уже
+-- применённую миграцию 012 или дублировать формулу построения email в новом
+-- месте (риск расхождения), сюда добавлен только недостающий grant —
+-- сама функция уже безопасна для вызова service_role (она же безопасна и
+-- для anon: анти-enumeration не зависит от того, кто её вызывает).
+grant execute on function public.resolve_trainer_login_email(text, text) to service_role;

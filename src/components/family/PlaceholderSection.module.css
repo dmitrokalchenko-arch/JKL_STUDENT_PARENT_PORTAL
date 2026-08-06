@@ -1,0 +1,18 @@
+.card {
+  background: var(--color-bg-card);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  font-size: 15px;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.text {
+  font-size: 13px;
+}

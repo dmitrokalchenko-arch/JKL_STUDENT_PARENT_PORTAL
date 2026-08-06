@@ -1,0 +1,199 @@
+{
+  "common": {
+    "showAll": "Mostrar todo",
+    "comingSoon": "Próximamente",
+    "on": "Activado",
+    "loading": "Cargando…",
+    "notProvided": "No indicado",
+    "back": "Volver",
+    "years_one": "{{count}} año",
+    "years_other": "{{count}} años"
+  },
+  "header": {
+    "greeting": "Bienvenidos, familia {{name}}",
+    "notifications": "Notificaciones",
+    "notificationsCount_one": "{{count}} notificación",
+    "notificationsCount_other": "{{count}} notificaciones",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión"
+  },
+  "language": {
+    "switcherLabel": "Idioma",
+    "menuLabel": "Seleccionar idioma"
+  },
+  "auth": {
+    "title": "Iniciar sesión",
+    "clubLabel": "Club",
+    "nicknameLabel": "Apodo de la familia",
+    "passwordLabel": "Contraseña",
+    "submit": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión…",
+    "genericError": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+    "trainerTitle": "Acceso de entrenador",
+    "trainerLoginLabel": "Usuario"
+  },
+  "childSelector": {
+    "label": "Selecciona un hijo/a:"
+  },
+  "student": {
+    "currentBelt": "Cinturón actual",
+    "nextBelt": "Siguiente cinturón"
+  },
+  "exam": {
+    "title": "Edad mínima para el examen",
+    "achieved": "Requisito de edad alcanzado",
+    "notAchieved": "Requisito de edad aún no alcanzado",
+    "currentAge_one": "Edad actual: {{count}} año",
+    "currentAge_other": "Edad actual: {{count}} años",
+    "requiredAge_one": "Edad mínima requerida: {{count}} año",
+    "requiredAge_other": "Edad mínima requerida: {{count}} años",
+    "remainingYears_one": "Falta ~{{count}} año",
+    "remainingYears_other": "Faltan ~{{count}} años"
+  },
+  "rating": {
+    "title": "Puntos de valoración",
+    "pointsLabel_one": "punto",
+    "pointsLabel_other": "puntos",
+    "remainingPoints_one": "Falta {{count}} punto",
+    "remainingPoints_other": "Faltan {{count}} puntos"
+  },
+  "dashboard": {
+    "family": "Mi familia",
+    "trainings": "Mis entrenamientos",
+    "achievements": "Mis logros",
+    "certificates": "Mis certificados",
+    "events": "Mis eventos",
+    "techniques": "Técnicas requeridas",
+    "contract": "Contrato y pago"
+  },
+  "techniqueProgress": {
+    "title": "Progreso de técnicas",
+    "bonusProgress": "{{completed}} de {{required}} técnicas para el bono",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Todas las técnicas de esta categoría completadas",
+    "loading": "Cargando el progreso de técnicas…",
+    "loadError": "No se pudo cargar el progreso de técnicas.",
+    "retry": "Reintentar",
+    "noProgram": "Todavía no se ha configurado un programa de técnicas para este cinturón.",
+    "videoModal": {
+      "close": "Cerrar",
+      "notAvailable": "Vídeo aún no añadido"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Próximos entrenamientos",
+    "empty": "Aún no hay entrenamientos programados.",
+    "trainerLabel": "Entrenador: {{name}}",
+    "room": "Sala {{number}}",
+    "count_one": "{{count}} entrenamiento",
+    "count_other": "{{count}} entrenamientos"
+  },
+  "family": {
+    "profileTitle": "Perfil familiar",
+    "nickname": "Apodo de la familia",
+    "recoveryEmail": "Correo de recuperación",
+    "changeEmail": "Cambiar correo",
+    "securityTitle": "Seguridad",
+    "changePassword": "Cambiar contraseña",
+    "logoutAllDevices": "Cerrar sesión en todos los dispositivos",
+    "loginHistory": "Historial de accesos",
+    "childrenManagementTitle": "Gestionar hijos",
+    "addChild": "+ Añadir hijo/a",
+    "notificationsTitle": "Notificaciones",
+    "emailNotifications": "Notificaciones por correo",
+    "pushNotifications": "Notificaciones push",
+    "configureNotifications": "Configurar",
+    "childrenCount_one": "{{count}} hijo/a",
+    "childrenCount_other": "{{count}} hijos/as"
+  },
+  "contract": {
+    "infoTitle": "Información del contrato",
+    "status": "Estado",
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de finalización",
+    "renewalType": "Tipo de renovación",
+    "tariff": "Plan",
+    "amount": "Importe",
+    "amountPerMonth": "{{amount}} / mes",
+    "paidUntil": "Pagado hasta",
+    "nextPayment": "Próxima fecha de pago",
+    "debt": "Saldo pendiente",
+    "debtPresent": "Saldo pendiente",
+    "debtAbsent": "Ninguno"
+  },
+  "payments": {
+    "recentTitle": "Pagos recientes",
+    "methodTitle": "Información de pago",
+    "mainMethod": "Método de pago principal",
+    "changeMethod": "Cambiar método de pago",
+    "needHelp": "¿Necesitas ayuda?",
+    "helpText": "Contacta con nuestro servicio de soporte.",
+    "contactSupport": "Contactar",
+    "cardMasked": "Tarjeta •••• {{last4}}",
+    "count_one": "{{count}} pago",
+    "count_other": "{{count}} pagos"
+  },
+  "statuses": {
+    "active": "Activo",
+    "paid": "Pagado",
+    "enrolled": "Inscrito/a",
+    "register": "Inscribirse",
+    "renewalAutomatic": "Automática",
+    "renewalManual": "Manual",
+    "tariffFamily": "Plan familiar"
+  },
+  "belts": {
+    "white": "Cinturón blanco",
+    "yellow": "Cinturón amarillo",
+    "orange": "Cinturón naranja"
+  },
+  "sports": {
+    "judo": "Judo",
+    "karate": "Kárate"
+  },
+  "groups": {
+    "children8to12": "Grupo infantil (8–12 años)",
+    "physicalTraining": "Preparación física",
+    "toddlers5to7": "Pequeños (5–7 años)"
+  },
+  "roles": {
+    "parent": "Padre/madre",
+    "guardian": "Tutor/a"
+  },
+  "placeholders": {
+    "notDesignedYet": "Esta sección aún no se ha diseñado — todavía no existe un concepto visual."
+  },
+  "errors": {
+    "noChildrenLinked": "Todavía no hay ningún hijo/a vinculado a esta cuenta familiar.",
+    "familyLoadError": "No se pudieron cargar los datos de la familia."
+  },
+  "trainerAuth": {
+    "notConfigured": "Área de entrenador no disponible: backend no configurado.",
+    "notAvailable": "El acceso al área de entrenador no está disponible."
+  },
+  "trainerGroups": {
+    "title": "Mis grupos",
+    "loading": "Cargando grupos…",
+    "loadError": "No se pudieron cargar los grupos.",
+    "retry": "Reintentar",
+    "empty": "Aún no tienes grupos.",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo"
+  },
+  "trainerDashboard": {
+    "title": "Área de entrenador",
+    "findStudentTitle": "Buscar alumno",
+    "findStudentDescription": "Buscar la página de un alumno por nombre y abrirla",
+    "settingsTitle": "Personalizar la vista de la página del alumno",
+    "settingsDescription": "Elegir qué secciones son visibles en la página del alumno"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Apellido",
+    "vornameLabel": "Nombre",
+    "nachnamePlaceholder": "Introduce el apellido",
+    "vornamePlaceholder": "Introduce el nombre",
+    "noResults": "Sin resultados",
+    "loadError": "La búsqueda ha fallado."
+  }
+}

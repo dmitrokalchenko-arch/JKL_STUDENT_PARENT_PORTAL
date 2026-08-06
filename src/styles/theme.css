@@ -1,0 +1,31 @@
+/* Цвета приблизительно сняты с Family_Dashboard_Concept_v3.png.
+   Финальные HEX-значения ещё не утверждены официально
+   (см. docs/design/DESIGN_SYSTEM_PLAN.md) — это рабочее приближение. */
+:root {
+  --color-bg: #0b0b0d;
+  --color-bg-card: #17171b;
+  --color-bg-card-alt: #1e1e22;
+  --color-border: #2c2c31;
+  --color-border-strong: #3a3a40;
+
+  --color-gold: #d9a441;
+  --color-gold-light: #f2c675;
+  --color-gold-dark: #b9862f;
+
+  --color-text-primary: #f5f5f6;
+  --color-text-secondary: #9a9aa3;
+  --color-text-muted: #6f6f78;
+
+  --color-success: #3ecf8e;
+  --color-success-bg: rgba(62, 207, 142, 0.12);
+  --color-warning: #e0a94a;
+  --color-warning-bg: rgba(224, 169, 74, 0.12);
+  --color-error: #e2554f;
+  --color-error-bg: rgba(226, 85, 79, 0.12);
+
+  --radius-card: 14px;
+  --radius-chip: 999px;
+  --radius-button: 10px;
+
+  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}

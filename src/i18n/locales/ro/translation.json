@@ -1,0 +1,209 @@
+{
+  "common": {
+    "showAll": "Afișează tot",
+    "comingSoon": "În curând",
+    "on": "Activ",
+    "loading": "Se încarcă…",
+    "notProvided": "Nespecificat",
+    "back": "Înapoi",
+    "years_one": "{{count}} an",
+    "years_few": "{{count}} ani",
+    "years_other": "{{count}} de ani"
+  },
+  "header": {
+    "greeting": "Bine ați venit, familia {{name}}",
+    "notifications": "Notificări",
+    "notificationsCount_one": "{{count}} notificare",
+    "notificationsCount_few": "{{count}} notificări",
+    "notificationsCount_other": "{{count}} de notificări",
+    "settings": "Setări",
+    "logout": "Deconectare"
+  },
+  "language": {
+    "switcherLabel": "Limbă",
+    "menuLabel": "Selectați limba"
+  },
+  "auth": {
+    "title": "Autentificare",
+    "clubLabel": "Club",
+    "nicknameLabel": "Numele de utilizator al familiei",
+    "passwordLabel": "Parolă",
+    "submit": "Autentificare",
+    "loggingIn": "Se autentifică…",
+    "genericError": "Autentificare eșuată. Încercați din nou.",
+    "trainerTitle": "Autentificare antrenor",
+    "trainerLoginLabel": "Login"
+  },
+  "childSelector": {
+    "label": "Selectați un copil:"
+  },
+  "student": {
+    "currentBelt": "Centura actuală",
+    "nextBelt": "Centura următoare"
+  },
+  "exam": {
+    "title": "Vârsta minimă pentru examen",
+    "achieved": "Condiție de vârstă îndeplinită",
+    "notAchieved": "Condiție de vârstă neîndeplinită încă",
+    "currentAge_one": "Vârsta actuală: {{count}} an",
+    "currentAge_few": "Vârsta actuală: {{count}} ani",
+    "currentAge_other": "Vârsta actuală: {{count}} de ani",
+    "requiredAge_one": "Vârsta minimă necesară: {{count}} an",
+    "requiredAge_few": "Vârsta minimă necesară: {{count}} ani",
+    "requiredAge_other": "Vârsta minimă necesară: {{count}} de ani",
+    "remainingYears_one": "Mai este ~{{count}} an",
+    "remainingYears_few": "Mai sunt ~{{count}} ani",
+    "remainingYears_other": "Mai sunt ~{{count}} de ani"
+  },
+  "rating": {
+    "title": "Puncte de clasament",
+    "pointsLabel_one": "punct",
+    "pointsLabel_few": "puncte",
+    "pointsLabel_other": "de puncte",
+    "remainingPoints_one": "A mai rămas {{count}} punct",
+    "remainingPoints_few": "Au mai rămas {{count}} puncte",
+    "remainingPoints_other": "Au mai rămas {{count}} de puncte"
+  },
+  "dashboard": {
+    "family": "Familia mea",
+    "trainings": "Antrenamentele mele",
+    "achievements": "Realizările mele",
+    "certificates": "Certificatele mele",
+    "events": "Evenimentele mele",
+    "techniques": "Tehnici necesare",
+    "contract": "Contract și plată"
+  },
+  "techniqueProgress": {
+    "title": "Progresul tehnicilor",
+    "bonusProgress": "{{completed}} din {{required}} tehnici pentru bonus",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Toate tehnicile din această categorie au fost finalizate",
+    "loading": "Se încarcă progresul tehnicilor…",
+    "loadError": "Progresul tehnicilor nu a putut fi încărcat.",
+    "retry": "Încearcă din nou",
+    "noProgram": "Pentru această centură nu a fost încă configurat un program de tehnici.",
+    "videoModal": {
+      "close": "Închide",
+      "notAvailable": "Videoclipul nu a fost încă adăugat"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Antrenamente viitoare",
+    "empty": "Momentan nu există antrenamente programate.",
+    "trainerLabel": "Antrenor: {{name}}",
+    "room": "Sala {{number}}",
+    "count_one": "{{count}} antrenament",
+    "count_few": "{{count}} antrenamente",
+    "count_other": "{{count}} de antrenamente"
+  },
+  "family": {
+    "profileTitle": "Profilul familiei",
+    "nickname": "Numele de utilizator al familiei",
+    "recoveryEmail": "E-mail de recuperare",
+    "changeEmail": "Schimbă e-mailul",
+    "securityTitle": "Securitate",
+    "changePassword": "Schimbă parola",
+    "logoutAllDevices": "Deconectare de pe toate dispozitivele",
+    "loginHistory": "Istoric autentificări",
+    "childrenManagementTitle": "Gestionare copii",
+    "addChild": "+ Adaugă copil",
+    "notificationsTitle": "Notificări",
+    "emailNotifications": "Notificări prin e-mail",
+    "pushNotifications": "Notificări push",
+    "configureNotifications": "Configurează",
+    "childrenCount_one": "{{count}} copil",
+    "childrenCount_few": "{{count}} copii",
+    "childrenCount_other": "{{count}} de copii"
+  },
+  "contract": {
+    "infoTitle": "Informații despre contract",
+    "status": "Stare",
+    "startDate": "Data începerii",
+    "endDate": "Data încheierii",
+    "renewalType": "Tip de reînnoire",
+    "tariff": "Tarif",
+    "amount": "Sumă",
+    "amountPerMonth": "{{amount}} / lună",
+    "paidUntil": "Plătit până la",
+    "nextPayment": "Următorul termen de plată",
+    "debt": "Restanță",
+    "debtPresent": "Există restanță",
+    "debtAbsent": "Nu există"
+  },
+  "payments": {
+    "recentTitle": "Plăți recente",
+    "methodTitle": "Informații despre plată",
+    "mainMethod": "Metoda principală de plată",
+    "changeMethod": "Schimbă metoda de plată",
+    "needHelp": "Aveți nevoie de ajutor?",
+    "helpText": "Contactați echipa noastră de suport.",
+    "contactSupport": "Contactați-ne",
+    "cardMasked": "Card •••• {{last4}}",
+    "count_one": "{{count}} plată",
+    "count_few": "{{count}} plăți",
+    "count_other": "{{count}} de plăți"
+  },
+  "statuses": {
+    "active": "Activ",
+    "paid": "Plătit",
+    "enrolled": "Înscris",
+    "register": "Înscrie-te",
+    "renewalAutomatic": "Automată",
+    "renewalManual": "Manuală",
+    "tariffFamily": "Tarif familial"
+  },
+  "belts": {
+    "white": "Centură albă",
+    "yellow": "Centură galbenă",
+    "orange": "Centură portocalie"
+  },
+  "sports": {
+    "judo": "Judo",
+    "karate": "Karate"
+  },
+  "groups": {
+    "children8to12": "Grupa copii (8–12 ani)",
+    "physicalTraining": "Pregătire fizică",
+    "toddlers5to7": "Cei mici (5–7 ani)"
+  },
+  "roles": {
+    "parent": "Părinte",
+    "guardian": "Tutore"
+  },
+  "placeholders": {
+    "notDesignedYet": "Această secțiune nu a fost încă proiectată — nu există un concept vizual."
+  },
+  "errors": {
+    "noChildrenLinked": "Niciun copil nu este încă asociat acestui cont de familie.",
+    "familyLoadError": "Datele familiei nu au putut fi încărcate."
+  },
+  "trainerAuth": {
+    "notConfigured": "Zona antrenorilor nu este disponibilă: backend neconfigurat.",
+    "notAvailable": "Accesul la zona antrenorilor nu este disponibil."
+  },
+  "trainerGroups": {
+    "title": "Grupele mele",
+    "loading": "Se încarcă grupele…",
+    "loadError": "Grupele nu au putut fi încărcate.",
+    "retry": "Reîncearcă",
+    "empty": "Nu aveți încă niciun grup.",
+    "statusActive": "Activ",
+    "statusInactive": "Inactiv"
+  },
+  "trainerDashboard": {
+    "title": "Zona antrenorului",
+    "findStudentTitle": "Caută elevul",
+    "findStudentDescription": "Caută pagina unui elev după nume și deschide-o",
+    "settingsTitle": "Personalizează vizualizarea paginii elevului",
+    "settingsDescription": "Alege ce secțiuni sunt vizibile pe pagina elevului"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Nume",
+    "vornameLabel": "Prenume",
+    "nachnamePlaceholder": "Introduceți numele",
+    "vornamePlaceholder": "Introduceți prenumele",
+    "noResults": "Niciun rezultat",
+    "loadError": "Căutarea a eșuat."
+  }
+}

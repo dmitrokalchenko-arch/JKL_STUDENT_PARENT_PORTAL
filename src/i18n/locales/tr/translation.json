@@ -1,0 +1,199 @@
+{
+  "common": {
+    "showAll": "Tümünü göster",
+    "comingSoon": "Yakında",
+    "on": "Açık",
+    "loading": "Yükleniyor…",
+    "notProvided": "Belirtilmedi",
+    "back": "Geri",
+    "years_one": "{{count}} yaş",
+    "years_other": "{{count}} yaş"
+  },
+  "header": {
+    "greeting": "Hoş geldiniz, {{name}} ailesi",
+    "notifications": "Bildirimler",
+    "notificationsCount_one": "{{count}} bildirim",
+    "notificationsCount_other": "{{count}} bildirim",
+    "settings": "Ayarlar",
+    "logout": "Çıkış yap"
+  },
+  "language": {
+    "switcherLabel": "Dil",
+    "menuLabel": "Dil seçin"
+  },
+  "auth": {
+    "title": "Giriş",
+    "clubLabel": "Kulüp",
+    "nicknameLabel": "Aile takma adı",
+    "passwordLabel": "Şifre",
+    "submit": "Giriş yap",
+    "loggingIn": "Giriş yapılıyor…",
+    "genericError": "Giriş başarısız. Lütfen tekrar deneyin.",
+    "trainerTitle": "Antrenör Girişi",
+    "trainerLoginLabel": "Kullanıcı adı"
+  },
+  "childSelector": {
+    "label": "Bir çocuk seçin:"
+  },
+  "student": {
+    "currentBelt": "Mevcut kuşak",
+    "nextBelt": "Sonraki kuşak"
+  },
+  "exam": {
+    "title": "Sınav için asgari yaş",
+    "achieved": "Uygunluk sağlandı",
+    "notAchieved": "Uygunluk henüz sağlanmadı",
+    "currentAge_one": "Mevcut yaş: {{count}}",
+    "currentAge_other": "Mevcut yaş: {{count}}",
+    "requiredAge_one": "Gerekli asgari yaş: {{count}}",
+    "requiredAge_other": "Gerekli asgari yaş: {{count}}",
+    "remainingYears_one": "~{{count}} yıl kaldı",
+    "remainingYears_other": "~{{count}} yıl kaldı"
+  },
+  "rating": {
+    "title": "Puan durumu",
+    "pointsLabel_one": "puan",
+    "pointsLabel_other": "puan",
+    "remainingPoints_one": "{{count}} puan kaldı",
+    "remainingPoints_other": "{{count}} puan kaldı"
+  },
+  "dashboard": {
+    "family": "Ailem",
+    "trainings": "Antrenmanlarım",
+    "achievements": "Başarılarım",
+    "certificates": "Sertifikalarım",
+    "events": "Etkinliklerim",
+    "techniques": "Gerekli Teknikler",
+    "contract": "Sözleşme ve Ödeme"
+  },
+  "techniqueProgress": {
+    "title": "Teknik İlerlemesi",
+    "bonusProgress": "Bonus için {{required}} teknikten {{completed}} tamamlandı",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Bu kategorideki tüm teknikler tamamlandı",
+    "loading": "Teknik ilerlemesi yükleniyor…",
+    "loadError": "Teknik ilerlemesi yüklenemedi.",
+    "retry": "Tekrar dene",
+    "noProgram": "Bu kuşak için henüz bir teknik programı oluşturulmadı.",
+    "videoModal": {
+      "close": "Kapat",
+      "notAvailable": "Video henüz eklenmedi"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Yaklaşan antrenmanlar",
+    "empty": "Henüz yaklaşan antrenman yok.",
+    "trainerLabel": "Antrenör: {{name}}",
+    "room": "Salon {{number}}",
+    "count_one": "{{count}} antrenman",
+    "count_other": "{{count}} antrenman"
+  },
+  "family": {
+    "profileTitle": "Aile profili",
+    "nickname": "Aile takma adı",
+    "recoveryEmail": "Kurtarma e-postası",
+    "changeEmail": "E-postayı değiştir",
+    "securityTitle": "Güvenlik",
+    "changePassword": "Şifreyi değiştir",
+    "logoutAllDevices": "Tüm cihazlardan çıkış yap",
+    "loginHistory": "Giriş geçmişi",
+    "childrenManagementTitle": "Çocukları yönet",
+    "addChild": "+ Çocuk ekle",
+    "notificationsTitle": "Bildirimler",
+    "emailNotifications": "E-posta bildirimleri",
+    "pushNotifications": "Push bildirimleri",
+    "configureNotifications": "Yapılandır",
+    "childrenCount_one": "{{count}} çocuk",
+    "childrenCount_other": "{{count}} çocuk"
+  },
+  "contract": {
+    "infoTitle": "Sözleşme bilgileri",
+    "status": "Durum",
+    "startDate": "Başlangıç tarihi",
+    "endDate": "Bitiş tarihi",
+    "renewalType": "Yenileme türü",
+    "tariff": "Paket",
+    "amount": "Tutar",
+    "amountPerMonth": "{{amount}} / ay",
+    "paidUntil": "Şu tarihe kadar ödendi",
+    "nextPayment": "Sonraki ödeme tarihi",
+    "debt": "Bakiye borcu",
+    "debtPresent": "Bakiye borcu var",
+    "debtAbsent": "Yok"
+  },
+  "payments": {
+    "recentTitle": "Son ödemeler",
+    "methodTitle": "Ödeme bilgileri",
+    "mainMethod": "Ana ödeme yöntemi",
+    "changeMethod": "Ödeme yöntemini değiştir",
+    "needHelp": "Yardıma mı ihtiyacınız var?",
+    "helpText": "Destek ekibimizle iletişime geçin.",
+    "contactSupport": "İletişime geç",
+    "cardMasked": "Kart •••• {{last4}}",
+    "count_one": "{{count}} ödeme",
+    "count_other": "{{count}} ödeme"
+  },
+  "statuses": {
+    "active": "Aktif",
+    "paid": "Ödendi",
+    "enrolled": "Kayıtlı",
+    "register": "Kaydol",
+    "renewalAutomatic": "Otomatik",
+    "renewalManual": "Manuel",
+    "tariffFamily": "Aile paketi"
+  },
+  "belts": {
+    "white": "Beyaz kuşak",
+    "yellow": "Sarı kuşak",
+    "orange": "Turuncu kuşak"
+  },
+  "sports": {
+    "judo": "Judo",
+    "karate": "Karate"
+  },
+  "groups": {
+    "children8to12": "Çocuk grubu (8–12 yaş)",
+    "physicalTraining": "Fiziksel kondisyon",
+    "toddlers5to7": "Minikler (5–7 yaş)"
+  },
+  "roles": {
+    "parent": "Ebeveyn",
+    "guardian": "Vasi"
+  },
+  "placeholders": {
+    "notDesignedYet": "Bu bölüm henüz tasarlanmadı — görsel bir konsept bulunmuyor."
+  },
+  "errors": {
+    "noChildrenLinked": "Bu aile hesabına henüz bir çocuk bağlanmadı.",
+    "familyLoadError": "Aile verileri yüklenemedi."
+  },
+  "trainerAuth": {
+    "notConfigured": "Antrenör alanı kullanılamıyor: backend yapılandırılmadı.",
+    "notAvailable": "Antrenör alanına erişim kullanılamıyor."
+  },
+  "trainerGroups": {
+    "title": "Gruplarım",
+    "loading": "Gruplar yükleniyor…",
+    "loadError": "Gruplar yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Henüz hiç grubunuz yok.",
+    "statusActive": "Aktif",
+    "statusInactive": "Pasif"
+  },
+  "trainerDashboard": {
+    "title": "Antrenör Alanı",
+    "findStudentTitle": "Öğrenci ara",
+    "findStudentDescription": "Bir öğrencinin sayfasını isme göre arayın ve açın",
+    "settingsTitle": "Öğrenci sayfası görünümünü özelleştir",
+    "settingsDescription": "Öğrenci sayfasında hangi bölümlerin görüneceğini seçin"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Soyad",
+    "vornameLabel": "Ad",
+    "nachnamePlaceholder": "Soyad girin",
+    "vornamePlaceholder": "Ad girin",
+    "noResults": "Sonuç yok",
+    "loadError": "Arama başarısız oldu."
+  }
+}

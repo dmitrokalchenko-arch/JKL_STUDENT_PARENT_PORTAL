@@ -1,0 +1,219 @@
+{
+  "common": {
+    "showAll": "Показати всі",
+    "comingSoon": "Незабаром",
+    "on": "Увімк.",
+    "loading": "Завантаження…",
+    "notProvided": "Не вказано",
+    "back": "Назад",
+    "years_one": "{{count}} рік",
+    "years_few": "{{count}} роки",
+    "years_many": "{{count}} років",
+    "years_other": "{{count}} року"
+  },
+  "header": {
+    "greeting": "Ласкаво просимо, родино {{name}}",
+    "notifications": "Сповіщення",
+    "notificationsCount_one": "{{count}} сповіщення",
+    "notificationsCount_few": "{{count}} сповіщення",
+    "notificationsCount_many": "{{count}} сповіщень",
+    "notificationsCount_other": "{{count}} сповіщення",
+    "settings": "Налаштування",
+    "logout": "Вийти"
+  },
+  "language": {
+    "switcherLabel": "Мова",
+    "menuLabel": "Виберіть мову"
+  },
+  "auth": {
+    "title": "Вхід",
+    "clubLabel": "Клуб",
+    "nicknameLabel": "Нікнейм родини",
+    "passwordLabel": "Пароль",
+    "submit": "Увійти",
+    "loggingIn": "Виконується вхід…",
+    "genericError": "Не вдалося увійти. Спробуйте ще раз.",
+    "trainerTitle": "Вхід для тренерів",
+    "trainerLoginLabel": "Логін"
+  },
+  "childSelector": {
+    "label": "Виберіть дитину:"
+  },
+  "student": {
+    "currentBelt": "Поточний пояс",
+    "nextBelt": "Наступний пояс"
+  },
+  "exam": {
+    "title": "Вік допуску до іспиту",
+    "achieved": "Допуск досягнуто",
+    "notAchieved": "Допуск ще не досягнуто",
+    "currentAge_one": "Поточний вік: {{count}} рік",
+    "currentAge_few": "Поточний вік: {{count}} роки",
+    "currentAge_many": "Поточний вік: {{count}} років",
+    "currentAge_other": "Поточний вік: {{count}} року",
+    "requiredAge_one": "Необхідний мінімальний вік: {{count}} рік",
+    "requiredAge_few": "Необхідний мінімальний вік: {{count}} роки",
+    "requiredAge_many": "Необхідний мінімальний вік: {{count}} років",
+    "requiredAge_other": "Необхідний мінімальний вік: {{count}} року",
+    "remainingYears_one": "Залишилось ~{{count}} рік",
+    "remainingYears_few": "Залишилось ~{{count}} роки",
+    "remainingYears_many": "Залишилось ~{{count}} років",
+    "remainingYears_other": "Залишилось ~{{count}} року"
+  },
+  "rating": {
+    "title": "Рейтингові бали",
+    "pointsLabel_one": "бал",
+    "pointsLabel_few": "бали",
+    "pointsLabel_many": "балів",
+    "pointsLabel_other": "бала",
+    "remainingPoints_one": "Залишилось {{count}} бал",
+    "remainingPoints_few": "Залишилось {{count}} бали",
+    "remainingPoints_many": "Залишилось {{count}} балів",
+    "remainingPoints_other": "Залишилось {{count}} бала"
+  },
+  "dashboard": {
+    "family": "Моя родина",
+    "trainings": "Мої тренування",
+    "achievements": "Мої досягнення",
+    "certificates": "Мої сертифікати",
+    "events": "Мої заходи",
+    "techniques": "Необхідні техніки",
+    "contract": "Договір та оплата"
+  },
+  "techniqueProgress": {
+    "title": "Прогрес технік",
+    "bonusProgress": "{{completed}} із {{required}} технік до бонусу",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Усі техніки цієї категорії виконано",
+    "loading": "Завантаження прогресу технік…",
+    "loadError": "Не вдалося завантажити прогрес технік.",
+    "retry": "Повторити",
+    "noProgram": "Для цього поясу програму технік ще не налаштовано.",
+    "videoModal": {
+      "close": "Закрити",
+      "notAvailable": "Відео ще не додано"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Найближчі тренування",
+    "empty": "Найближчих тренувань поки немає.",
+    "trainerLabel": "Тренер: {{name}}",
+    "room": "Зал {{number}}",
+    "count_one": "{{count}} тренування",
+    "count_few": "{{count}} тренування",
+    "count_many": "{{count}} тренувань",
+    "count_other": "{{count}} тренування"
+  },
+  "family": {
+    "profileTitle": "Профіль родини",
+    "nickname": "Нікнейм родини",
+    "recoveryEmail": "Email для відновлення",
+    "changeEmail": "Змінити email",
+    "securityTitle": "Безпека",
+    "changePassword": "Змінити пароль",
+    "logoutAllDevices": "Вийти з усіх пристроїв",
+    "loginHistory": "Історія входів",
+    "childrenManagementTitle": "Керування дітьми",
+    "addChild": "+ Додати дитину",
+    "notificationsTitle": "Сповіщення",
+    "emailNotifications": "Email-сповіщення",
+    "pushNotifications": "Push-сповіщення",
+    "configureNotifications": "Налаштувати",
+    "childrenCount_one": "{{count}} дитина",
+    "childrenCount_few": "{{count}} дитини",
+    "childrenCount_many": "{{count}} дітей",
+    "childrenCount_other": "{{count}} дитини"
+  },
+  "contract": {
+    "infoTitle": "Інформація про договір",
+    "status": "Статус",
+    "startDate": "Дата початку",
+    "endDate": "Дата закінчення",
+    "renewalType": "Тип продовження",
+    "tariff": "Тариф",
+    "amount": "Сума",
+    "amountPerMonth": "{{amount}} / міс.",
+    "paidUntil": "Оплачено до",
+    "nextPayment": "Наступний термін оплати",
+    "debt": "Заборгованість",
+    "debtPresent": "Є заборгованість",
+    "debtAbsent": "Відсутня"
+  },
+  "payments": {
+    "recentTitle": "Останні платежі",
+    "methodTitle": "Платіжна інформація",
+    "mainMethod": "Основний спосіб оплати",
+    "changeMethod": "Змінити спосіб оплати",
+    "needHelp": "Потрібна допомога?",
+    "helpText": "Зв'яжіться з нашою службою підтримки.",
+    "contactSupport": "Зв'язатися",
+    "cardMasked": "Картка •••• {{last4}}",
+    "count_one": "{{count}} платіж",
+    "count_few": "{{count}} платежі",
+    "count_many": "{{count}} платежів",
+    "count_other": "{{count}} платежу"
+  },
+  "statuses": {
+    "active": "Активний",
+    "paid": "Оплачено",
+    "enrolled": "Записаний",
+    "register": "Записатися",
+    "renewalAutomatic": "Автоматичне",
+    "renewalManual": "Ручне",
+    "tariffFamily": "Сімейний"
+  },
+  "belts": {
+    "white": "Білий пояс",
+    "yellow": "Жовтий пояс",
+    "orange": "Помаранчевий пояс"
+  },
+  "sports": {
+    "judo": "Дзюдо",
+    "karate": "Карате"
+  },
+  "groups": {
+    "children8to12": "Дитяча група (8–12 років)",
+    "physicalTraining": "Фізична підготовка",
+    "toddlers5to7": "Малюки (5–7 років)"
+  },
+  "roles": {
+    "parent": "Батько/матір",
+    "guardian": "Опікун"
+  },
+  "placeholders": {
+    "notDesignedYet": "Цей розділ ще не спроєктовано — візуальної концепції поки немає."
+  },
+  "errors": {
+    "noChildrenLinked": "До сімейного акаунта поки не прив'язано жодної дитини.",
+    "familyLoadError": "Не вдалося завантажити дані сім'ї."
+  },
+  "trainerAuth": {
+    "notConfigured": "Тренерська область недоступна: backend не налаштовано.",
+    "notAvailable": "Доступ до тренерської області недоступний."
+  },
+  "trainerGroups": {
+    "title": "Мої групи",
+    "loading": "Завантаження груп…",
+    "loadError": "Не вдалося завантажити групи.",
+    "retry": "Повторити",
+    "empty": "У вас поки немає груп.",
+    "statusActive": "Активна",
+    "statusInactive": "Неактивна"
+  },
+  "trainerDashboard": {
+    "title": "Тренерська область",
+    "findStudentTitle": "Знайти учня",
+    "findStudentDescription": "Знайти сторінку учня за ім'ям і відкрити її",
+    "settingsTitle": "Налаштувати вигляд сторінки учня",
+    "settingsDescription": "Вибрати, які розділи відображаються на сторінці учня"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Прізвище",
+    "vornameLabel": "Ім'я",
+    "nachnamePlaceholder": "Введіть прізвище",
+    "vornamePlaceholder": "Введіть ім'я",
+    "noResults": "Немає результатів",
+    "loadError": "Не вдалося виконати пошук."
+  }
+}

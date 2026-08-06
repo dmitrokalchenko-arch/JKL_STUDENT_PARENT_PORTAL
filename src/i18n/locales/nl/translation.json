@@ -1,0 +1,199 @@
+{
+  "common": {
+    "showAll": "Alles weergeven",
+    "comingSoon": "Binnenkort beschikbaar",
+    "on": "Aan",
+    "loading": "Laden…",
+    "notProvided": "Niet opgegeven",
+    "back": "Terug",
+    "years_one": "{{count}} jaar",
+    "years_other": "{{count}} jaar"
+  },
+  "header": {
+    "greeting": "Welkom, familie {{name}}",
+    "notifications": "Meldingen",
+    "notificationsCount_one": "{{count}} melding",
+    "notificationsCount_other": "{{count}} meldingen",
+    "settings": "Instellingen",
+    "logout": "Uitloggen"
+  },
+  "language": {
+    "switcherLabel": "Taal",
+    "menuLabel": "Kies een taal"
+  },
+  "auth": {
+    "title": "Inloggen",
+    "clubLabel": "Club",
+    "nicknameLabel": "Bijnaam van het gezin",
+    "passwordLabel": "Wachtwoord",
+    "submit": "Inloggen",
+    "loggingIn": "Bezig met inloggen…",
+    "genericError": "Inloggen mislukt. Probeer het opnieuw.",
+    "trainerTitle": "Trainer login",
+    "trainerLoginLabel": "Gebruikersnaam"
+  },
+  "childSelector": {
+    "label": "Kies een kind:"
+  },
+  "student": {
+    "currentBelt": "Huidige band",
+    "nextBelt": "Volgende band"
+  },
+  "exam": {
+    "title": "Minimumleeftijd voor het examen",
+    "achieved": "Toelating bereikt",
+    "notAchieved": "Toelating nog niet bereikt",
+    "currentAge_one": "Huidige leeftijd: {{count}} jaar",
+    "currentAge_other": "Huidige leeftijd: {{count}} jaar",
+    "requiredAge_one": "Vereiste minimumleeftijd: {{count}} jaar",
+    "requiredAge_other": "Vereiste minimumleeftijd: {{count}} jaar",
+    "remainingYears_one": "Nog ~{{count}} jaar",
+    "remainingYears_other": "Nog ~{{count}} jaar"
+  },
+  "rating": {
+    "title": "Ratingpunten",
+    "pointsLabel_one": "punt",
+    "pointsLabel_other": "punten",
+    "remainingPoints_one": "Nog {{count}} punt",
+    "remainingPoints_other": "Nog {{count}} punten"
+  },
+  "dashboard": {
+    "family": "Mijn gezin",
+    "trainings": "Mijn trainingen",
+    "achievements": "Mijn prestaties",
+    "certificates": "Mijn certificaten",
+    "events": "Mijn evenementen",
+    "techniques": "Vereiste technieken",
+    "contract": "Contract en betaling"
+  },
+  "techniqueProgress": {
+    "title": "Techniekvoortgang",
+    "bonusProgress": "{{completed}} van {{required}} technieken voor de bonus",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Alle technieken in deze categorie voltooid",
+    "loading": "Techniekvoortgang wordt geladen…",
+    "loadError": "Techniekvoortgang kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "noProgram": "Voor deze band is nog geen techniekprogramma ingesteld.",
+    "videoModal": {
+      "close": "Sluiten",
+      "notAvailable": "Video nog niet toegevoegd"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Aankomende trainingen",
+    "empty": "Nog geen aankomende trainingen.",
+    "trainerLabel": "Trainer: {{name}}",
+    "room": "Zaal {{number}}",
+    "count_one": "{{count}} training",
+    "count_other": "{{count}} trainingen"
+  },
+  "family": {
+    "profileTitle": "Gezinsprofiel",
+    "nickname": "Bijnaam van het gezin",
+    "recoveryEmail": "Herstel-e-mailadres",
+    "changeEmail": "E-mailadres wijzigen",
+    "securityTitle": "Beveiliging",
+    "changePassword": "Wachtwoord wijzigen",
+    "logoutAllDevices": "Uitloggen op alle apparaten",
+    "loginHistory": "Inloggeschiedenis",
+    "childrenManagementTitle": "Kinderen beheren",
+    "addChild": "+ Kind toevoegen",
+    "notificationsTitle": "Meldingen",
+    "emailNotifications": "E-mailmeldingen",
+    "pushNotifications": "Pushmeldingen",
+    "configureNotifications": "Instellen",
+    "childrenCount_one": "{{count}} kind",
+    "childrenCount_other": "{{count}} kinderen"
+  },
+  "contract": {
+    "infoTitle": "Contractinformatie",
+    "status": "Status",
+    "startDate": "Startdatum",
+    "endDate": "Einddatum",
+    "renewalType": "Type verlenging",
+    "tariff": "Tarief",
+    "amount": "Bedrag",
+    "amountPerMonth": "{{amount}} / maand",
+    "paidUntil": "Betaald tot",
+    "nextPayment": "Volgende betaaldatum",
+    "debt": "Openstaand saldo",
+    "debtPresent": "Openstaand saldo aanwezig",
+    "debtAbsent": "Geen"
+  },
+  "payments": {
+    "recentTitle": "Recente betalingen",
+    "methodTitle": "Betaalinformatie",
+    "mainMethod": "Belangrijkste betaalmethode",
+    "changeMethod": "Betaalmethode wijzigen",
+    "needHelp": "Hulp nodig?",
+    "helpText": "Neem contact op met onze klantenservice.",
+    "contactSupport": "Contact opnemen",
+    "cardMasked": "Kaart •••• {{last4}}",
+    "count_one": "{{count}} betaling",
+    "count_other": "{{count}} betalingen"
+  },
+  "statuses": {
+    "active": "Actief",
+    "paid": "Betaald",
+    "enrolled": "Aangemeld",
+    "register": "Aanmelden",
+    "renewalAutomatic": "Automatisch",
+    "renewalManual": "Handmatig",
+    "tariffFamily": "Gezinstarief"
+  },
+  "belts": {
+    "white": "Witte band",
+    "yellow": "Gele band",
+    "orange": "Oranje band"
+  },
+  "sports": {
+    "judo": "Judo",
+    "karate": "Karate"
+  },
+  "groups": {
+    "children8to12": "Kindergroep (8–12 jaar)",
+    "physicalTraining": "Fysieke training",
+    "toddlers5to7": "Kleintjes (5–7 jaar)"
+  },
+  "roles": {
+    "parent": "Ouder",
+    "guardian": "Voogd"
+  },
+  "placeholders": {
+    "notDesignedYet": "Dit onderdeel is nog niet ontworpen — er bestaat nog geen visueel concept."
+  },
+  "errors": {
+    "noChildrenLinked": "Er is nog geen kind gekoppeld aan dit gezinsaccount.",
+    "familyLoadError": "Gezinsgegevens konden niet worden geladen."
+  },
+  "trainerAuth": {
+    "notConfigured": "Trainersgedeelte niet beschikbaar: backend niet geconfigureerd.",
+    "notAvailable": "Toegang tot het trainersgedeelte is niet beschikbaar."
+  },
+  "trainerGroups": {
+    "title": "Mijn groepen",
+    "loading": "Groepen laden…",
+    "loadError": "Groepen konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "empty": "U heeft nog geen groepen.",
+    "statusActive": "Actief",
+    "statusInactive": "Inactief"
+  },
+  "trainerDashboard": {
+    "title": "Trainersgedeelte",
+    "findStudentTitle": "Leerling zoeken",
+    "findStudentDescription": "Zoek de pagina van een leerling op naam en open deze",
+    "settingsTitle": "Weergave van de leerlingpagina aanpassen",
+    "settingsDescription": "Kies welke onderdelen zichtbaar zijn op de leerlingpagina"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Achternaam",
+    "vornameLabel": "Voornaam",
+    "nachnamePlaceholder": "Achternaam invoeren",
+    "vornamePlaceholder": "Voornaam invoeren",
+    "noResults": "Geen resultaten",
+    "loadError": "Zoeken mislukt."
+  }
+}

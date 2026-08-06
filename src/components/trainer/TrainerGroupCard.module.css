@@ -1,0 +1,56 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-bg-card-alt);
+  color: var(--color-gold);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.category {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.statusActive,
+.statusInactive {
+  flex: none;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-chip);
+}
+
+.statusActive {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.statusInactive {
+  color: var(--color-text-muted);
+  background: var(--color-bg-card-alt);
+}

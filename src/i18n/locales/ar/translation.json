@@ -1,0 +1,239 @@
+{
+  "common": {
+    "showAll": "عرض الكل",
+    "comingSoon": "قريبًا",
+    "on": "مفعّل",
+    "loading": "جارٍ التحميل…",
+    "notProvided": "غير محدد",
+    "back": "رجوع",
+    "years_zero": "{{count}} سنة",
+    "years_one": "سنة واحدة",
+    "years_two": "سنتان",
+    "years_few": "{{count}} سنوات",
+    "years_many": "{{count}} سنة",
+    "years_other": "{{count}} سنة"
+  },
+  "header": {
+    "greeting": "مرحبًا بعائلة {{name}}",
+    "notifications": "الإشعارات",
+    "notificationsCount_zero": "{{count}} إشعار",
+    "notificationsCount_one": "إشعار واحد",
+    "notificationsCount_two": "إشعاران",
+    "notificationsCount_few": "{{count}} إشعارات",
+    "notificationsCount_many": "{{count}} إشعارًا",
+    "notificationsCount_other": "{{count}} إشعار",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  },
+  "language": {
+    "switcherLabel": "اللغة",
+    "menuLabel": "اختر اللغة"
+  },
+  "auth": {
+    "title": "تسجيل الدخول",
+    "clubLabel": "النادي",
+    "nicknameLabel": "الاسم المستعار للعائلة",
+    "passwordLabel": "كلمة المرور",
+    "submit": "تسجيل الدخول",
+    "loggingIn": "جارٍ تسجيل الدخول…",
+    "genericError": "فشل تسجيل الدخول. حاول مرة أخرى.",
+    "trainerTitle": "تسجيل دخول المدرب",
+    "trainerLoginLabel": "اسم الدخول"
+  },
+  "childSelector": {
+    "label": "اختر الطفل:"
+  },
+  "student": {
+    "currentBelt": "الحزام الحالي",
+    "nextBelt": "الحزام التالي"
+  },
+  "exam": {
+    "title": "الحد الأدنى لسن الاختبار",
+    "achieved": "تم بلوغ السن المطلوب",
+    "notAchieved": "لم يتم بلوغ السن المطلوب بعد",
+    "currentAge_zero": "العمر الحالي: {{count}} سنة",
+    "currentAge_one": "العمر الحالي: سنة واحدة",
+    "currentAge_two": "العمر الحالي: سنتان",
+    "currentAge_few": "العمر الحالي: {{count}} سنوات",
+    "currentAge_many": "العمر الحالي: {{count}} سنة",
+    "currentAge_other": "العمر الحالي: {{count}} سنة",
+    "requiredAge_zero": "الحد الأدنى المطلوب للسن: {{count}} سنة",
+    "requiredAge_one": "الحد الأدنى المطلوب للسن: سنة واحدة",
+    "requiredAge_two": "الحد الأدنى المطلوب للسن: سنتان",
+    "requiredAge_few": "الحد الأدنى المطلوب للسن: {{count}} سنوات",
+    "requiredAge_many": "الحد الأدنى المطلوب للسن: {{count}} سنة",
+    "requiredAge_other": "الحد الأدنى المطلوب للسن: {{count}} سنة",
+    "remainingYears_zero": "تبقّى ~{{count}} سنة",
+    "remainingYears_one": "تبقّت سنة واحدة تقريبًا",
+    "remainingYears_two": "تبقّت سنتان تقريبًا",
+    "remainingYears_few": "تبقّى ~{{count}} سنوات",
+    "remainingYears_many": "تبقّى ~{{count}} سنة",
+    "remainingYears_other": "تبقّى ~{{count}} سنة"
+  },
+  "rating": {
+    "title": "نقاط التصنيف",
+    "pointsLabel_zero": "نقطة",
+    "pointsLabel_one": "نقطة واحدة",
+    "pointsLabel_two": "نقطتان",
+    "pointsLabel_few": "نقاط",
+    "pointsLabel_many": "نقطة",
+    "pointsLabel_other": "نقطة",
+    "remainingPoints_zero": "تبقّى {{count}} نقطة",
+    "remainingPoints_one": "تبقّت نقطة واحدة",
+    "remainingPoints_two": "تبقّت نقطتان",
+    "remainingPoints_few": "تبقّى {{count}} نقاط",
+    "remainingPoints_many": "تبقّى {{count}} نقطة",
+    "remainingPoints_other": "تبقّى {{count}} نقطة"
+  },
+  "dashboard": {
+    "family": "عائلتي",
+    "trainings": "تدريباتي",
+    "achievements": "إنجازاتي",
+    "certificates": "شهاداتي",
+    "events": "فعالياتي",
+    "techniques": "المهارات المطلوبة",
+    "contract": "العقد والدفع"
+  },
+  "techniqueProgress": {
+    "title": "تقدم التقنيات",
+    "bonusProgress": "{{completed}} من {{required}} تقنيات للمكافأة",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "تم إتمام جميع التقنيات في هذه الفئة",
+    "loading": "جارٍ تحميل تقدم التقنيات…",
+    "loadError": "تعذّر تحميل تقدم التقنيات.",
+    "retry": "إعادة المحاولة",
+    "noProgram": "لم يتم إعداد برنامج تقنيات لهذا الحزام بعد.",
+    "videoModal": {
+      "close": "إغلاق",
+      "notAvailable": "لم يُضف الفيديو بعد"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "التدريبات القادمة",
+    "empty": "لا توجد تدريبات قادمة حاليًا.",
+    "trainerLabel": "المدرب: {{name}}",
+    "room": "القاعة {{number}}",
+    "count_zero": "{{count}} تدريب",
+    "count_one": "تدريب واحد",
+    "count_two": "تدريبان",
+    "count_few": "{{count}} تدريبات",
+    "count_many": "{{count}} تدريبًا",
+    "count_other": "{{count}} تدريب"
+  },
+  "family": {
+    "profileTitle": "ملف العائلة",
+    "nickname": "الاسم المستعار للعائلة",
+    "recoveryEmail": "البريد الإلكتروني لاسترداد الحساب",
+    "changeEmail": "تغيير البريد الإلكتروني",
+    "securityTitle": "الأمان",
+    "changePassword": "تغيير كلمة المرور",
+    "logoutAllDevices": "تسجيل الخروج من جميع الأجهزة",
+    "loginHistory": "سجل تسجيل الدخول",
+    "childrenManagementTitle": "إدارة الأطفال",
+    "addChild": "+ إضافة طفل",
+    "notificationsTitle": "الإشعارات",
+    "emailNotifications": "إشعارات البريد الإلكتروني",
+    "pushNotifications": "الإشعارات الفورية",
+    "configureNotifications": "تخصيص",
+    "childrenCount_zero": "{{count}} طفل",
+    "childrenCount_one": "طفل واحد",
+    "childrenCount_two": "طفلان",
+    "childrenCount_few": "{{count}} أطفال",
+    "childrenCount_many": "{{count}} طفلًا",
+    "childrenCount_other": "{{count}} طفل"
+  },
+  "contract": {
+    "infoTitle": "معلومات العقد",
+    "status": "الحالة",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "renewalType": "نوع التجديد",
+    "tariff": "الباقة",
+    "amount": "المبلغ",
+    "amountPerMonth": "{{amount}} / شهريًا",
+    "paidUntil": "مدفوع حتى",
+    "nextPayment": "موعد الدفعة التالية",
+    "debt": "الرصيد المستحق",
+    "debtPresent": "يوجد رصيد مستحق",
+    "debtAbsent": "لا يوجد"
+  },
+  "payments": {
+    "recentTitle": "آخر الدفعات",
+    "methodTitle": "معلومات الدفع",
+    "mainMethod": "طريقة الدفع الرئيسية",
+    "changeMethod": "تغيير طريقة الدفع",
+    "needHelp": "هل تحتاج إلى مساعدة؟",
+    "helpText": "تواصل مع فريق الدعم لدينا.",
+    "contactSupport": "تواصل معنا",
+    "cardMasked": "بطاقة •••• {{last4}}",
+    "count_zero": "{{count}} دفعة",
+    "count_one": "دفعة واحدة",
+    "count_two": "دفعتان",
+    "count_few": "{{count}} دفعات",
+    "count_many": "{{count}} دفعة",
+    "count_other": "{{count}} دفعة"
+  },
+  "statuses": {
+    "active": "نشط",
+    "paid": "مدفوع",
+    "enrolled": "مسجَّل",
+    "register": "التسجيل",
+    "renewalAutomatic": "تلقائي",
+    "renewalManual": "يدوي",
+    "tariffFamily": "باقة العائلة"
+  },
+  "belts": {
+    "white": "الحزام الأبيض",
+    "yellow": "الحزام الأصفر",
+    "orange": "الحزام البرتقالي"
+  },
+  "sports": {
+    "judo": "الجودو",
+    "karate": "الكاراتيه"
+  },
+  "groups": {
+    "children8to12": "مجموعة الأطفال (8–12 سنة)",
+    "physicalTraining": "الإعداد البدني",
+    "toddlers5to7": "الصغار (5–7 سنوات)"
+  },
+  "roles": {
+    "parent": "ولي الأمر",
+    "guardian": "الوصي"
+  },
+  "placeholders": {
+    "notDesignedYet": "لم يتم تصميم هذا القسم بعد — لا يوجد تصور مرئي حتى الآن."
+  },
+  "errors": {
+    "noChildrenLinked": "لم يتم ربط أي طفل بهذا الحساب العائلي بعد.",
+    "familyLoadError": "تعذّر تحميل بيانات العائلة."
+  },
+  "trainerAuth": {
+    "notConfigured": "منطقة المدرب غير متاحة: لم يتم تهيئة الخادم.",
+    "notAvailable": "الوصول إلى منطقة المدرب غير متاح."
+  },
+  "trainerGroups": {
+    "title": "مجموعاتي",
+    "loading": "جارٍ تحميل المجموعات…",
+    "loadError": "تعذّر تحميل المجموعات.",
+    "retry": "إعادة المحاولة",
+    "empty": "ليس لديك أي مجموعات بعد.",
+    "statusActive": "نشطة",
+    "statusInactive": "غير نشطة"
+  },
+  "trainerDashboard": {
+    "title": "منطقة المدرب",
+    "findStudentTitle": "البحث عن طالب",
+    "findStudentDescription": "ابحث عن صفحة الطالب بالاسم وافتحها",
+    "settingsTitle": "تخصيص عرض صفحة الطالب",
+    "settingsDescription": "اختر الأقسام التي تظهر في صفحة الطالب"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "اللقب",
+    "vornameLabel": "الاسم",
+    "nachnamePlaceholder": "أدخل اللقب",
+    "vornamePlaceholder": "أدخل الاسم",
+    "noResults": "لا توجد نتائج",
+    "loadError": "فشل البحث."
+  }
+}

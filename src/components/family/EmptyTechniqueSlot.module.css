@@ -1,0 +1,8 @@
+.slot {
+  flex: none;
+  width: 112px;
+  height: 164px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: transparent;
+}

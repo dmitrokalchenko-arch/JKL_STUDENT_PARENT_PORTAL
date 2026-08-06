@@ -1,0 +1,19 @@
+-- НАЙДЕНО ФАКТИЧЕСКИМ ТЕСТОМ локального прогона Edge Function
+-- manage-trainer-account (не предположением): INSERT в trainer_accounts от
+-- имени service_role падал с "permission denied for function
+-- family_club_exists".
+--
+-- Причина: триггер enforce_trainer_accounts_club_exists (migration 011) —
+-- ОБЫЧНАЯ (не SECURITY DEFINER) функция, вызывающая family_club_exists()
+-- ИЗНУТРИ СЕБЯ. family_club_exists сама SECURITY DEFINER (migration 001),
+-- но это не отменяет требование EXECUTE-права для того, кто её ВЫЗЫВАЕТ —
+-- SECURITY DEFINER меняет то, с чьими правами функция читает данные
+-- ВНУТРИ себя, а не то, кто имеет право её вызвать. Комментарий в migration
+-- 001 ("работает независимо от grant'ов, т.к. выполняется в контексте
+-- определившей функции роли") был верен для вызовов из ДРУГИХ SECURITY
+-- DEFINER функций (как enforce_families_club_exists при обычном семейном
+-- flow, где вызывающая сторона — anon/authenticated, у которых своих
+-- SECURITY DEFINER RPC достаточно), но не был проверен для вызова из
+-- контекста service_role через прямой INSERT (Edge Function) — тестовый
+-- прогон обнаружил этот пробел.
+grant execute on function public.family_club_exists(text) to service_role;

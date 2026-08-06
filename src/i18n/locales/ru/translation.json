@@ -1,0 +1,219 @@
+{
+  "common": {
+    "showAll": "Показать все",
+    "comingSoon": "Позже",
+    "on": "Вкл.",
+    "loading": "Загрузка…",
+    "notProvided": "Не указано",
+    "back": "Назад",
+    "years_one": "{{count}} год",
+    "years_few": "{{count}} года",
+    "years_many": "{{count}} лет",
+    "years_other": "{{count}} года"
+  },
+  "header": {
+    "greeting": "Добро пожаловать, семья {{name}}",
+    "notifications": "Уведомления",
+    "notificationsCount_one": "{{count}} уведомление",
+    "notificationsCount_few": "{{count}} уведомления",
+    "notificationsCount_many": "{{count}} уведомлений",
+    "notificationsCount_other": "{{count}} уведомления",
+    "settings": "Настройки",
+    "logout": "Выход"
+  },
+  "language": {
+    "switcherLabel": "Язык",
+    "menuLabel": "Выберите язык"
+  },
+  "auth": {
+    "title": "Вход",
+    "clubLabel": "Клуб",
+    "nicknameLabel": "Семейный ник",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "loggingIn": "Выполняется вход…",
+    "genericError": "Не удалось войти. Попробуйте ещё раз.",
+    "trainerTitle": "Вход для тренеров",
+    "trainerLoginLabel": "Логин"
+  },
+  "childSelector": {
+    "label": "Выберите ребёнка:"
+  },
+  "student": {
+    "currentBelt": "Текущий пояс",
+    "nextBelt": "Следующий пояс"
+  },
+  "exam": {
+    "title": "Возраст допуска к экзамену",
+    "achieved": "Допуск достигнут",
+    "notAchieved": "Допуск ещё не достигнут",
+    "currentAge_one": "Текущий возраст: {{count}} год",
+    "currentAge_few": "Текущий возраст: {{count}} года",
+    "currentAge_many": "Текущий возраст: {{count}} лет",
+    "currentAge_other": "Текущий возраст: {{count}} года",
+    "requiredAge_one": "Требуемый минимальный возраст: {{count}} год",
+    "requiredAge_few": "Требуемый минимальный возраст: {{count}} года",
+    "requiredAge_many": "Требуемый минимальный возраст: {{count}} лет",
+    "requiredAge_other": "Требуемый минимальный возраст: {{count}} года",
+    "remainingYears_one": "Осталось ~{{count}} год",
+    "remainingYears_few": "Осталось ~{{count}} года",
+    "remainingYears_many": "Осталось ~{{count}} лет",
+    "remainingYears_other": "Осталось ~{{count}} года"
+  },
+  "rating": {
+    "title": "Рейтинговые баллы",
+    "pointsLabel_one": "балл",
+    "pointsLabel_few": "балла",
+    "pointsLabel_many": "баллов",
+    "pointsLabel_other": "балла",
+    "remainingPoints_one": "Осталось {{count}} балл",
+    "remainingPoints_few": "Осталось {{count}} балла",
+    "remainingPoints_many": "Осталось {{count}} баллов",
+    "remainingPoints_other": "Осталось {{count}} балла"
+  },
+  "dashboard": {
+    "family": "Моя семья",
+    "trainings": "Мои тренировки",
+    "achievements": "Мои достижения",
+    "certificates": "Мои сертификаты",
+    "events": "Мои мероприятия",
+    "techniques": "Необходимые техники",
+    "contract": "Договор и оплата"
+  },
+  "techniqueProgress": {
+    "title": "Прогресс техник",
+    "bonusProgress": "{{completed}} из {{required}} техник до бонуса",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "Все техники этой категории выполнены",
+    "loading": "Загрузка прогресса техник…",
+    "loadError": "Не удалось загрузить прогресс техник.",
+    "retry": "Повторить",
+    "noProgram": "Для этого пояса программа техник ещё не настроена.",
+    "videoModal": {
+      "close": "Закрыть",
+      "notAvailable": "Видео пока не добавлено"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Ближайшие тренировки",
+    "empty": "Ближайших тренировок пока нет.",
+    "trainerLabel": "Тренер: {{name}}",
+    "room": "Зал {{number}}",
+    "count_one": "{{count}} тренировка",
+    "count_few": "{{count}} тренировки",
+    "count_many": "{{count}} тренировок",
+    "count_other": "{{count}} тренировки"
+  },
+  "family": {
+    "profileTitle": "Профиль семьи",
+    "nickname": "Семейный ник",
+    "recoveryEmail": "Email восстановления",
+    "changeEmail": "Изменить email",
+    "securityTitle": "Безопасность",
+    "changePassword": "Изменить пароль",
+    "logoutAllDevices": "Выйти со всех устройств",
+    "loginHistory": "История входов",
+    "childrenManagementTitle": "Управление детьми",
+    "addChild": "+ Добавить ребёнка",
+    "notificationsTitle": "Уведомления",
+    "emailNotifications": "Email уведомления",
+    "pushNotifications": "Push уведомления",
+    "configureNotifications": "Настроить",
+    "childrenCount_one": "{{count}} ребёнок",
+    "childrenCount_few": "{{count}} ребёнка",
+    "childrenCount_many": "{{count}} детей",
+    "childrenCount_other": "{{count}} ребёнка"
+  },
+  "contract": {
+    "infoTitle": "Информация о договоре",
+    "status": "Статус",
+    "startDate": "Дата начала",
+    "endDate": "Дата окончания",
+    "renewalType": "Тип продления",
+    "tariff": "Тариф",
+    "amount": "Сумма",
+    "amountPerMonth": "{{amount}} / мес.",
+    "paidUntil": "Оплачено до",
+    "nextPayment": "Следующий срок оплаты",
+    "debt": "Задолженность",
+    "debtPresent": "Есть задолженность",
+    "debtAbsent": "Отсутствует"
+  },
+  "payments": {
+    "recentTitle": "Последние платежи",
+    "methodTitle": "Платёжная информация",
+    "mainMethod": "Основной способ оплаты",
+    "changeMethod": "Изменить способ оплаты",
+    "needHelp": "Нужна помощь?",
+    "helpText": "Свяжитесь с нашей службой поддержки.",
+    "contactSupport": "Связаться",
+    "cardMasked": "Карта •••• {{last4}}",
+    "count_one": "{{count}} платёж",
+    "count_few": "{{count}} платежа",
+    "count_many": "{{count}} платежей",
+    "count_other": "{{count}} платежа"
+  },
+  "statuses": {
+    "active": "Активен",
+    "paid": "Оплачено",
+    "enrolled": "Записан",
+    "register": "Записаться",
+    "renewalAutomatic": "Автоматическое",
+    "renewalManual": "Ручное",
+    "tariffFamily": "Семейный"
+  },
+  "belts": {
+    "white": "Белый пояс",
+    "yellow": "Жёлтый пояс",
+    "orange": "Оранжевый пояс"
+  },
+  "sports": {
+    "judo": "Дзюдо",
+    "karate": "Карате"
+  },
+  "groups": {
+    "children8to12": "Детская группа (8–12 лет)",
+    "physicalTraining": "Физическая подготовка",
+    "toddlers5to7": "Малыши (5–7 лет)"
+  },
+  "roles": {
+    "parent": "Родитель",
+    "guardian": "Опекун"
+  },
+  "placeholders": {
+    "notDesignedYet": "Раздел ещё не спроектирован — визуальный макет пока не создан."
+  },
+  "errors": {
+    "noChildrenLinked": "Семейный аккаунт пока не привязан ни к одному ребёнку.",
+    "familyLoadError": "Не удалось загрузить данные семьи."
+  },
+  "trainerAuth": {
+    "notConfigured": "Тренерская область недоступна: backend не настроен.",
+    "notAvailable": "Доступ к тренерской области недоступен."
+  },
+  "trainerGroups": {
+    "title": "Мои группы",
+    "loading": "Загрузка групп…",
+    "loadError": "Не удалось загрузить группы.",
+    "retry": "Повторить",
+    "empty": "У вас пока нет групп.",
+    "statusActive": "Активна",
+    "statusInactive": "Неактивна"
+  },
+  "trainerDashboard": {
+    "title": "Тренерская область",
+    "findStudentTitle": "Найти ученика",
+    "findStudentDescription": "Найти страницу ученика по имени и открыть её",
+    "settingsTitle": "Настроить вид страницы ученика",
+    "settingsDescription": "Выбрать, какие разделы отображаются на странице ученика"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Фамилия",
+    "vornameLabel": "Имя",
+    "nachnamePlaceholder": "Введите фамилию",
+    "vornamePlaceholder": "Введите имя",
+    "noResults": "Нет результатов",
+    "loadError": "Не удалось выполнить поиск."
+  }
+}

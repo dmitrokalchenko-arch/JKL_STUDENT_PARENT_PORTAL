@@ -1,0 +1,20 @@
+-- НАЙДЕНО ФАКТИЧЕСКИМ ТЕСТОМ локального прогона Edge Function
+-- manage-trainer-account (не предположением): INSERT в trainer_accounts от
+-- имени service_role падал с "permission denied for function
+-- normalize_login_name".
+--
+-- Причина: trainer_accounts.normalized_login_name — GENERATED ALWAYS AS
+-- (normalize_login_name(login_name)) STORED (migration 011). Вычисление
+-- generated-выражения при INSERT/UPDATE происходит с правами РОЛИ,
+-- ВЫПОЛНЯЮЩЕЙ операцию (как и обычный DEFAULT/CHECK), а не владельца
+-- таблицы — SECURITY DEFINER на самой normalize_login_name здесь ни при
+-- чём (у неё его и нет, это язык sql immutable без security definer).
+-- Ранее EXECUTE не выдавался вообще никому, кроме implicit revoke от
+-- public (migration 011: "revoke all on function
+-- public.normalize_login_name(text) from public;", без последующего
+-- grant) — рассчитывалось только на использование изнутри generated-колонки
+-- при INSERT от роли, у которой БЫЛ БЫ default execute (обычные
+-- anon/authenticated клиентские вставки этой таблицы всё равно запрещены
+-- RLS без policy, поэтому этот путь никогда раньше не проверялся вживую;
+-- INSERT от service_role через Edge Function — первый реальный тест).
+grant execute on function public.normalize_login_name(text) to service_role;

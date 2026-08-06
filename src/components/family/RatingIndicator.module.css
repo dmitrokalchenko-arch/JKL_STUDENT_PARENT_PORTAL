@@ -1,0 +1,30 @@
+.value {
+  text-align: center;
+}
+
+.current {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-gold-light);
+}
+
+.total {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.percent {
+  color: var(--color-gold);
+  font-weight: 600;
+}

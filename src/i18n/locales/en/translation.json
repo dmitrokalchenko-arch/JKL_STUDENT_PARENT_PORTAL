@@ -1,0 +1,199 @@
+{
+  "common": {
+    "showAll": "Show all",
+    "comingSoon": "Coming soon",
+    "on": "On",
+    "loading": "Loading…",
+    "notProvided": "Not provided",
+    "back": "Back",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years"
+  },
+  "header": {
+    "greeting": "Welcome, the {{name}} family",
+    "notifications": "Notifications",
+    "notificationsCount_one": "{{count}} notification",
+    "notificationsCount_other": "{{count}} notifications",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "language": {
+    "switcherLabel": "Language",
+    "menuLabel": "Select language"
+  },
+  "auth": {
+    "title": "Sign in",
+    "clubLabel": "Club",
+    "nicknameLabel": "Family nickname",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "loggingIn": "Signing in…",
+    "genericError": "Sign-in failed. Please try again.",
+    "trainerTitle": "Trainer Login",
+    "trainerLoginLabel": "Login"
+  },
+  "childSelector": {
+    "label": "Select a child:"
+  },
+  "student": {
+    "currentBelt": "Current belt",
+    "nextBelt": "Next belt"
+  },
+  "exam": {
+    "title": "Minimum age for the exam",
+    "achieved": "Eligibility reached",
+    "notAchieved": "Eligibility not yet reached",
+    "currentAge_one": "Current age: {{count}} year",
+    "currentAge_other": "Current age: {{count}} years",
+    "requiredAge_one": "Required minimum age: {{count}} year",
+    "requiredAge_other": "Required minimum age: {{count}} years",
+    "remainingYears_one": "~{{count}} year left",
+    "remainingYears_other": "~{{count}} years left"
+  },
+  "rating": {
+    "title": "Rating points",
+    "pointsLabel_one": "point",
+    "pointsLabel_other": "points",
+    "remainingPoints_one": "{{count}} point left",
+    "remainingPoints_other": "{{count}} points left"
+  },
+  "dashboard": {
+    "family": "My Family",
+    "trainings": "My Trainings",
+    "achievements": "My Achievements",
+    "certificates": "My Certificates",
+    "events": "My Events",
+    "techniques": "Required Techniques",
+    "contract": "Contract & Payment"
+  },
+  "techniqueProgress": {
+    "title": "Technique Progress",
+    "bonusProgress": "{{completed}} of {{required}} techniques for the bonus",
+    "tachiWaza": "Tachi-waza",
+    "neWaza": "Ne-waza",
+    "noRequiredTechniques": "All techniques in this category completed",
+    "loading": "Loading technique progress…",
+    "loadError": "Couldn't load technique progress.",
+    "retry": "Retry",
+    "noProgram": "No technique program has been set up for this belt yet.",
+    "videoModal": {
+      "close": "Close",
+      "notAvailable": "Video not added yet"
+    }
+  },
+  "trainings": {
+    "upcomingTitle": "Upcoming trainings",
+    "empty": "No upcoming trainings yet.",
+    "trainerLabel": "Coach: {{name}}",
+    "room": "Hall {{number}}",
+    "count_one": "{{count}} training",
+    "count_other": "{{count}} trainings"
+  },
+  "family": {
+    "profileTitle": "Family profile",
+    "nickname": "Family nickname",
+    "recoveryEmail": "Recovery email",
+    "changeEmail": "Change email",
+    "securityTitle": "Security",
+    "changePassword": "Change password",
+    "logoutAllDevices": "Log out of all devices",
+    "loginHistory": "Login history",
+    "childrenManagementTitle": "Manage children",
+    "addChild": "+ Add child",
+    "notificationsTitle": "Notifications",
+    "emailNotifications": "Email notifications",
+    "pushNotifications": "Push notifications",
+    "configureNotifications": "Configure",
+    "childrenCount_one": "{{count}} child",
+    "childrenCount_other": "{{count}} children"
+  },
+  "contract": {
+    "infoTitle": "Contract information",
+    "status": "Status",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "renewalType": "Renewal type",
+    "tariff": "Plan",
+    "amount": "Amount",
+    "amountPerMonth": "{{amount}} / month",
+    "paidUntil": "Paid until",
+    "nextPayment": "Next payment date",
+    "debt": "Outstanding balance",
+    "debtPresent": "Outstanding balance",
+    "debtAbsent": "None"
+  },
+  "payments": {
+    "recentTitle": "Recent payments",
+    "methodTitle": "Payment information",
+    "mainMethod": "Primary payment method",
+    "changeMethod": "Change payment method",
+    "needHelp": "Need help?",
+    "helpText": "Contact our support team.",
+    "contactSupport": "Contact us",
+    "cardMasked": "Card •••• {{last4}}",
+    "count_one": "{{count}} payment",
+    "count_other": "{{count}} payments"
+  },
+  "statuses": {
+    "active": "Active",
+    "paid": "Paid",
+    "enrolled": "Enrolled",
+    "register": "Register",
+    "renewalAutomatic": "Automatic",
+    "renewalManual": "Manual",
+    "tariffFamily": "Family plan"
+  },
+  "belts": {
+    "white": "White belt",
+    "yellow": "Yellow belt",
+    "orange": "Orange belt"
+  },
+  "sports": {
+    "judo": "Judo",
+    "karate": "Karate"
+  },
+  "groups": {
+    "children8to12": "Children's group (8–12 years)",
+    "physicalTraining": "Physical conditioning",
+    "toddlers5to7": "Little ones (5–7 years)"
+  },
+  "roles": {
+    "parent": "Parent",
+    "guardian": "Guardian"
+  },
+  "placeholders": {
+    "notDesignedYet": "This section has not been designed yet — no visual concept exists."
+  },
+  "errors": {
+    "noChildrenLinked": "No child is linked to this family account yet.",
+    "familyLoadError": "Failed to load family data."
+  },
+  "trainerAuth": {
+    "notConfigured": "Trainer area unavailable: backend not configured.",
+    "notAvailable": "Access to the trainer area is not available."
+  },
+  "trainerGroups": {
+    "title": "My Groups",
+    "loading": "Loading groups…",
+    "loadError": "Failed to load groups.",
+    "retry": "Retry",
+    "empty": "You don't have any groups yet.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
+  },
+  "trainerDashboard": {
+    "title": "Trainer Area",
+    "findStudentTitle": "Find student",
+    "findStudentDescription": "Search for a student's page by name and open it",
+    "settingsTitle": "Customize student page view",
+    "settingsDescription": "Choose which sections are visible on the student page"
+  },
+  "trainerStudentSearch": {
+    "nachnameLabel": "Last name",
+    "vornameLabel": "First name",
+    "nachnamePlaceholder": "Enter last name",
+    "vornamePlaceholder": "Enter first name",
+    "noResults": "No results",
+    "loadError": "Search failed."
+  }
+}

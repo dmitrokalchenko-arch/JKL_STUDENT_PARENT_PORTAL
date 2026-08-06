@@ -1,0 +1,41 @@
+@import './theme.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/*
+ * Поддержка RTL (арабский). direction/lang на <html> выставляются
+ * автоматически в src/i18n/index.js при смене языка.
+ * Логотип, фотографии, круговые индикаторы и числа не должны зеркалиться —
+ * для них используется утилитарный класс .ltr-isolate ниже.
+ */
+html[dir='rtl'] body {
+  direction: rtl;
+}
+
+.ltr-isolate {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
