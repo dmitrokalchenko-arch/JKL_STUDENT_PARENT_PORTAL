@@ -49,10 +49,22 @@ interface TrainerCandidate {
 const SESSION_TTL_MS = 30 * 60 * 1000; // 30 Minuten, fest.
 const GENERIC_ERROR = { error: 'invalid_credentials' };
 
+// CORS — Kong/Cloudflare-Gateway fügt für Edge Functions dieses Projekts
+// keine CORS-Header automatisch hinzu (im Unterschied zum lokalen
+// Docker-Edge-Runtime, siehe Diagnose dieser Session): ohne explizite
+// OPTIONS-Behandlung und Header auf JEDER Antwort blockiert der Browser
+// jeden Cross-Origin-Aufruf von JCL_Gruppen (jcl-gruppen.netlify.app) schon
+// beim Preflight, bevor der eigentliche POST je den Server erreicht.
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': 'https://jcl-gruppen.netlify.app',
+  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json' }
+    headers: { 'content-type': 'application/json', ...CORS_HEADERS }
   });
 }
 
@@ -118,6 +130,10 @@ async function verifyPinHash(inputPin: string, storedHash: string, storedSalt: s
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed' }, 405);
   }

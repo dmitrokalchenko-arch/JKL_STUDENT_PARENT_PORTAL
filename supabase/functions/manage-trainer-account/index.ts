@@ -61,10 +61,19 @@ const MIN_PASSWORD_LENGTH = 8;
 const MAX_LOGIN_NAME_LENGTH = 100;
 const MAX_DISPLAY_NAME_LENGTH = 200;
 
+// CORS — siehe admin-pin-login/index.ts für die vollständige Begründung:
+// ohne explizite Behandlung blockiert der Browser jeden Cross-Origin-Aufruf
+// von JCL_Gruppen (jcl-gruppen.netlify.app) bereits beim Preflight.
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': 'https://jcl-gruppen.netlify.app',
+  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json' }
+    headers: { 'content-type': 'application/json', ...CORS_HEADERS }
   });
 }
 
@@ -77,6 +86,10 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed' }, 405);
   }
