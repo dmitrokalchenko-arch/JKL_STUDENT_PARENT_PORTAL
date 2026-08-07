@@ -678,8 +678,65 @@ Supabase CLI/подключения, только файлы. Требуется
 - **Migration 015 к production не применялась** — только создана и
   проверена локально, ожидает решения владельца.
 
+## Super Admin PIN Session — полный доступ к Familienzugänge-Verwaltung через легаси PIN-вход
+
+Полное описание — `docs/database/SUPER_ADMIN_PIN_SESSION.md`. Реализовано и
+протестировано **локально**, к **production не применялось**.
+
+- Изменено бизнес-требование: легаси PIN-вход Super Admin (username+PIN,
+  `JCL_Gruppen.super_admins`) — больше не read-only/fallback-режим. После
+  обычного PIN-входа Super Admin должен иметь полный доступ к
+  Familienzugänge-Verwaltung, без обязательной отдельной регистрации в
+  Supabase Auth.
+- Правило 1 в `.claude/CLAUDE.md` обновлено (2026-08-07): точечные правки
+  `JCL_Gruppen/app.js`/`index.html` разрешены, но только в пределах кода,
+  относящегося к интеграции с этим порталом (Super Admin / Trainer Portal /
+  Familienzugänge login) — остальной JCL_Gruppen по-прежнему не трогается.
+- Аудит показал: старый PIN-путь сравнивал `super_admins.pin` (открытый
+  текст) прямо в браузере — сервер вообще не проверял PIN. Поля
+  активности/статуса у `super_admins` не существует (проверено по всем
+  местам использования в коде, не найдено).
+- Новое: таблица `super_admin_pin_sessions` (migration `20260807110036`),
+  Edge Functions `super-admin-pin-login`/`super-admin-pin-logout` —
+  PIN теперь проверяется ТОЛЬКО на сервере (service_role), никогда не
+  возвращается в браузер и не логируется. Короткоживущий (30 минут,
+  фиксированный TTL) opaque-токен хранится в `sessionStorage` (не
+  `localStorage`).
+- `manage-family-account` теперь принимает ДВА равноправных способа
+  авторизации в одном заголовке `Authorization: Bearer` — Supabase Auth JWT
+  (как раньше) или PIN-сессию. Аудит-лог (`family_account_audit_log`,
+  migration `20260807110037`) получил основной actor id
+  `performed_by_super_admin_id` (bigint, всегда заполнен); старая колонка
+  `performed_by_auth_user_id` осталась, стала nullable, заполняется только
+  при JWT-пути.
+- `JCL_Gruppen/app.js`: правки строго ограничены Super Admin PIN-логином и
+  Familienzugänge-гейтом (`_superAdminLoginCore`, `saFamilienCallManageAccount`,
+  `superAdminLogout`) — блокирующий текст «...ist mit einer PIN-Anmeldung
+  nicht möglich» удалён. Trainerportal-Zugang и PIN-подтверждение удаления
+  клуба не изменялись.
+- Найдено фактическим локальным тестом (не предположение): `service_role`
+  не имел прав на `public.super_admins`/`super_admin_pin_sessions` — добавлена
+  migration `20260807110038` (нужна и в production, не только локально).
+- **Локально протестировано** (Docker + `npx supabase`, `.local-supabase-test/`,
+  реальные HTTP-вызовы к Edge Functions): верный PIN → полный доступ ко всем
+  действиям (create/set_login/set_contact_email/set_password/activate/
+  deactivate/send_recovery), неверный PIN → отказ, подделанный токен → 401,
+  истёкший токен → 401, отозванный (logout) токен → 401, JWT-путь
+  (`super_admin_accounts`) продолжает работать независимо, аудит-лог
+  корректно различает оба пути. Ни PIN, ни токен не встретились в логах
+  Edge Functions. Проверка «PIN/токен не в localStorage» и «закрытие вкладки
+  убирает токен» — по коду и стандартной семантике `sessionStorage`
+  (реальный E2E-тест в браузере с переключением `JCL_Gruppen/supabase.js` на
+  локальный стенд не выполнялся в этой сессии — не запрашивался, стенд
+  готов, инструкция есть в `.local-supabase-test/TRAINER_AUTH_LOCAL_PROTOTYPE.md`
+  по аналогии).
+- **Production не менялся.** Commit/push не выполнялись — ждут отдельного
+  подтверждения пользователя.
+
 ## Следующий этап
 
+- Дождаться решения пользователя по итогам Super Admin PIN Session (принять
+  как есть / доработать / затем commit+push, отдельно production-миграции).
 - Показать пользователю итоговый отчёт по локализации (12 языков,
   тестирование, сборка, спорные переводы) и дождаться решения по спискам
   из `docs/I18N_TRANSLATION_REVIEW.md` (нужна ли вычитка носителями перед

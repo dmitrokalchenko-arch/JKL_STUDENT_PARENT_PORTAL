@@ -8,8 +8,25 @@
 
 1. Работать только в текущем проекте — `JKL_STUDENT_PARENT_PORTAL`.
    Не изменять и не открывать для записи другие проекты:
-   `JCL_Gruppen`, `MINI_OBI_SCOREBOARD`, `Trainer_Workspace`,
-   `backup_before_scoreboard_realtime`.
+   `MINI_OBI_SCOREBOARD`, `Trainer_Workspace`,
+   `backup_before_scoreboard_realtime` — без исключений.
+
+   **`JCL_Gruppen` — особый случай (обновлено 2026-08-07).** Это чужой
+   легаси-проект (vanilla JS), но он работает с той же боевой базой
+   Supabase, что и `JKL_STUDENT_PARENT_PORTAL`, и часть общей
+   функциональности (Super Admin PIN-вход, Trainer Portal Zugang,
+   Familienzugänge-Verwaltung) физически реализована в его `app.js`/
+   `index.html` — это уже фактически сложившаяся практика (см.
+   `docs/architecture/TRAINER_AUTH_ARCHITECTURE.md`). Разрешено читать
+   `JCL_Gruppen` всегда (без ограничений). Разрешено точечно изменять
+   `JCL_Gruppen/app.js` и `JCL_Gruppen/index.html`, но **только** в
+   пределах кода, относящегося к интеграции с
+   `JKL_STUDENT_PARENT_PORTAL`/Supabase (Super Admin / Trainer Portal /
+   Familienzugänge login, сессии, вызовы Edge Functions этого проекта).
+   Любые другие изменения `JCL_Gruppen` (клубная логика, UI, не связанный
+   с этой интеграцией) по-прежнему запрещены без отдельного явного
+   разрешения пользователя в чате. Перед изменением — как и везде,
+   сначала прочитать файл (правило 2).
 2. Перед изменением существующего файла — сначала прочитать его.
 3. Не удалять файлы без прямого разрешения пользователя.
 

@@ -3,23 +3,35 @@
 // (JCL_Gruppen, чужая таблица — эта функция её не создаёт и не изменяет,
 // только читает).
 //
-// МОДЕЛЬ АВТОРИЗАЦИИ — прямая копия manage-trainer-account, адаптированная
-// под платформенного (не клубного) актора:
-//   1) Authorization: Bearer <access_token> вызывающего Super Admin, НЕ общий
-//      секрет (в отличие от устаревшей create-family-account с
-//      x-admin-secret — та НЕ используется здесь, см. её задокументированную
-//      уязвимость "clubId не проверяется против вызывающего").
-//   2) supabaseAdmin.auth.getUser(token) — проверка токена.
-//   3) СОБСТВЕННАЯ строка super_admin_accounts вызывающего по auth_user_id,
-//      обязателен is_active = true.
-//   4) studentId из тела запроса резолвится в students-строку СЕРВЕРОМ;
+// МОДЕЛЬ АВТОРИЗАЦИИ — ДВА равноправных способа (обновлено 2026-08-07,
+// см. docs/database/SUPER_ADMIN_PIN_SESSION.md): бизнес-требование теперь
+// прямо запрещает делать легаси PIN-вход read-only/fallback-режимом —
+// Super Admin, вошедший обычным username+PIN, должен иметь ПОЛНЫЙ доступ,
+// без обязательного отдельного Supabase Auth.
+//   A) Supabase Auth JWT — как раньше: Authorization: Bearer <access_token>,
+//      supabaseAdmin.auth.getUser(token), СОБСТВЕННАЯ строка
+//      super_admin_accounts вызывающего по auth_user_id, обязателен
+//      is_active = true.
+//   B) Super Admin PIN Session — НОВОЕ: тот же заголовок Authorization:
+//      Bearer <opaque token>, выданный super-admin-pin-login. Токен
+//      хешируется (SHA-256) и ищется в super_admin_pin_sessions; обязательны
+//      revoked_at is null и expires_at > now(). last_used_at обновляется,
+//      expires_at НЕ продлевается (фиксированный TTL, см. super-admin-pin-login).
+// Резолвится сначала способ A, при неудаче — способ B; ни тот, ни другой —
+// 401. Оба способа дают единый идентификатор актора — super_admin_id
+// (bigint, значение-FK на чужую super_admins.id) — используемый везде ниже
+// вместо прежнего callerAuthUserId, включая аудит-лог (см.
+// family_account_audit_log, миграция 20260807110037).
+//
+// Прочее без изменений:
+//   - studentId из тела запроса резолвится в students-строку СЕРВЕРОМ;
 //      club_id ученика сверяется с реальной clubs-строкой (существует и
 //      active = true) — Super Admin платформенный (не привязан к одному
 //      клубу, в отличие от Trainer-admin в manage-trainer-account), поэтому
 //      здесь нет сравнения "club администратора" — есть проверка, что
 //      целевой клуб вообще существует и активен (защита от действий над
 //      осиротевшими/удалёнными клубами).
-//   5) Пароль НИГДЕ не читается обратно — только auth.admin.updateUserById/
+//   - Пароль НИГДЕ не читается обратно — только auth.admin.updateUserById/
 //      createUser (структурно исключает чтение текущего пароля).
 //
 // ЧТО НЕ РЕАЛИЗОВАНО (см. финальный отчёт задачи): реальная отправка письма
@@ -71,6 +83,14 @@ function jsonResponse(body: unknown, status: number): Response {
     status,
     headers: { 'content-type': 'application/json' }
   });
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 // Bestes Bemühen: sendet die Wiederherstellungs-Mail über Resend, falls
@@ -148,25 +168,71 @@ Deno.serve(async (req: Request) => {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 
-  // ── 1) JWT des Aufrufers prüfen ────────────────────────────────────────
-  const { data: callerAuthData, error: callerAuthError } = await supabaseAdmin.auth.getUser(accessToken);
-  if (callerAuthError || !callerAuthData?.user) {
+  // ── 1) Aufrufer auflösen — Weg A (Supabase Auth JWT) oder Weg B (PIN
+  // Session), siehe Kommentar am Dateianfang. Ergebnis in beiden Fällen:
+  // callerSuperAdminId (bigint) + optional callerAuthUserId (nur Weg A). ──
+  let callerSuperAdminId: number | null = null;
+  let callerAuthUserId: string | null = null;
+
+  const { data: callerAuthData } = await supabaseAdmin.auth.getUser(accessToken);
+  if (callerAuthData?.user) {
+    // ── Weg A: Eigener super_admin_accounts-Eintrag, muss aktiv sein ─────
+    const { data: callerAccount, error: callerAccountError } = await supabaseAdmin
+      .from('super_admin_accounts')
+      .select('id, super_admin_id, is_active')
+      .eq('auth_user_id', callerAuthData.user.id)
+      .maybeSingle();
+
+    if (callerAccountError) {
+      return jsonResponse({ error: 'caller_lookup_failed', details: callerAccountError.message }, 500);
+    }
+    if (callerAccount && callerAccount.is_active) {
+      callerSuperAdminId = callerAccount.super_admin_id;
+      callerAuthUserId = callerAuthData.user.id;
+    }
+  }
+
+  if (callerSuperAdminId === null) {
+    // ── Weg B: Super Admin PIN Session (super_admin_pin_sessions) ────────
+    const tokenHash = await sha256Hex(accessToken);
+    const { data: pinSession, error: pinSessionError } = await supabaseAdmin
+      .from('super_admin_pin_sessions')
+      .select('id, super_admin_id, expires_at, revoked_at')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (pinSessionError) {
+      return jsonResponse({ error: 'pin_session_lookup_failed', details: pinSessionError.message }, 500);
+    }
+    if (
+      pinSession &&
+      !pinSession.revoked_at &&
+      new Date(pinSession.expires_at).getTime() > Date.now()
+    ) {
+      // Defensive Prüfung: super_admins-Zeile muss noch existieren (fremde
+      // Tabelle, kein FOREIGN KEY möglich, siehe Migrationskommentar).
+      const { data: superAdminRow, error: superAdminError } = await supabaseAdmin
+        .from('super_admins')
+        .select('id')
+        .eq('id', pinSession.super_admin_id)
+        .maybeSingle();
+
+      if (superAdminError) {
+        return jsonResponse({ error: 'super_admin_lookup_failed', details: superAdminError.message }, 500);
+      }
+      if (superAdminRow) {
+        callerSuperAdminId = pinSession.super_admin_id;
+        // last_used_at ist rein informativ — expires_at wird NICHT verlängert.
+        await supabaseAdmin
+          .from('super_admin_pin_sessions')
+          .update({ last_used_at: new Date().toISOString() })
+          .eq('id', pinSession.id);
+      }
+    }
+  }
+
+  if (callerSuperAdminId === null) {
     return jsonResponse({ error: 'invalid_or_expired_token' }, 401);
-  }
-  const callerAuthUserId = callerAuthData.user.id;
-
-  // ── 2) Eigener super_admin_accounts-Eintrag, muss aktiv sein ───────────
-  const { data: callerAccount, error: callerAccountError } = await supabaseAdmin
-    .from('super_admin_accounts')
-    .select('id, super_admin_id, is_active')
-    .eq('auth_user_id', callerAuthUserId)
-    .maybeSingle();
-
-  if (callerAccountError) {
-    return jsonResponse({ error: 'caller_lookup_failed', details: callerAccountError.message }, 500);
-  }
-  if (!callerAccount || !callerAccount.is_active) {
-    return jsonResponse({ error: 'forbidden' }, 403);
   }
 
   // ── 3) Zielschüler serverseitig auflösen (Client kann club_id nicht
@@ -239,6 +305,7 @@ Deno.serve(async (req: Request) => {
 
   async function logOperation(operation: string, familyId: string) {
     await supabaseAdmin.rpc('log_family_account_operation', {
+      p_performed_by_super_admin_id: callerSuperAdminId,
       p_performed_by_auth_user_id: callerAuthUserId,
       p_target_family_id: familyId,
       p_target_student_id: studentId,
