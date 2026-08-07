@@ -3,23 +3,32 @@
 // public.trainers (чужая таблица JCL_Gruppen — эта функция её не создаёт и
 // не изменяет, только читает).
 //
-// МОДЕЛЬ АВТОРИЗАЦИИ: Supabase Auth JWT вызывающего администратора, НЕ общий
-// секрет. Вызывающий передаёт `Authorization: Bearer <свой access_token>`.
-// Сервер:
-//   1) проверяет токен через supabaseAdmin.auth.getUser(token);
-//   2) находит СОБСТВЕННУЮ строку trainer_accounts вызывающего по
-//      auth_user_id, требует is_active = true;
-//   3) находит связанную строку trainers, требует rolle === 'Admin';
-//   4) берёт club_id вызывающего ИСКЛЮЧИТЕЛЬНО из этой строки trainers —
-//      клиент НЕ передаёт clubId вообще, его нельзя подделать телом запроса;
-//   5) ищет целевого тренера (trainerId) СРАЗУ в рамках club_id вызывающего
-//      (WHERE trainer_id = ... AND club_id = <club администратора>) — тренер
-//      из чужого клуба структурно не найдётся этим запросом, поэтому
-//      "не найден" и "не в вашем клубе" — один и тот же ответ (анти-
-//      энумерация чужих клубов).
+// МОДЕЛЬ АВТОРИЗАЦИИ — ДВА равноправных способа (обновлено, ЭТАП A rollout,
+// см. docs/database/SUPER_ADMIN_PIN_SESSION.md для аналогичного паттерна):
+// обычный Club Administrator, вошедший в JCL_Gruppen через привычный
+// username+PIN, должен иметь полный доступ к управлению Trainerportal-Zugang
+// своего клуба — без обязательной отдельной регистрации в Supabase Auth.
+//   A) Supabase Auth JWT — как раньше: Authorization: Bearer <access_token>,
+//      supabaseAdmin.auth.getUser(token), СОБСТВЕННАЯ строка
+//      trainer_accounts вызывающего по auth_user_id, обязателен is_active=true.
+//   B) Admin PIN Session — НОВОЕ: тот же заголовок Authorization: Bearer
+//      <opaque token>, выданный admin-pin-login. Токен хешируется (SHA-256)
+//      и ищется в admin_pin_sessions; обязательны revoked_at is null и
+//      expires_at > now(). last_used_at обновляется, expires_at НЕ
+//      продлевается (фиксированный TTL, см. admin-pin-login).
+// Резолвится сначала способ A, при неудаче — способ B; ни тот, ни другой —
+// 401. ОБА способа приводят к единой серверной модели:
+//   1) callerTrainerRowId (bigint) — подтверждённый администратор;
+//   2) fresh-lookup связанной строки trainers ПО ЭТОМУ id — требует
+//      rolle === 'Admin' (проверяется заново при каждом вызове, не кэшируется
+//      из токена/сессии — тот же принцип "fresh check", что и у
+//      trainer_has_active_account);
+//   3) club_id вызывающего берётся ИСКЛЮЧИТЕЛЬНО из этого fresh-lookup, не из
+//      токена/сессии и не из тела запроса — управление тренером другого
+//      клуба структурно невозможно (см. сравнение club_id ниже, без изменений).
 // `currentTrainer.role === 'Admin'` во frontend JCL_Gruppen — это только
 // UI-состояние (подделываемое), оно НИГДЕ не используется здесь как источник
-// прав; единственная граница доверия — проверки 1–5 выше, целиком на сервере.
+// прав; единственная граница доверия — проверки выше, целиком на сервере.
 //
 // Секреты (SUPABASE_SERVICE_ROLE_KEY) — только через `supabase secrets set`,
 // никогда во frontend-бандле ни одного из двух проектов.
@@ -57,6 +66,14 @@ function jsonResponse(body: unknown, status: number): Response {
     status,
     headers: { 'content-type': 'application/json' }
   });
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 Deno.serve(async (req: Request) => {
@@ -114,32 +131,65 @@ Deno.serve(async (req: Request) => {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 
-  // ── 1) Проверка JWT вызывающего ───────────────────────────────────────
-  const { data: callerAuthData, error: callerAuthError } = await supabaseAdmin.auth.getUser(accessToken);
-  if (callerAuthError || !callerAuthData?.user) {
+  // ── 1) Аутентифицировать вызывающего — Weg A (JWT) или Weg B (PIN Session)
+  let callerTrainerRowId: number | null = null;
+  let callerAuthUserId: string | null = null;
+
+  const { data: callerAuthData } = await supabaseAdmin.auth.getUser(accessToken);
+  if (callerAuthData?.user) {
+    // ── Weg A: собственный trainer_accounts вызывающего, должен быть активен
+    const { data: callerAccount, error: callerAccountError } = await supabaseAdmin
+      .from('trainer_accounts')
+      .select('id, trainer_row_id, is_active')
+      .eq('auth_user_id', callerAuthData.user.id)
+      .maybeSingle();
+
+    if (callerAccountError) {
+      return jsonResponse({ error: 'caller_lookup_failed', details: callerAccountError.message }, 500);
+    }
+    if (callerAccount && callerAccount.is_active) {
+      callerTrainerRowId = callerAccount.trainer_row_id;
+      callerAuthUserId = callerAuthData.user.id;
+    }
+  }
+
+  if (callerTrainerRowId === null) {
+    // ── Weg B: Admin PIN Session (admin_pin_sessions) ────────────────────
+    const tokenHash = await sha256Hex(accessToken);
+    const { data: pinSession, error: pinSessionError } = await supabaseAdmin
+      .from('admin_pin_sessions')
+      .select('id, trainer_row_id, expires_at, revoked_at')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (pinSessionError) {
+      return jsonResponse({ error: 'pin_session_lookup_failed', details: pinSessionError.message }, 500);
+    }
+    if (
+      pinSession &&
+      !pinSession.revoked_at &&
+      new Date(pinSession.expires_at).getTime() > Date.now()
+    ) {
+      callerTrainerRowId = pinSession.trainer_row_id;
+      // last_used_at ist rein informativ — expires_at wird NICHT verlängert.
+      await supabaseAdmin
+        .from('admin_pin_sessions')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', pinSession.id);
+    }
+  }
+
+  if (callerTrainerRowId === null) {
     return jsonResponse({ error: 'invalid_or_expired_token' }, 401);
   }
-  const callerAuthUserId = callerAuthData.user.id;
 
-  // ── 2) Собственный trainer_accounts вызывающего, должен быть активен ──
-  const { data: callerAccount, error: callerAccountError } = await supabaseAdmin
-    .from('trainer_accounts')
-    .select('id, trainer_row_id, is_active')
-    .eq('auth_user_id', callerAuthUserId)
-    .maybeSingle();
-
-  if (callerAccountError) {
-    return jsonResponse({ error: 'caller_lookup_failed', details: callerAccountError.message }, 500);
-  }
-  if (!callerAccount || !callerAccount.is_active) {
-    return jsonResponse({ error: 'forbidden' }, 403);
-  }
-
-  // ── 3) Связанная строка trainers вызывающего, должна быть rolle=Admin ─
+  // ── Единая серверная модель для обоих способов: fresh-lookup строки
+  // trainers вызывающего, требуется rolle === 'Admin'. club_id берётся
+  // ИСКЛЮЧИТЕЛЬНО из этого lookup — не из токена/сессии/тела запроса.
   const { data: callerTrainerRow, error: callerTrainerError } = await supabaseAdmin
     .from('trainers')
     .select('id, club_id, rolle')
-    .eq('id', callerAccount.trainer_row_id)
+    .eq('id', callerTrainerRowId)
     .maybeSingle();
 
   if (callerTrainerError) {
@@ -149,7 +199,6 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'forbidden' }, 403);
   }
 
-  // ── 4) club_id вызывающего — ИСКЛЮЧИТЕЛЬНО из БД, клиент его не передаёт
   const adminClubId = callerTrainerRow.club_id;
 
   // ВАЖНО (найдено фактическим тестом локального прогона, не предположением):
@@ -304,6 +353,7 @@ Deno.serve(async (req: Request) => {
       : (isActive ? 'activate' : 'deactivate');
 
     await supabaseAdmin.rpc('log_trainer_account_operation', {
+      p_performed_by_trainer_row_id: callerTrainerRowId,
       p_performed_by_auth_user_id: callerAuthUserId,
       p_target_trainer_row_id: trainerRow.id,
       p_target_trainer_id: trainerId,
@@ -362,6 +412,7 @@ Deno.serve(async (req: Request) => {
   }
 
   await supabaseAdmin.rpc('log_trainer_account_operation', {
+    p_performed_by_trainer_row_id: callerTrainerRowId,
     p_performed_by_auth_user_id: callerAuthUserId,
     p_target_trainer_row_id: trainerRow.id,
     p_target_trainer_id: trainerId,
