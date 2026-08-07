@@ -45,6 +45,7 @@ type Action =
   | 'get_status'
   | 'create'
   | 'set_login'
+  | 'set_contact_email'
   | 'set_password'
   | 'activate'
   | 'deactivate'
@@ -128,7 +129,7 @@ Deno.serve(async (req: Request) => {
 
   const { action, studentId } = body;
   const validActions: Action[] = [
-    'get_status', 'create', 'set_login', 'set_password', 'activate', 'deactivate', 'send_recovery'
+    'get_status', 'create', 'set_login', 'set_contact_email', 'set_password', 'activate', 'deactivate', 'send_recovery'
   ];
   if (!action || !validActions.includes(action)) {
     return jsonResponse({ error: 'invalid_action' }, 400);
@@ -477,6 +478,29 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ familyId: familyRow.id, nickname: newNickname, operation: 'set_login' }, 200);
   }
 
+  // ── set_contact_email ───────────────────────────────────────────────
+  // Getrennt von set_login: die Kontakt-E-Mail kann geändert werden, OHNE
+  // dass sich der Familienlogin (nickname) ändert — set_login verlangt
+  // explizit einen NEUEN Nicknamen (nickname_unchanged), was einen reinen
+  // E-Mail-Wechsel dort blockieren würde.
+  if (action === 'set_contact_email') {
+    const contactEmail = (body.contactEmail ?? '').trim();
+    if (contactEmail && (contactEmail.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(contactEmail))) {
+      return jsonResponse({ error: 'invalid_contact_email' }, 400);
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('families')
+      .update({ contact_email: contactEmail || null, contact_email_updated_at: new Date().toISOString() })
+      .eq('id', familyRow.id);
+    if (updateError) {
+      return jsonResponse({ error: 'contact_email_update_failed', details: updateError.message }, 500);
+    }
+
+    await logOperation('set_contact_email', familyRow.id);
+    return jsonResponse({ familyId: familyRow.id, contactEmail: contactEmail || null, operation: 'set_contact_email' }, 200);
+  }
+
   // ── set_password ─────────────────────────────────────────────────────
   if (action === 'set_password') {
     const password = body.password ?? '';
@@ -541,12 +565,16 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'recovery_link_generation_failed', details: linkError?.message }, 500);
     }
 
-    await dispatchRecoveryEmail(familyRow.contact_email, linkData.properties.action_link);
+    const emailDispatched = await dispatchRecoveryEmail(familyRow.contact_email, linkData.properties.action_link);
 
     await logOperation('send_recovery', familyRow.id);
-    // Neutrale Antwort unabhängig vom tatsächlichen Zustellstatus — siehe
-    // Kommentar am Dateianfang.
-    return jsonResponse({ recovery: 'requested' }, 200);
+    // "recovery: requested" bleibt IMMER gleich (neutral gegenüber einem
+    // möglichen Enumeration-Angriff auf contact_email) — emailDispatched ist
+    // zusätzlich, NUR für den bereits authentifizierten Super Admin: ehrliche
+    // Information, ob wirklich ein Provider konfiguriert ist und die Mail
+    // technisch verschickt wurde, statt "Mail gesendet" vorzutäuschen, wenn
+    // nur der Link geloggt wurde (siehe Kommentar am Dateianfang).
+    return jsonResponse({ recovery: 'requested', emailDispatched }, 200);
   }
 
   return jsonResponse({ error: 'unhandled_action' }, 400);
