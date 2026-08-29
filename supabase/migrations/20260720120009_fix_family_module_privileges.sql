@@ -1,4 +1,4 @@
--- Исправление двух отдельных privilege-пробелов, обнаруженных фактическим
+-- Исправление privilege-пробелов Family Layer, обнаруженных фактическим
 -- локальным прогоном (этап H/I, не статическим анализом):
 --
 -- 1) private.is_current_user_family_guardian(uuid) (миграция 08) выдавала
@@ -16,6 +16,15 @@
 --    этого модуля их никто не выдавал. RLS фильтрует СТРОКИ, но не
 --    заменяет базовое право на операцию — без GRANT запрос падает ДО
 --    того, как Postgres вообще успевает применить RLS-policy.
+--
+-- ИЗМЕНЕНО (безопасный pre-deploy аудит Family Layer, 2026-08-29): исходная
+-- версия этой миграции ТАКЖЕ выдавала grant на public.student_technique_progress
+-- (Technique Module, миграции 004-007) — вынесено в отдельную миграцию
+-- 20260829120001_technique_progress_privileges.sql, чтобы Family Layer можно
+-- было развернуть в production независимо от Technique Module (который
+-- сейчас не разворачивается). Ничего из технического модуля не удалено из
+-- проекта — только перенесено в собственную миграцию с собственным сроком
+-- применения.
 --
 -- Grants здесь НАМЕРЕННО минимальны и построены по privilege map (этап
 -- I1): только то, что подтверждено фактическим прямым обращением —
@@ -56,16 +65,17 @@ grant execute on function private.is_current_user_family_guardian(uuid) to authe
 grant select on table public.family_guardians to authenticated;
 grant select on table public.family_students to authenticated;
 
--- Прогресс техник: SELECT нужен student_technique_progress — сценарий I
--- делает прямой SELECT как authenticated (проверка, что RLS
--- фильтрует чужой прогресс, а не просто RPC-обёртка это скрывает).
--- Остальные пять таблиц module техник (club_belts,
--- club_technique_progress_settings, club_techniques,
--- club_belt_techniques, club_belt_technique_settings) читаются
--- ИСКЛЮЧИТЕЛЬНО изнутри public.get_student_technique_progress (SECURITY
--- DEFINER) — прямого вызывающего (ни фронтенда, ни теста) нет, grant не
--- выдаётся.
-grant select on table public.student_technique_progress to authenticated;
+-- Прогресс техник (student_technique_progress) — ВЫНЕСЕНО в отдельную
+-- миграцию 20260829120001_technique_progress_privileges.sql (безопасный
+-- pre-deploy аудит Family Layer, 2026-08-29): Family Login должен
+-- разворачиваться независимо от Technique Module (миграции 004-007), а
+-- эта миграция изначально смешивала грант для family_guardians/
+-- family_students (нужен для Family Layer) с грантом для
+-- student_technique_progress (нужен только Technique Module, миграции
+-- 004-007, которые сейчас НЕ разворачиваются). Применять новую миграцию
+-- нужно вместе с Technique Module, не вместе с Group A Family Layer —
+-- сама student_technique_progress создаётся только в migration 004, без
+-- неё этот GRANT упал бы с "relation does not exist".
 
 -- anon: ни одна policy в этом модуле не выдана роли anon (подтверждено
 -- pg_policies), поэтому ни один base table grant роли anon здесь не

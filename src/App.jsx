@@ -7,8 +7,6 @@ import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
-import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard.jsx';
-import FamilienzugangePage from './pages/superadmin/FamilienzugangePage.jsx';
 import { useFamilySession } from './hooks/useFamilySession.js';
 import { isSupabaseConfigured } from './services/supabaseClient.js';
 import styles from './App.module.css';
@@ -24,7 +22,7 @@ function isTrainerRoute(pathname) {
 }
 
 // Разбор под-маршрутов тренерской области — тот же ручной паттерн, что и
-// isTrainerRoute/isSuperAdminRoute (без клиентского роутера). '/trainer' и
+// isTrainerRoute (без клиентского роутера). '/trainer' и
 // любой нераспознанный под-путь внутри '/trainer/*' попадают в 'dashboard' —
 // это новая точка входа после логина вместо прежнего прямого показа
 // TrainerPage (см. TrainerAuthGuard ниже).
@@ -40,13 +38,6 @@ function parseTrainerView(pathname) {
     return { view: 'settings' };
   }
   return { view: 'dashboard' };
-}
-
-// /superadmin(/*) — минимальный каркас без авторизации/ролей (согласовано
-// отдельно, см. чат). Тот же принцип префиксного матчинга, что и у
-// isTrainerRoute — отсекает /superadmins, /superadmin-old и т.п.
-function isSuperAdminRoute(pathname) {
-  return pathname === '/superadmin' || pathname.startsWith('/superadmin/');
 }
 
 export default function App() {
@@ -72,14 +63,14 @@ export default function App() {
     return <TrainerAuthGuard>{trainerContent}</TrainerAuthGuard>;
   }
 
-  // /superadmin(/*) — без Guard/сессии на этом этапе (минимальный каркас).
-  // Семейная и тренерская логика этой веткой не затрагиваются.
-  if (isSuperAdminRoute(window.location.pathname)) {
-    if (window.location.pathname === '/superadmin/familienzugaenge') {
-      return <FamilienzugangePage />;
-    }
-    return <SuperAdminDashboard />;
-  }
+  // /superadmin(/*) — УДАЛЕНО из публичного routing (безопасный pre-deploy
+  // аудит Family Layer, 2026-08-29): маршрут был минимальным каркасом БЕЗ
+  // authentication guard, доступным на живом production-сайте кому угодно.
+  // Единственная Super Admin панель — JCL_Gruppen Super Admin Control Center
+  // (Familienzugänge и остальные разделы) — эта ветка была неиспользуемым,
+  // незащищённым дублем. Компоненты (pages/superadmin/*) не удалены с диска —
+  // только не подключены к роутингу, маршрут теперь просто не матчится и
+  // падает в обычную семейную логику ниже, как любой другой неизвестный путь.
 
   // Landing-Seite für den Passwort-Wiederherstellung-Link aus
   // manage-family-account (JCL_Gruppen, send_recovery). VOR der

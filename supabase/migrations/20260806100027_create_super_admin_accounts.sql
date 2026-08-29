@@ -19,15 +19,13 @@
 -- ни один существующий Super Admin не получает доступ к привилегированным
 -- Edge Function автоматически, только явным bootstrap-действием.
 --
--- ДОПУЩЕНИЕ (по аналогии с trainers.club_id в migration 011, ТРЕБУЕТ
--- проверки на реальной базе перед применением к production): super_admins.id
--- предполагается bigint — подтверждено аудитом только то, что колонки
--- id/username/name/pin существуют (docs/database/EXISTING_DATABASE_AUDIT.md,
--- со ссылкой на JCL_Gruppen.super_admins), точный тип id НЕ подтверждён
--- диагностикой реальной базы (в отличие от trainers.id/students.id, которые
--- были явно продиагностированы в этапе Trainer Auth). Если реальный тип
--- отличается — эту миграцию нужно исправить ПЕРЕД применением к production,
--- не после.
+-- ТИП ПОДТВЕРЖДЁН (безопасный pre-deploy аудит Family Layer, 2026-08-29):
+-- super_admins.id — uuid, проверено прямым запросом к реальной production
+-- JCL_Gruppen (не предположение). Исходная версия этой миграции ошибочно
+-- предполагала bigint (по аналогии с trainers.id/students.id) — с этим типом
+-- CREATE TABLE прошёл бы успешно, но ни одна строка никогда не смогла бы
+-- быть создана (uuid-значение physически нельзя записать в bigint-колонку).
+-- Исправлено здесь, до первого применения к production.
 --
 -- normalize_login_name(text) переиспользуется как есть (migration 011,
 -- Unicode-safe: нижний регистр + удаление пробелов, без ограничения
@@ -37,7 +35,7 @@
 create table public.super_admin_accounts (
   id uuid primary key default gen_random_uuid(),
   auth_user_id uuid not null unique references auth.users(id) on delete cascade,
-  super_admin_id bigint not null unique,
+  super_admin_id uuid not null unique,
   login_name text not null,
   normalized_login_name text generated always as (public.normalize_login_name(login_name)) stored,
   display_name text not null,
@@ -50,7 +48,7 @@ create table public.super_admin_accounts (
 comment on table public.super_admin_accounts is
   'Связь auth.users с платформенным Super Admin (JCL_Gruppen.super_admins, ЧУЖАЯ таблица — не создаётся и не изменяется здесь). Дополнительный, опциональный путь входа — существующий PIN-логин через super_admins.pin не затрагивается. is_active=false по умолчанию: доступ к привилегированным Edge Function включается только явным административным действием. unique(super_admin_id): не более одного аккаунта на Super Admin (race-condition-проблема из trainer_accounts, migration 026, здесь закрыта сразу, а не задним числом). normalized_login_name уникален ГЛОБАЛЬНО (не по club_id — Super Admin не привязан к одному клубу).';
 comment on column public.super_admin_accounts.super_admin_id is
-  'FK-по-значению (без формального FOREIGN KEY, т.к. точный тип super_admins.id не подтверждён диагностикой реальной базы, только предположен bigint по аналогии с trainers.id/students.id) на JCL_Gruppen.super_admins.id. Соответствие проверяется только на уровне Edge Function при bootstrap, не триггером — сознательно минимальный контур для платформенной, не клубной сущности.';
+  'FK-по-значению (без формального FOREIGN KEY — не потому что тип не подтверждён, тип uuid подтверждён напрямую, а потому что super_admins чужая таблица без гарантии UNIQUE на id со стороны этого проекта) на JCL_Gruppen.super_admins.id (uuid). Соответствие проверяется только на уровне Edge Function при bootstrap, не триггером — сознательно минимальный контур для платформенной, не клубной сущности.';
 
 create trigger trg_super_admin_accounts_set_updated_at
   before update on public.super_admin_accounts

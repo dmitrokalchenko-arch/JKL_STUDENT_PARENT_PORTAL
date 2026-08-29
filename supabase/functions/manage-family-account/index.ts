@@ -78,10 +78,23 @@ const MAX_EMAIL_LENGTH = 254;
 const PERMANENT_BAN_DURATION = '876000h'; // ~100 Jahre, faktisch "gesperrt bis manuell entsperrt"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// CORS — ДОБАВЛЕНО (безопасный pre-deploy аудит Family Layer, 2026-08-29):
+// изначально отсутствовало здесь полностью (ни CORS_HEADERS, ни обработки
+// OPTIONS), в отличие от уже рабочих manage-trainer-account/admin-pin-login.
+// Без этого браузерный вызов с jcl-gruppen.netlify.app блокировался бы CORS
+// уже на preflight, тот же класс проблемы, что был найден и исправлен для
+// admin-pin-login. Повторяет ровно тот же паттерн (тот же origin, те же
+// заголовки, тот же список методов) — см. manage-trainer-account/index.ts.
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': 'https://jcl-gruppen.netlify.app',
+  'Access-Control-Allow-Headers': 'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json' }
+    headers: { 'content-type': 'application/json', ...CORS_HEADERS }
   });
 }
 
@@ -127,6 +140,10 @@ async function dispatchRecoveryEmail(toEmail: string, actionLink: string): Promi
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed' }, 405);
   }
@@ -170,8 +187,12 @@ Deno.serve(async (req: Request) => {
 
   // ── 1) Aufrufer auflösen — Weg A (Supabase Auth JWT) oder Weg B (PIN
   // Session), siehe Kommentar am Dateianfang. Ergebnis in beiden Fällen:
-  // callerSuperAdminId (bigint) + optional callerAuthUserId (nur Weg A). ──
-  let callerSuperAdminId: number | null = null;
+  // callerSuperAdminId (uuid — TYP KORRIGIERT, sicherer Pre-Deploy-Audit der
+  // Family Layer, 2026-08-29: super_admins.id ist uuid, gegen production
+  // bestätigt, nicht bigint — mit "number" hier wäre der Edge-Function-Deploy
+  // selbst mit einem TypeScript-Fehler fehlgeschlagen, sobald ein echter
+  // uuid-Wert zugewiesen wird) + optional callerAuthUserId (nur Weg A). ──
+  let callerSuperAdminId: string | null = null;
   let callerAuthUserId: string | null = null;
 
   const { data: callerAuthData } = await supabaseAdmin.auth.getUser(accessToken);

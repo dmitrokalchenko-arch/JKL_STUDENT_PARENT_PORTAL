@@ -18,11 +18,17 @@
 alter table public.family_account_audit_log
   alter column performed_by_auth_user_id drop not null;
 
+-- TYP KORRIGIERT (sicherer Pre-Deploy-Audit der Family Layer, 2026-08-29):
+-- bigint → uuid, direkte Folge derselben Korrektur in migration
+-- 20260806100027 (super_admins.id ist uuid, gegen production bestätigt, nicht
+-- bigint). Ohne diese Korrektur würde sowohl das Backfill-UPDATE unten
+-- (super_admin_accounts.super_admin_id ist jetzt uuid) als auch jeder echte
+-- INSERT über log_family_account_operation mit einem Typkonflikt fehlschlagen.
 alter table public.family_account_audit_log
-  add column performed_by_super_admin_id bigint;
+  add column performed_by_super_admin_id uuid;
 
 comment on column public.family_account_audit_log.performed_by_super_admin_id is
-  'Wert-FK (kein FOREIGN KEY, gleiches Prinzip wie super_admin_accounts.super_admin_id) auf JCL_Gruppen.super_admins.id. Primäre Actor-Spalte, immer befüllt — unabhängig davon, ob die Operation über Supabase-Auth-JWT (super_admin_accounts) oder über eine PIN-Session (super_admin_pin_sessions) autorisiert wurde.';
+  'Wert-FK (kein FOREIGN KEY, gleiches Prinzip wie super_admin_accounts.super_admin_id) auf JCL_Gruppen.super_admins.id (uuid). Primäre Actor-Spalte, immer befüllt — unabhängig davon, ob die Operation über Supabase-Auth-JWT (super_admin_accounts) oder über eine PIN-Session (super_admin_pin_sessions) autorisiert wurde.';
 comment on column public.family_account_audit_log.performed_by_auth_user_id is
   'NULLABLE seit dieser Migration. Weiterhin befüllt, wenn die Operation über einen Supabase-Auth-JWT (super_admin_accounts) autorisiert wurde. NULL bei Autorisierung über eine PIN-Session (super_admin_pin_sessions) — dafür existiert kein auth.users-Eintrag.';
 
@@ -46,7 +52,7 @@ alter table public.family_account_audit_log
 drop function if exists public.log_family_account_operation(uuid, uuid, bigint, text, text);
 
 create or replace function public.log_family_account_operation(
-  p_performed_by_super_admin_id bigint,
+  p_performed_by_super_admin_id uuid,
   p_performed_by_auth_user_id uuid,
   p_target_family_id uuid,
   p_target_student_id bigint,
@@ -69,8 +75,8 @@ begin
 end;
 $$;
 
-comment on function public.log_family_account_operation(bigint, uuid, uuid, bigint, text, text) is
+comment on function public.log_family_account_operation(uuid, uuid, uuid, bigint, text, text) is
   'Einziger Weg, in family_account_audit_log zu schreiben. p_performed_by_super_admin_id ist immer Pflicht (beide Auth-Wege kennen den Super Admin); p_performed_by_auth_user_id ist NULL bei Autorisierung über eine PIN-Session. Aufgerufen ausschließlich von manage-family-account als service_role.';
 
-revoke all on function public.log_family_account_operation(bigint, uuid, uuid, bigint, text, text) from public;
-grant execute on function public.log_family_account_operation(bigint, uuid, uuid, bigint, text, text) to service_role;
+revoke all on function public.log_family_account_operation(uuid, uuid, uuid, bigint, text, text) from public;
+grant execute on function public.log_family_account_operation(uuid, uuid, uuid, bigint, text, text) to service_role;

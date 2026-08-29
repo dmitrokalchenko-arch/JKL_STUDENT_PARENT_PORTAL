@@ -1,0 +1,19 @@
+-- Вынесено из 20260720120009_fix_family_module_privileges.sql (безопасный
+-- pre-deploy аудит Family Layer, 2026-08-29) — единственная строка этой
+-- миграции изначально была частью 009, но требует Technique Module
+-- (миграции 20260720120004-007), а не Family Layer.
+--
+-- ПРИМЕНЯТЬ ТОЛЬКО ВМЕСТЕ С Technique Module (после migration 004, которая
+-- создаёт public.student_technique_progress) — НЕ вместе с Family Layer
+-- Group A. Применение этой миграции ДО migration 004 упадёт с
+-- "relation \"public.student_technique_progress\" does not exist".
+--
+-- Прогресс техник: SELECT нужен student_technique_progress — сценарий I
+-- (supabase/tests/rls_scenarios.sql) делает прямой SELECT как authenticated
+-- (проверка, что RLS фильтрует чужой прогресс, а не просто RPC-обёртка это
+-- скрывает). Остальные пять таблиц модуля техник (club_belts,
+-- club_technique_progress_settings, club_techniques, club_belt_techniques,
+-- club_belt_technique_settings) читаются ИСКЛЮЧИТЕЛЬНО изнутри
+-- public.get_student_technique_progress (SECURITY DEFINER) — прямого
+-- вызывающего (ни фронтенда, ни теста) нет, grant не выдаётся.
+grant select on table public.student_technique_progress to authenticated;
