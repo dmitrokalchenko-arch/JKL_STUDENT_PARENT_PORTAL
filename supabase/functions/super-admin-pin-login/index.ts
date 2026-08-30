@@ -35,10 +35,21 @@ interface RequestBody {
 const SESSION_TTL_MS = 30 * 60 * 1000; // 30 Minuten, fest — siehe Kommentar oben.
 const GENERIC_ERROR = { error: 'invalid_credentials' };
 
+// CORS — ДОБАВЛЕНО (pre-deploy audit Super Admin Auth, 2026-08-30): fehlte
+// hier vollständig (weder CORS_HEADERS noch OPTIONS-Behandlung), gleiches
+// Muster wie bereits bei manage-trainer-account/admin-pin-login/
+// manage-family-account behoben. Ohne dies blockiert der Browser jeden
+// Aufruf von jcl-gruppen.netlify.app schon beim Preflight.
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': 'https://jcl-gruppen.netlify.app',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json' }
+    headers: { 'content-type': 'application/json', ...CORS_HEADERS }
   });
 }
 
@@ -61,6 +72,10 @@ function generateOpaqueToken(): string {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed' }, 405);
   }
