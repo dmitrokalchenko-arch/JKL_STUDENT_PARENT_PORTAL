@@ -107,6 +107,8 @@ comment on function public.rename_super_admin_login(uuid, text) is
   'Единственный контролируемый способ изменить super_admin_accounts.login_name в обход immutability-триггера. Не используется текущим MVP (Familienzugänge bootstrap создаёт логин один раз), добавлена для симметрии с trainer_accounts и на случай будущей смены логина Super Admin.';
 
 revoke all on function public.rename_super_admin_login(uuid, text) from public;
+revoke all on function public.rename_super_admin_login(uuid, text) from anon;
+revoke all on function public.rename_super_admin_login(uuid, text) from authenticated;
 
 -- RLS enabled, без единой policy — тот же принцип, что и trainer_accounts/
 -- families/family_guardians: единственный путь к данным — SECURITY DEFINER
