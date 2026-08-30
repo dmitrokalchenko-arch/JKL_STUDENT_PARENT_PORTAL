@@ -53,3 +53,9 @@ create index idx_super_admin_pin_sessions_expires_at on public.super_admin_pin_s
 -- super_admin_accounts/family_account_audit_log: der einzige Zugriffsweg ist
 -- service_role innerhalb der Edge Functions.
 alter table public.super_admin_pin_sessions enable row level security;
+
+revoke all on table public.super_admin_pin_sessions from anon;
+revoke all on table public.super_admin_pin_sessions from authenticated;
+
+grant select, insert, update on table public.super_admin_pin_sessions
+to service_role;
