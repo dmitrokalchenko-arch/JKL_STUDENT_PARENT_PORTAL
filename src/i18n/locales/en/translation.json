@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Current belt",
-    "nextBelt": "Next belt"
+    "nextBelt": "Next belt",
+    "sport": "Sport",
+    "group": "Group",
+    "contractStatus": "Contract status"
   },
   "exam": {
     "title": "Minimum age for the exam",

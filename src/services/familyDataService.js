@@ -49,11 +49,24 @@ export async function getCurrentFamilyChildren() {
       id: firstRow?.family_id ?? null,
       displayName: firstRow?.family_display_name ?? ''
     },
+    // age/birthYear/sportName/groupName/trainingSchedule/beltLabel/
+    // contractStatus — Block-1-Basisdaten (migration 20260901100040), NUR
+    // wenn in students/groups/sports tatsächlich gepflegt (LEFT JOIN kann
+    // NULL liefern, z. B. Schüler ohne zugewiesene Gruppe) — Komponenten
+    // (StudentProfileCard/ChildSelector) rendern jedes Feld schon heute nur
+    // bei Vorhandensein, siehe dortige Kommentare.
     children: rows.map((row) => ({
       id: row.student_id,
       firstName: row.student_first_name,
       lastName: row.student_last_name,
-      clubId: row.club_id
+      clubId: row.club_id,
+      age: row.student_age ?? null,
+      birthYear: row.student_birthdate ? row.student_birthdate.slice(0, 4) : null,
+      sportName: row.sport_name ?? null,
+      groupName: row.group_name ?? null,
+      trainingSchedule: [row.training_day, row.training_time].filter(Boolean).join(' · ') || null,
+      beltLabel: [row.belt_color, row.kyu_grade].filter(Boolean).join(' · ') || null,
+      contractStatus: row.contract_status ?? null
     }))
   };
 }

@@ -48,7 +48,10 @@
   },
   "student": {
     "currentBelt": "Aktueller Gurt",
-    "nextBelt": "Nächster Gurt"
+    "nextBelt": "Nächster Gurt",
+    "sport": "Sportart",
+    "group": "Gruppe",
+    "contractStatus": "Vertragsstatus"
   },
   "exam": {
     "title": "Mindestalter für die Prüfung",

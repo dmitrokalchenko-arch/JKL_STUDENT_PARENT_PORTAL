@@ -45,7 +45,10 @@
   },
   "student": {
     "currentBelt": "الحزام الحالي",
-    "nextBelt": "الحزام التالي"
+    "nextBelt": "الحزام التالي",
+    "sport": "الرياضة",
+    "group": "المجموعة",
+    "contractStatus": "حالة العقد"
   },
   "exam": {
     "title": "الحد الأدنى لسن الاختبار",

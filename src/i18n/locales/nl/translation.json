@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Huidige band",
-    "nextBelt": "Volgende band"
+    "nextBelt": "Volgende band",
+    "sport": "Sport",
+    "group": "Groep",
+    "contractStatus": "Contractstatus"
   },
   "exam": {
     "title": "Minimumleeftijd voor het examen",

@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Cinturón actual",
-    "nextBelt": "Siguiente cinturón"
+    "nextBelt": "Siguiente cinturón",
+    "sport": "Deporte",
+    "group": "Grupo",
+    "contractStatus": "Estado del contrato"
   },
   "exam": {
     "title": "Edad mínima para el examen",

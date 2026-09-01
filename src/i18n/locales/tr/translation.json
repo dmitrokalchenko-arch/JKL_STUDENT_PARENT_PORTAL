@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Mevcut kuşak",
-    "nextBelt": "Sonraki kuşak"
+    "nextBelt": "Sonraki kuşak",
+    "sport": "Spor dalı",
+    "group": "Grup",
+    "contractStatus": "Sözleşme durumu"
   },
   "exam": {
     "title": "Sınav için asgari yaş",

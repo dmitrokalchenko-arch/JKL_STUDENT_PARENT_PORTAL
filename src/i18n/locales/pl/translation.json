@@ -41,7 +41,10 @@
   },
   "student": {
     "currentBelt": "Aktualny pas",
-    "nextBelt": "Następny pas"
+    "nextBelt": "Następny pas",
+    "sport": "Dyscyplina",
+    "group": "Grupa",
+    "contractStatus": "Status umowy"
   },
   "exam": {
     "title": "Wiek dopuszczenia do egzaminu",

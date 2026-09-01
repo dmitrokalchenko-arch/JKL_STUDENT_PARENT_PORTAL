@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Ceinture actuelle",
-    "nextBelt": "Ceinture suivante"
+    "nextBelt": "Ceinture suivante",
+    "sport": "Sport",
+    "group": "Groupe",
+    "contractStatus": "Statut du contrat"
   },
   "exam": {
     "title": "Âge d'admission à l'examen",

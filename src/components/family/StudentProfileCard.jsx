@@ -15,11 +15,13 @@ export default function StudentProfileCard({ child }) {
 
   if (!child) return null;
 
-  // age/birthYear/currentBelt/nextBelt пока приходят только из mock-данных
-  // (реальный RPC get_current_family_children их не отдаёт — см. RISKS
-  // отчёта этапа frontend integration) — рендерятся только если есть,
-  // чтобы карточка не падала на реальных данных, а просто показывала
-  // меньше блоков.
+  // age/birthYear/currentBelt/nextBelt (Mock-Form: {color,key}) пока
+  // приходят только из mock-данных. sportName/groupName/trainingSchedule/
+  // beltLabel/contractStatus (готовые строки, не i18n-key) приходят из
+  // реального RPC (migration 20260901100040) — отдельный простой блок
+  // строк, чтобы не трогать существующую mock-форму currentBelt/nextBelt.
+  // Каждая строка рендерится только если есть — карточка не падает на
+  // реальных данных, просто показывает меньше блоков.
   return (
     <div className={styles.card}>
       <ChildAvatar child={child} />
@@ -29,6 +31,22 @@ export default function StudentProfileCard({ child }) {
         {child.age != null && (
           <div className={styles.age}>
             {t('common.years', { count: child.age })}{child.birthYear ? ` (${child.birthYear})` : ''}
+          </div>
+        )}
+
+        {child.sportName && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.sport')}</span>
+            <span className={styles.beltValue}>{child.sportName}</span>
+          </div>
+        )}
+
+        {child.groupName && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.group')}</span>
+            <span className={styles.beltValue}>
+              {child.groupName}{child.trainingSchedule ? ` (${child.trainingSchedule})` : ''}
+            </span>
           </div>
         )}
 
@@ -49,6 +67,20 @@ export default function StudentProfileCard({ child }) {
               <span className={styles.beltDot} style={{ background: child.nextBelt.color }} />
               {t(child.nextBelt.key)}
             </span>
+          </div>
+        )}
+
+        {child.beltLabel && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
+            <span className={styles.beltValue}>{child.beltLabel}</span>
+          </div>
+        )}
+
+        {child.contractStatus && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.contractStatus')}</span>
+            <span className={styles.beltValue}>{child.contractStatus}</span>
           </div>
         )}
       </div>

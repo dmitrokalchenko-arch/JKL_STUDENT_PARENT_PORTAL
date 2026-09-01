@@ -37,7 +37,10 @@
   },
   "student": {
     "currentBelt": "Cintura attuale",
-    "nextBelt": "Cintura successiva"
+    "nextBelt": "Cintura successiva",
+    "sport": "Sport",
+    "group": "Gruppo",
+    "contractStatus": "Stato del contratto"
   },
   "exam": {
     "title": "Età minima per l'esame",

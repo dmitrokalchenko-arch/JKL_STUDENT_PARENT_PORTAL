@@ -39,7 +39,10 @@
   },
   "student": {
     "currentBelt": "Centura actuală",
-    "nextBelt": "Centura următoare"
+    "nextBelt": "Centura următoare",
+    "sport": "Sport",
+    "group": "Grupă",
+    "contractStatus": "Stare contract"
   },
   "exam": {
     "title": "Vârsta minimă pentru examen",
