@@ -184,6 +184,26 @@
     "statusActive": "Activo",
     "statusInactive": "Inactivo"
   },
+  "trainerTechniques": {
+    "title": "Catálogo de técnicas",
+    "searchPlaceholder": "Buscar técnica…",
+    "loading": "Cargando técnicas…",
+    "loadError": "No se pudieron cargar las técnicas.",
+    "empty": "No hay técnicas en el catálogo.",
+    "noResults": "No se encontraron técnicas para esta búsqueda.",
+    "watchVideo": "Ver vídeo",
+    "markCompleted": "Marcar como completada",
+    "marking": "Guardando…",
+    "alreadyCompleted": "Esta técnica ya está marcada como completada.",
+    "markError": "No se pudo guardar la técnica.",
+    "accessDenied": "No tienes acceso a este alumno.",
+    "completedBadge": "Completada",
+    "completedListTitle": "Técnicas completadas",
+    "completedListEmpty": "Todavía no hay técnicas completadas.",
+    "completedListLoadError": "No se pudieron cargar las técnicas completadas.",
+    "writeContextError": "No se pudo determinar el contexto del entrenador.",
+    "unknownTechnique": "Esta técnica ya no está disponible en el catálogo."
+  },
   "trainerDashboard": {
     "title": "Área de entrenador",
     "findStudentTitle": "Buscar alumno",

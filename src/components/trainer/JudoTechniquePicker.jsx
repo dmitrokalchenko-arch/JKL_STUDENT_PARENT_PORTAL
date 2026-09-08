@@ -1,0 +1,152 @@
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Icon from '../common/Icon.jsx';
+import { useJudoTechniques } from '../../hooks/useJudoTechniques.js';
+import { groupTechniquesByCategory, searchTechniques } from '../../utils/judoTechniques.js';
+import styles from './JudoTechniquePicker.module.css';
+
+// Каталог техник дзюдо для Trainer Area — единственный источник данных
+// public.judo_techniques (см. этот же файл в отчёте сессии, раздел
+// DATA FLOW). Ничего не хардкодится: ни список техник, ни YouTube-ссылки —
+// только порядок отображения категорий (CATEGORY_ORDER/MAIN_GROUP_ORDER,
+// см. utils/judoTechniques.js), что явно допущено заданием (этап 9).
+//
+// completedTechniqueIds (Set<string>) — id техник, уже отмеченных ученику
+// (student_technique_records), приходит от родителя (TrainerStudentPage),
+// который сам их грузит через useStudentTechniqueRecords — Picker ничего
+// не знает про студента/прогресс напрямую, только про то, какие id уже
+// "выполнены", чтобы показать бейдж вместо кнопки (задание, этап 6).
+// markingId — id техники, для которой прямо сейчас идёт INSERT (per-row
+// loading, не блокирует остальной список). onMarkCompleted не вызывается
+// повторно для уже выполненной техники — кнопка отметки заменяется бейджем,
+// повторный INSERT физически недостижим из UI (задание, этап 4/6); видео
+// при этом остаётся доступным всегда, независимо от completed-статуса.
+export default function JudoTechniquePicker({
+  completedTechniqueIds,
+  markingId,
+  markError,
+  onMarkCompleted,
+  onPlay
+}) {
+  const { t } = useTranslation();
+  const { techniques, isLoading, error, refetch } = useJudoTechniques();
+  const [query, setQuery] = useState('');
+
+  const groups = useMemo(() => {
+    if (!techniques) return [];
+    return groupTechniquesByCategory(searchTechniques(techniques, query));
+  }, [techniques, query]);
+
+  const hasAnyTechnique = (techniques?.length ?? 0) > 0;
+  const hasVisibleResults = groups.length > 0;
+
+  return (
+    <div className={styles.wrap}>
+      <label className={styles.searchField}>
+        <Icon name="search" size={16} className={styles.searchIcon} />
+        <input
+          className={styles.searchInput}
+          type="search"
+          value={query}
+          placeholder={t('trainerTechniques.searchPlaceholder')}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck="false"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </label>
+
+      {isLoading && <div className={styles.stateText}>{t('trainerTechniques.loading')}</div>}
+
+      {!isLoading && error && (
+        <div className={styles.stateText}>
+          {t('trainerTechniques.loadError')}
+          <button type="button" className={styles.retryButton} onClick={refetch}>
+            {t('trainerGroups.retry')}
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !error && !hasAnyTechnique && (
+        <div className={styles.stateText}>{t('trainerTechniques.empty')}</div>
+      )}
+
+      {!isLoading && !error && hasAnyTechnique && !hasVisibleResults && (
+        <div className={styles.stateText}>{t('trainerTechniques.noResults')}</div>
+      )}
+
+      {!isLoading &&
+        !error &&
+        groups.map(({ mainGroup, categories }) => (
+          <div key={mainGroup} className={styles.mainGroup}>
+            <h3 className={styles.mainGroupTitle}>{mainGroup}</h3>
+
+            {categories.map(({ category, techniques: categoryTechniques }) => (
+              <div key={category} className={styles.category}>
+                <div className={styles.categoryTitle}>{category}</div>
+
+                <ul className={styles.list}>
+                  {categoryTechniques.map((technique) => {
+                    const isCompleted = completedTechniqueIds?.has(technique.id) ?? false;
+                    const isMarking = markingId === technique.id;
+                    const hasVideo = Boolean(technique.youtube_video_id);
+                    const rowError = markError?.techniqueId === technique.id ? markError : null;
+
+                    return (
+                      <li key={technique.id} className={styles.item}>
+                        <div className={styles.itemRow}>
+                          <span className={`${styles.techniqueName} ltr-isolate`}>{technique.name}</span>
+
+                          {isCompleted ? (
+                            <span className={styles.completedBadge}>
+                              <Icon name="check" size={13} />
+                              {t('trainerTechniques.completedBadge')}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.markButton}
+                              onClick={() => onMarkCompleted?.(technique)}
+                              disabled={isMarking}
+                            >
+                              {isMarking ? t('trainerTechniques.marking') : t('trainerTechniques.markCompleted')}
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            className={styles.playButton}
+                            onClick={() => onPlay?.(technique)}
+                            disabled={!hasVideo}
+                            aria-label={t('trainerTechniques.watchVideo')}
+                            title={t('trainerTechniques.watchVideo')}
+                          >
+                            <Icon name="play" size={14} />
+                          </button>
+                        </div>
+
+                        {rowError && (
+                          <div className={styles.rowError}>
+                            {t(
+                              rowError.reason === 'duplicate'
+                                ? 'trainerTechniques.alreadyCompleted'
+                                : rowError.reason === 'access_denied'
+                                  ? 'trainerTechniques.accessDenied'
+                                  : rowError.reason === 'no_write_context'
+                                    ? 'trainerTechniques.writeContextError'
+                                    : 'trainerTechniques.markError'
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ))}
+    </div>
+  );
+}

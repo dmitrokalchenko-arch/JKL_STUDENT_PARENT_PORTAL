@@ -184,6 +184,26 @@
     "statusActive": "Active",
     "statusInactive": "Inactive"
   },
+  "trainerTechniques": {
+    "title": "Technique catalog",
+    "searchPlaceholder": "Search technique…",
+    "loading": "Loading techniques…",
+    "loadError": "Techniques could not be loaded.",
+    "empty": "No techniques in the catalog.",
+    "noResults": "No techniques found for this search.",
+    "watchVideo": "Watch video",
+    "markCompleted": "Mark as completed",
+    "marking": "Saving…",
+    "alreadyCompleted": "This technique is already marked as completed.",
+    "markError": "Technique could not be saved.",
+    "accessDenied": "You don't have access to this student.",
+    "completedBadge": "Completed",
+    "completedListTitle": "Completed techniques",
+    "completedListEmpty": "No technique completed yet.",
+    "completedListLoadError": "Completed techniques could not be loaded.",
+    "writeContextError": "Trainer context could not be resolved.",
+    "unknownTechnique": "This technique is no longer available in the catalog."
+  },
   "trainerDashboard": {
     "title": "Trainer Area",
     "findStudentTitle": "Find student",

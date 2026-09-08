@@ -194,6 +194,26 @@
     "statusActive": "Activ",
     "statusInactive": "Inactiv"
   },
+  "trainerTechniques": {
+    "title": "Catalog de tehnici",
+    "searchPlaceholder": "Caută o tehnică…",
+    "loading": "Se încarcă tehnicile…",
+    "loadError": "Tehnicile nu au putut fi încărcate.",
+    "empty": "Nu există tehnici în catalog.",
+    "noResults": "Nu s-au găsit tehnici pentru această căutare.",
+    "watchVideo": "Vezi videoclipul",
+    "markCompleted": "Marchează ca finalizată",
+    "marking": "Se salvează…",
+    "alreadyCompleted": "Această tehnică este deja marcată ca finalizată.",
+    "markError": "Tehnica nu a putut fi salvată.",
+    "accessDenied": "Nu aveți acces la acest elev.",
+    "completedBadge": "Finalizată",
+    "completedListTitle": "Tehnici finalizate",
+    "completedListEmpty": "Nicio tehnică finalizată încă.",
+    "completedListLoadError": "Tehnicile finalizate nu au putut fi încărcate.",
+    "writeContextError": "Contextul antrenorului nu a putut fi determinat.",
+    "unknownTechnique": "Această tehnică nu mai este disponibilă în catalog."
+  },
   "trainerDashboard": {
     "title": "Zona antrenorului",
     "findStudentTitle": "Caută elevul",

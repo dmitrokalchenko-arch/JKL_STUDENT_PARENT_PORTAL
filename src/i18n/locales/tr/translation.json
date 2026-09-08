@@ -184,6 +184,26 @@
     "statusActive": "Aktif",
     "statusInactive": "Pasif"
   },
+  "trainerTechniques": {
+    "title": "Teknik kataloğu",
+    "searchPlaceholder": "Teknik ara…",
+    "loading": "Teknikler yükleniyor…",
+    "loadError": "Teknikler yüklenemedi.",
+    "empty": "Katalogda henüz teknik yok.",
+    "noResults": "Bu arama için teknik bulunamadı.",
+    "watchVideo": "Videoyu izle",
+    "markCompleted": "Tamamlandı olarak işaretle",
+    "marking": "Kaydediliyor…",
+    "alreadyCompleted": "Bu teknik zaten tamamlandı olarak işaretlendi.",
+    "markError": "Teknik kaydedilemedi.",
+    "accessDenied": "Bu öğrenciye erişiminiz yok.",
+    "completedBadge": "Tamamlandı",
+    "completedListTitle": "Tamamlanan teknikler",
+    "completedListEmpty": "Henüz tamamlanan teknik yok.",
+    "completedListLoadError": "Tamamlanan teknikler yüklenemedi.",
+    "writeContextError": "Antrenör bağlamı belirlenemedi.",
+    "unknownTechnique": "Bu teknik artık katalogda mevcut değil."
+  },
   "trainerDashboard": {
     "title": "Antrenör Alanı",
     "findStudentTitle": "Öğrenci ara",

@@ -204,6 +204,26 @@
     "statusActive": "Aktywna",
     "statusInactive": "Nieaktywna"
   },
+  "trainerTechniques": {
+    "title": "Katalog technik",
+    "searchPlaceholder": "Szukaj techniki…",
+    "loading": "Wczytywanie technik…",
+    "loadError": "Nie udało się wczytać technik.",
+    "empty": "Brak technik w katalogu.",
+    "noResults": "Nie znaleziono technik dla tego wyszukiwania.",
+    "watchVideo": "Obejrzyj wideo",
+    "markCompleted": "Oznacz jako wykonane",
+    "marking": "Zapisywanie…",
+    "alreadyCompleted": "Ta technika jest już oznaczona jako wykonana.",
+    "markError": "Nie udało się zapisać techniki.",
+    "accessDenied": "Nie masz dostępu do tego ucznia.",
+    "completedBadge": "Wykonano",
+    "completedListTitle": "Wykonane techniki",
+    "completedListEmpty": "Żadna technika nie została jeszcze wykonana.",
+    "completedListLoadError": "Nie udało się wczytać wykonanych technik.",
+    "writeContextError": "Nie udało się ustalić danych trenera.",
+    "unknownTechnique": "Ta technika nie jest już dostępna w katalogu."
+  },
   "trainerDashboard": {
     "title": "Strefa trenera",
     "findStudentTitle": "Znajdź ucznia",

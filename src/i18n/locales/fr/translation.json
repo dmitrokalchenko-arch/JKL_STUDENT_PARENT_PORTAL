@@ -184,6 +184,26 @@
     "statusActive": "Active",
     "statusInactive": "Inactive"
   },
+  "trainerTechniques": {
+    "title": "Catalogue des techniques",
+    "searchPlaceholder": "Rechercher une technique…",
+    "loading": "Chargement des techniques…",
+    "loadError": "Impossible de charger les techniques.",
+    "empty": "Aucune technique dans le catalogue.",
+    "noResults": "Aucune technique trouvée pour cette recherche.",
+    "watchVideo": "Voir la vidéo",
+    "markCompleted": "Marquer comme acquise",
+    "marking": "Enregistrement…",
+    "alreadyCompleted": "Cette technique est déjà marquée comme acquise.",
+    "markError": "Impossible d'enregistrer la technique.",
+    "accessDenied": "Vous n'avez pas accès à cet élève.",
+    "completedBadge": "Acquise",
+    "completedListTitle": "Techniques acquises",
+    "completedListEmpty": "Aucune technique acquise pour le moment.",
+    "completedListLoadError": "Impossible de charger les techniques acquises.",
+    "writeContextError": "Impossible de déterminer le contexte de l'entraîneur.",
+    "unknownTechnique": "Cette technique n'est plus disponible dans le catalogue."
+  },
   "trainerDashboard": {
     "title": "Espace entraîneur",
     "findStudentTitle": "Rechercher un élève",

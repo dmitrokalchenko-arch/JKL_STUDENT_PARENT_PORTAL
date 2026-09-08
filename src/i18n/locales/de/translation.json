@@ -195,6 +195,26 @@
     "statusActive": "Aktiv",
     "statusInactive": "Inaktiv"
   },
+  "trainerTechniques": {
+    "title": "Technikkatalog",
+    "searchPlaceholder": "Technik suchen…",
+    "loading": "Techniken werden geladen…",
+    "loadError": "Techniken konnten nicht geladen werden.",
+    "empty": "Keine Techniken im Katalog.",
+    "noResults": "Keine Techniken für diese Suche gefunden.",
+    "watchVideo": "Video ansehen",
+    "markCompleted": "Als erledigt markieren",
+    "marking": "Wird gespeichert…",
+    "alreadyCompleted": "Diese Technik ist bereits als erledigt markiert.",
+    "markError": "Technik konnte nicht gespeichert werden.",
+    "accessDenied": "Sie haben keinen Zugriff auf diesen Schüler.",
+    "completedBadge": "Erledigt",
+    "completedListTitle": "Erledigte Techniken",
+    "completedListEmpty": "Noch keine Technik erledigt.",
+    "completedListLoadError": "Erledigte Techniken konnten nicht geladen werden.",
+    "writeContextError": "Trainer-Kontext konnte nicht ermittelt werden.",
+    "unknownTechnique": "Diese Technik ist im Katalog nicht mehr verfügbar."
+  },
   "trainerDashboard": {
     "title": "Trainer-Bereich",
     "findStudentTitle": "Schüler suchen",

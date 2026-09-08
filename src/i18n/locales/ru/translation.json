@@ -204,6 +204,26 @@
     "statusActive": "Активна",
     "statusInactive": "Неактивна"
   },
+  "trainerTechniques": {
+    "title": "Каталог техник",
+    "searchPlaceholder": "Поиск техники…",
+    "loading": "Загрузка техник…",
+    "loadError": "Не удалось загрузить техники.",
+    "empty": "В каталоге пока нет техник.",
+    "noResults": "По этому запросу техники не найдены.",
+    "watchVideo": "Смотреть видео",
+    "markCompleted": "Отметить как выполнено",
+    "marking": "Сохранение…",
+    "alreadyCompleted": "Эта техника уже отмечена как выполненная.",
+    "markError": "Не удалось сохранить технику.",
+    "accessDenied": "У вас нет доступа к этому ученику.",
+    "completedBadge": "Выполнено",
+    "completedListTitle": "Выполненные техники",
+    "completedListEmpty": "Пока нет выполненных техник.",
+    "completedListLoadError": "Не удалось загрузить выполненные техники.",
+    "writeContextError": "Не удалось определить данные тренера.",
+    "unknownTechnique": "Этой техники больше нет в каталоге."
+  },
   "trainerDashboard": {
     "title": "Тренерская область",
     "findStudentTitle": "Найти ученика",

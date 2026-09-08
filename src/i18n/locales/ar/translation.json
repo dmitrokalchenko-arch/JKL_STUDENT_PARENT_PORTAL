@@ -224,6 +224,26 @@
     "statusActive": "نشطة",
     "statusInactive": "غير نشطة"
   },
+  "trainerTechniques": {
+    "title": "كتالوج التقنيات",
+    "searchPlaceholder": "البحث عن تقنية…",
+    "loading": "جارٍ تحميل التقنيات…",
+    "loadError": "تعذّر تحميل التقنيات.",
+    "empty": "لا توجد تقنيات في الكتالوج.",
+    "noResults": "لم يتم العثور على تقنيات لهذا البحث.",
+    "watchVideo": "مشاهدة الفيديو",
+    "markCompleted": "وضع علامة كمكتملة",
+    "marking": "جارٍ الحفظ…",
+    "alreadyCompleted": "تم بالفعل وضع علامة على هذه التقنية كمكتملة.",
+    "markError": "تعذّر حفظ التقنية.",
+    "accessDenied": "ليس لديك صلاحية الوصول إلى هذا الطالب.",
+    "completedBadge": "مكتملة",
+    "completedListTitle": "التقنيات المكتملة",
+    "completedListEmpty": "لا توجد تقنيات مكتملة بعد.",
+    "completedListLoadError": "تعذّر تحميل التقنيات المكتملة.",
+    "writeContextError": "تعذّر تحديد بيانات المدرب.",
+    "unknownTechnique": "هذه التقنية لم تعد متاحة في الكتالوج."
+  },
   "trainerDashboard": {
     "title": "منطقة المدرب",
     "findStudentTitle": "البحث عن طالب",

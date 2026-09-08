@@ -184,6 +184,26 @@
     "statusActive": "Actief",
     "statusInactive": "Inactief"
   },
+  "trainerTechniques": {
+    "title": "Techniekencatalogus",
+    "searchPlaceholder": "Techniek zoeken…",
+    "loading": "Technieken worden geladen…",
+    "loadError": "Technieken konden niet worden geladen.",
+    "empty": "Geen technieken in de catalogus.",
+    "noResults": "Geen technieken gevonden voor deze zoekopdracht.",
+    "watchVideo": "Video bekijken",
+    "markCompleted": "Markeren als voltooid",
+    "marking": "Opslaan…",
+    "alreadyCompleted": "Deze techniek is al gemarkeerd als voltooid.",
+    "markError": "Techniek kon niet worden opgeslagen.",
+    "accessDenied": "U heeft geen toegang tot deze leerling.",
+    "completedBadge": "Voltooid",
+    "completedListTitle": "Voltooide technieken",
+    "completedListEmpty": "Nog geen techniek voltooid.",
+    "completedListLoadError": "Voltooide technieken konden niet worden geladen.",
+    "writeContextError": "Trainercontext kon niet worden bepaald.",
+    "unknownTechnique": "Deze techniek is niet meer beschikbaar in de catalogus."
+  },
   "trainerDashboard": {
     "title": "Trainersgedeelte",
     "findStudentTitle": "Leerling zoeken",
