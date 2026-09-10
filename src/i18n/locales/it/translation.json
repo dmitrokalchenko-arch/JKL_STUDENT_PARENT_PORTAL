@@ -196,6 +196,8 @@
     "marking": "Salvataggio…",
     "alreadyCompleted": "Questa tecnica è già segnata come completata.",
     "markError": "Impossibile salvare la tecnica.",
+    "unmarkCompleted": "Annulla il completamento",
+    "unmarkError": "Impossibile annullare il completamento della tecnica.",
     "accessDenied": "Non hai accesso a questo allievo.",
     "completedBadge": "Completata",
     "completedListTitle": "Tecniche completate",

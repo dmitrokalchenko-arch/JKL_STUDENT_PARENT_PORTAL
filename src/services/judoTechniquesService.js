@@ -1,5 +1,6 @@
 import { trainerSupabase } from './trainerSupabaseClient.js';
 import { isSupabaseConfigured } from './supabaseClient.js';
+import { getTechniqueImageUrl } from './techniqueImageUrl.js';
 
 /**
  * @typedef {'Te-waza'|'Koshi-waza'|'Ashi-waza'|'Ma-sutemi-waza'|'Yoko-sutemi-waza'|'Osaekomi-waza'|'Shime-waza'|'Kansetsu-waza'} JudoTechniqueCategory
@@ -9,6 +10,8 @@ import { isSupabaseConfigured } from './supabaseClient.js';
  * @property {string} name
  * @property {JudoTechniqueCategory} category
  * @property {JudoTechniqueMainGroup} main_group
+ * @property {string|null} image_path - путь ВНУТРИ bucket judo-techniques (например 'techniques/IPPON-SEOI-NAGE.png'), как есть в БД
+ * @property {string|null} image_url - публичный URL, посчитанный на клиенте из image_path через storage.from('judo-techniques').getPublicUrl() (НЕ хранится в БД)
  * @property {string} youtube_url
  * @property {string|null} youtube_video_id
  */
@@ -42,7 +45,7 @@ export async function getJudoTechniques() {
 
   const { data, error } = await trainerSupabase
     .from('judo_techniques')
-    .select('id, name, category, main_group, youtube_url, youtube_video_id')
+    .select('id, name, category, main_group, image_path, youtube_url, youtube_video_id')
     .eq('active', true)
     .order('main_group', { ascending: true })
     .order('category', { ascending: true })
@@ -52,5 +55,12 @@ export async function getJudoTechniques() {
     throw new Error(`Не удалось загрузить каталог техник: ${error.message}`);
   }
 
-  return data ?? [];
+  // image_url считается здесь, один раз на загрузку списка, а не в каждом
+  // компоненте-потребителе — сама техника (id/name/category/main_group/
+  // image_path/image_url/youtube_url/youtube_video_id) остаётся одной
+  // сущностью, как и раньше, просто с двумя новыми полями.
+  return (data ?? []).map((technique) => ({
+    ...technique,
+    image_url: getTechniqueImageUrl(technique.image_path)
+  }));
 }

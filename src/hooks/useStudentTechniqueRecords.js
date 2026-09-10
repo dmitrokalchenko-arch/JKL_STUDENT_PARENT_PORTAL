@@ -50,5 +50,13 @@ export function useStudentTechniqueRecords(studentId) {
     });
   }, []);
 
-  return { records, isLoading, error, refetch: load, addRecordLocally };
+  // Симметрично addRecordLocally — после успешного DELETE запись убирается
+  // из уже загруженного списка напрямую, без refetch (та же ЭТАП-7 логика,
+  // что и у INSERT: completedTechniqueIds в TrainerStudentPage пересчитается
+  // автоматически, т.к. зависит от records через useMemo).
+  const removeRecordLocally = useCallback((recordId) => {
+    setRecords((prev) => (prev ?? []).filter((r) => r.id !== recordId));
+  }, []);
+
+  return { records, isLoading, error, refetch: load, addRecordLocally, removeRecordLocally };
 }

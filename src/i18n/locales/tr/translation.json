@@ -196,6 +196,8 @@
     "marking": "Kaydediliyor…",
     "alreadyCompleted": "Bu teknik zaten tamamlandı olarak işaretlendi.",
     "markError": "Teknik kaydedilemedi.",
+    "unmarkCompleted": "Tamamlamayı geri al",
+    "unmarkError": "Teknik tamamlaması geri alınamadı.",
     "accessDenied": "Bu öğrenciye erişiminiz yok.",
     "completedBadge": "Tamamlandı",
     "completedListTitle": "Tamamlanan teknikler",

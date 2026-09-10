@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Icon from '../common/Icon.jsx';
+import TechniqueThumbnail from './TechniqueThumbnail.jsx';
 import { formatDate } from '../../utils/formatters.js';
 import styles from './CompletedTechniquesList.module.css';
 
@@ -15,7 +16,16 @@ import styles from './CompletedTechniquesList.module.css';
 // открытым (не наши, JCL_Gruppen) policy этой чужой таблицы. Задание прямо
 // разрешает эту часть временно опустить, а не подрывать безопасность ради
 // одного отображаемого поля (этап 5).
-export default function CompletedTechniquesList({ records, isLoading, error, onRetry, onPlay }) {
+export default function CompletedTechniquesList({
+  records,
+  isLoading,
+  error,
+  onRetry,
+  onPlay,
+  onUnmark,
+  unmarkingId,
+  unmarkError
+}) {
   const { t, i18n } = useTranslation();
 
   if (isLoading) {
@@ -53,12 +63,15 @@ export default function CompletedTechniquesList({ records, isLoading, error, onR
         }
 
         const hasVideo = Boolean(record.technique.youtube_video_id);
+        const isUnmarking = unmarkingId === record.id;
+        const rowError = unmarkError?.recordId === record.id ? unmarkError : null;
 
         return (
           <li key={record.id} className={styles.card}>
             <div className={styles.iconBox}>
               <Icon name="check" size={18} />
             </div>
+            <TechniqueThumbnail imageUrl={record.technique.image_url} />
             <div className={styles.info}>
               <div className={`${styles.name} ltr-isolate`}>{record.technique.name}</div>
               <div className={styles.meta}>
@@ -71,6 +84,7 @@ export default function CompletedTechniquesList({ records, isLoading, error, onR
                   year: 'numeric'
                 })}
               </div>
+              {rowError && <div className={styles.rowError}>{t('trainerTechniques.unmarkError')}</div>}
             </div>
             <button
               type="button"
@@ -81,6 +95,16 @@ export default function CompletedTechniquesList({ records, isLoading, error, onR
               title={t('trainerTechniques.watchVideo')}
             >
               <Icon name="play" size={14} />
+            </button>
+            <button
+              type="button"
+              className={styles.unmarkButton}
+              onClick={() => onUnmark?.(record)}
+              disabled={isUnmarking}
+              aria-label={t('trainerTechniques.unmarkCompleted')}
+              title={t('trainerTechniques.unmarkCompleted')}
+            >
+              <Icon name="close" size={14} />
             </button>
           </li>
         );

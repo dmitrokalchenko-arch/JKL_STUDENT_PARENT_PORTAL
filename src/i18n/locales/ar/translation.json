@@ -236,6 +236,8 @@
     "marking": "جارٍ الحفظ…",
     "alreadyCompleted": "تم بالفعل وضع علامة على هذه التقنية كمكتملة.",
     "markError": "تعذّر حفظ التقنية.",
+    "unmarkCompleted": "التراجع عن الإكمال",
+    "unmarkError": "تعذّر التراجع عن إكمال التقنية.",
     "accessDenied": "ليس لديك صلاحية الوصول إلى هذا الطالب.",
     "completedBadge": "مكتملة",
     "completedListTitle": "التقنيات المكتملة",

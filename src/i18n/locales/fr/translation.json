@@ -196,6 +196,8 @@
     "marking": "Enregistrement…",
     "alreadyCompleted": "Cette technique est déjà marquée comme acquise.",
     "markError": "Impossible d'enregistrer la technique.",
+    "unmarkCompleted": "Annuler l'acquisition",
+    "unmarkError": "Impossible d'annuler l'acquisition de la technique.",
     "accessDenied": "Vous n'avez pas accès à cet élève.",
     "completedBadge": "Acquise",
     "completedListTitle": "Techniques acquises",

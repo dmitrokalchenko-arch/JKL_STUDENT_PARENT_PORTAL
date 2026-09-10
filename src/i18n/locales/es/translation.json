@@ -196,6 +196,8 @@
     "marking": "Guardando…",
     "alreadyCompleted": "Esta técnica ya está marcada como completada.",
     "markError": "No se pudo guardar la técnica.",
+    "unmarkCompleted": "Deshacer completado",
+    "unmarkError": "No se pudo deshacer el completado.",
     "accessDenied": "No tienes acceso a este alumno.",
     "completedBadge": "Completada",
     "completedListTitle": "Técnicas completadas",

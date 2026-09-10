@@ -196,6 +196,8 @@
     "marking": "Opslaan…",
     "alreadyCompleted": "Deze techniek is al gemarkeerd als voltooid.",
     "markError": "Techniek kon niet worden opgeslagen.",
+    "unmarkCompleted": "Voltooiing ongedaan maken",
+    "unmarkError": "Voltooiing kon niet ongedaan worden gemaakt.",
     "accessDenied": "U heeft geen toegang tot deze leerling.",
     "completedBadge": "Voltooid",
     "completedListTitle": "Voltooide technieken",

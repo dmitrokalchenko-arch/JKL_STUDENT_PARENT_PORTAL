@@ -216,6 +216,8 @@
     "marking": "Zapisywanie…",
     "alreadyCompleted": "Ta technika jest już oznaczona jako wykonana.",
     "markError": "Nie udało się zapisać techniki.",
+    "unmarkCompleted": "Anuluj wykonanie",
+    "unmarkError": "Nie udało się anulować wykonania techniki.",
     "accessDenied": "Nie masz dostępu do tego ucznia.",
     "completedBadge": "Wykonano",
     "completedListTitle": "Wykonane techniki",

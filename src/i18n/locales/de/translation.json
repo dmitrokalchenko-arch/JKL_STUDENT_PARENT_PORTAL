@@ -207,6 +207,8 @@
     "marking": "Wird gespeichert…",
     "alreadyCompleted": "Diese Technik ist bereits als erledigt markiert.",
     "markError": "Technik konnte nicht gespeichert werden.",
+    "unmarkCompleted": "Abschluss rückgängig machen",
+    "unmarkError": "Abschluss konnte nicht zurückgenommen werden.",
     "accessDenied": "Sie haben keinen Zugriff auf diesen Schüler.",
     "completedBadge": "Erledigt",
     "completedListTitle": "Erledigte Techniken",

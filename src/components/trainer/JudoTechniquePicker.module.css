@@ -185,3 +185,9 @@
   color: var(--color-text-muted);
   cursor: not-allowed;
 }
+
+@media (max-width: 640px) {
+  .itemRow {
+    padding: 6px 10px;
+  }
+}

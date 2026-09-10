@@ -1,0 +1,33 @@
+.thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 130px;
+  height: 98px;
+  overflow: hidden;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+}
+
+.thumbnailImg {
+  width: 100%;
+  height: 100%;
+  /* contain, не cover: изображения техник — цельные иллюстрации приёма
+     (соотношение сторон варьируется, ~4:3 у большинства файлов), cover
+     обрезал бы часть позы по краям — contain показывает диаграмму целиком,
+     не растягивая её. */
+  object-fit: contain;
+}
+
+.thumbnailPlaceholderIcon {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 640px) {
+  .thumbnail {
+    width: 72px;
+    height: 54px;
+  }
+}

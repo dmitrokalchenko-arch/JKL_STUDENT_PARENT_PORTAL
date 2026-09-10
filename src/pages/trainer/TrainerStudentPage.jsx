@@ -8,6 +8,7 @@ import CompletedTechniquesList from '../../components/trainer/CompletedTechnique
 import { useTrainerWriteContext } from '../../hooks/useTrainerWriteContext.js';
 import { useStudentTechniqueRecords } from '../../hooks/useStudentTechniqueRecords.js';
 import { useMarkTechniqueCompleted } from '../../hooks/useMarkTechniqueCompleted.js';
+import { useUnmarkTechniqueCompleted } from '../../hooks/useUnmarkTechniqueCompleted.js';
 import styles from './TrainerStudentPage.module.css';
 
 // Маршрут /trainer/student/:studentId — существовал только как приёмник
@@ -45,7 +46,8 @@ export default function TrainerStudentPage({ studentId }) {
     isLoading: isRecordsLoading,
     error: recordsError,
     refetch: refetchRecords,
-    addRecordLocally
+    addRecordLocally,
+    removeRecordLocally
   } = useStudentTechniqueRecords(studentId);
 
   // ЭТАП 7: без reload/refetch — новая запись (ровно то, что вернул
@@ -63,6 +65,23 @@ export default function TrainerStudentPage({ studentId }) {
     studentId,
     writeContext,
     onCompleted: handleCompleted
+  });
+
+  // Симметрично handleCompleted — после успешного DELETE запись убирается
+  // локально (removeRecordLocally), completedTechniqueIds пересчитывается
+  // автоматически тем же useMemo, JudoTechniquePicker сразу видит технику
+  // как невыполненную (задание, "не допускать рассинхронизации между
+  // CompletedTechniquesList и JudoTechniquePicker" — общий источник, один
+  // и тот же records, а не два независимых состояния).
+  const handleUnmarked = useCallback(
+    (recordId) => {
+      removeRecordLocally(recordId);
+    },
+    [removeRecordLocally]
+  );
+
+  const { unmarkCompleted, unmarkingId, error: unmarkError } = useUnmarkTechniqueCompleted({
+    onUnmarked: handleUnmarked
   });
 
   const completedTechniqueIds = useMemo(() => new Set((records ?? []).map((r) => r.techniqueId)), [records]);
@@ -91,6 +110,9 @@ export default function TrainerStudentPage({ studentId }) {
           error={recordsError}
           onRetry={refetchRecords}
           onPlay={setVideoTechnique}
+          onUnmark={unmarkCompleted}
+          unmarkingId={unmarkingId}
+          unmarkError={unmarkError}
         />
 
         <h2 className={styles.sectionTitle}>{t('trainerTechniques.title')}</h2>

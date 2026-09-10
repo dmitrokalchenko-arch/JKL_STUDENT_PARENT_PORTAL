@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from '../common/Icon.jsx';
+import TechniqueThumbnail from './TechniqueThumbnail.jsx';
 import { useJudoTechniques } from '../../hooks/useJudoTechniques.js';
 import { groupTechniquesByCategory, searchTechniques } from '../../utils/judoTechniques.js';
 import styles from './JudoTechniquePicker.module.css';
@@ -96,6 +97,8 @@ export default function JudoTechniquePicker({
                     return (
                       <li key={technique.id} className={styles.item}>
                         <div className={styles.itemRow}>
+                          <TechniqueThumbnail imageUrl={technique.image_url} />
+
                           <span className={`${styles.techniqueName} ltr-isolate`}>{technique.name}</span>
 
                           {isCompleted ? (

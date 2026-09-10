@@ -206,6 +206,8 @@
     "marking": "Se salvează…",
     "alreadyCompleted": "Această tehnică este deja marcată ca finalizată.",
     "markError": "Tehnica nu a putut fi salvată.",
+    "unmarkCompleted": "Anulează finalizarea",
+    "unmarkError": "Finalizarea nu a putut fi anulată.",
     "accessDenied": "Nu aveți acces la acest elev.",
     "completedBadge": "Finalizată",
     "completedListTitle": "Tehnici finalizate",
