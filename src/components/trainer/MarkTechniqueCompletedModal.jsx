@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../common/Modal.jsx';
 import Icon from '../common/Icon.jsx';
@@ -24,6 +24,66 @@ import styles from './MarkTechniqueCompletedModal.module.css';
 // читается (name/image_url) — youtube_url/youtube_video_id техники здесь
 // вообще не используются, это персональное видео ученика, другой источник
 // (задание, этап 3).
+
+// TEMP DIAGNOSTICS: физический iPhone Safari retest показал случай, когда
+// модалка молча "исчезает" через 1-2 сек после "Отметить как выполнено" —
+// без processingErrorKey, без diagnostic-UI, без новой записи. Ни один код-
+// путь в handleConfirm/useCompleteTechniqueWithVideo/TrainerStudentPage не
+// закрывает модалку иначе, чем через УСПЕШНЫЙ onCompleted (Modal.jsx тоже
+// закрывается только через явный onClose) — значит наиболее вероятная
+// причина ТАКОГО поведения на реальном устройстве это ПОЛНАЯ перезагрузка/
+// креш вкладки Safari (типично при memory pressure от нескольких decode/
+// encode попыток подряд для разных AVC candidates на тяжёлом 4K HEVC),
+// стирающая весь in-memory React state — обычная console.log/React-
+// диагностика такое НЕ переживает. Поэтому здесь флоу-стадии дублируются в
+// localStorage (переживает reload) — если тренер снова откроет модалку
+// после такого краша, мы увидим "remnant" последней стадии предыдущей
+// попытки. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
+const FLOW_STAGE_STORAGE_KEY = 'jkl_debug_completion_flow_last_stage';
+
+function logFlowStage(stage, details) {
+  const entry = { stage, details: details ?? null, timestamp: new Date().toISOString() };
+  // eslint-disable-next-line no-console
+  console.log('[completion-flow]', stage, details ?? '');
+  try {
+    localStorage.setItem(FLOW_STAGE_STORAGE_KEY, JSON.stringify(entry));
+  } catch {
+    // localStorage может быть недоступен (приватный режим и т.п.) —
+    // остальная диагностика (console.log) при этом всё равно работает.
+  }
+}
+
+function readFlowStageRemnant() {
+  try {
+    const raw = localStorage.getItem(FLOW_STAGE_STORAGE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw);
+    // FLOW_MODAL_CLOSE_SUCCESS — последняя стадия ПОЛНОСТЬЮ успешного
+    // прогона; если last stage что-то другое, предыдущая попытка не
+    // завершилась штатно (либо ошибка, которую тоже стоит показать, либо
+    // именно тот самый "тихий" обрыв, который мы расследуем).
+    if (entry?.stage === 'FLOW_MODAL_CLOSE_SUCCESS') return null;
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+const FLOW_STAGE_LABELS = {
+  FLOW_CONFIRM_CLICKED: 'Начало',
+  FLOW_PROCESSING_START: 'Обработка видео',
+  FLOW_PROCESSING_SUCCESS: 'Обработка видео завершена',
+  FLOW_OUTPUT_BLOB_READY: 'Клип готов',
+  FLOW_UPLOAD_START: 'Загрузка видео',
+  FLOW_UPLOAD_SUCCESS: 'Видео загружено',
+  FLOW_DB_INSERT_START: 'Сохранение результата',
+  FLOW_DB_INSERT_SUCCESS: 'Результат сохранён',
+  FLOW_REFRESH_START: 'Обновление списка',
+  FLOW_REFRESH_SUCCESS: 'Список обновлён',
+  FLOW_MODAL_CLOSE_SUCCESS: 'Готово',
+  FLOW_ERROR: 'Ошибка'
+};
+
 export default function MarkTechniqueCompletedModal({ technique, student, writeContext, onCompleted, onClose }) {
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
@@ -56,11 +116,36 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // encoder. Список нужен, чтобы на следующем тесте видеть ВСЕ попытки, а
   // не только финальный выбор. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
   const [processingCandidateAttempts, setProcessingCandidateAttempts] = useState([]);
+  // TEMP DIAGNOSTICS: текущая стадия ПОЛНОГО completion flow (confirm →
+  // processing → upload → DB insert → refresh) — человекочитаемая, для
+  // отображения в UI без DevTools. УДАЛИТЬ вместе с остальной TEMP-
+  // диагностикой.
+  const [flowStage, setFlowStageState] = useState(null);
+  // TEMP DIAGNOSTICS: remnant предыдущего незавершённого прогона,
+  // прочитанный из localStorage при открытии модалки для НОВОЙ техники —
+  // если предыдущая попытка не дошла до FLOW_MODAL_CLOSE_SUCCESS (в т.ч. из-
+  // за возможной перезагрузки/краша страницы), здесь будет видна её
+  // последняя известная стадия. УДАЛИТЬ вместе с остальной TEMP-
+  // диагностикой.
+  const [previousRunRemnant, setPreviousRunRemnant] = useState(null);
+
+  function setFlowStage(stage, details) {
+    logFlowStage(stage, details);
+    setFlowStageState({ stage, details });
+  }
+
+  useEffect(() => {
+    if (!technique) return;
+    setPreviousRunRemnant(readFlowStageRemnant());
+  }, [technique]);
 
   const { completeWithVideo, isSubmitting, error, clearError } = useCompleteTechniqueWithVideo({
     studentId: student?.id,
     writeContext,
-    onCompleted
+    onCompleted,
+    // TEMP DIAGNOSTICS: стадии upload/DB insert логируются изнутри хука —
+    // сюда попадают FLOW_UPLOAD_*/FLOW_DB_INSERT_*/FLOW_REFRESH_*/FLOW_ERROR.
+    onFlowStage: setFlowStage
   });
 
   const isOpen = Boolean(technique);
@@ -83,6 +168,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
+    setFlowStageState(null);
     clearError();
     onClose?.();
   }
@@ -94,6 +180,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
+    setFlowStageState(null);
     clearError();
   }
 
@@ -104,13 +191,16 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
+    setPreviousRunRemnant(null);
     setIsProcessing(true);
+    setFlowStage('FLOW_CONFIRM_CLICKED');
 
     const controller = new AbortController();
     processingAbortControllerRef.current = controller;
 
     let processedClipBlob;
     try {
+      setFlowStage('FLOW_PROCESSING_START');
       processedClipBlob = await processTechniqueClip(
         {
           sourceFile: selectedFile,
@@ -128,6 +218,19 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
           onCandidateAttempt: (attempt) => setProcessingCandidateAttempts((prev) => [...prev, attempt])
         }
       );
+
+      // Защитная проверка (задание, п.7): processTechniqueClip() по коду
+      // либо throw, либо возвращает валидный непустой Blob — но раз мы
+      // расследуем "тихое исчезновение операции без throw", лучше явно
+      // проверить, чем предполагать. Пустой/невалидный blob НЕ должен вести
+      // к upload — считаем это ошибкой обработки.
+      if (!(processedClipBlob instanceof Blob) || processedClipBlob.size === 0) {
+        throw new Error(
+          `processTechniqueClip returned invalid blob: instanceof Blob=${processedClipBlob instanceof Blob}, size=${processedClipBlob?.size}`
+        );
+      }
+      setFlowStage('FLOW_PROCESSING_SUCCESS', { blobSize: processedClipBlob.size });
+      setFlowStage('FLOW_OUTPUT_BLOB_READY', { size: processedClipBlob.size, type: processedClipBlob.type });
     } catch (err) {
       processingAbortControllerRef.current = null;
       setIsProcessing(false);
@@ -143,6 +246,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
       // проходе через границы промисов), plus видимый в UI этап+ошибка —
       // на физическом iPhone нет DevTools, только так можно увидеть причину.
       console.error('[clip-processing] caught in modal', err);
+      setFlowStage('FLOW_ERROR', { stage: 'processing', name: err?.name, message: err?.message });
       setProcessingDiagnostic({
         stage: err?.diagnosticStage ?? 'unknown',
         name: err?.name ?? 'Error',
@@ -223,6 +327,30 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
               <TechniqueThumbnail imageUrl={technique?.image_url} />
               <span className={`${styles.techniqueName} ltr-isolate`}>{technique?.name}</span>
             </div>
+
+            {/* TEMP DIAGNOSTICS — remnant предыдущего незавершённого
+                прогона (см. FLOW_STAGE_STORAGE_KEY выше): если модалка на
+                физическом устройстве "тихо исчезла" в прошлый раз (в т.ч.
+                из-за возможной перезагрузки страницы), здесь будет видна
+                последняя известная стадия ДО того обрыва. УДАЛИТЬ вместе с
+                остальной TEMP-диагностикой. */}
+            {previousRunRemnant && (
+              <div className={styles.warningText}>
+                ⚠ Обнаружен незавершённый предыдущий запуск ({previousRunRemnant.timestamp}). Последний известный
+                этап: {FLOW_STAGE_LABELS[previousRunRemnant.stage] ?? previousRunRemnant.stage}
+                {previousRunRemnant.details ? ` (${JSON.stringify(previousRunRemnant.details)})` : ''}
+              </div>
+            )}
+
+            {/* TEMP DIAGNOSTICS — текущий этап ПОЛНОГО completion flow
+                (confirm → processing → upload → DB insert → refresh),
+                человекочитаемый, БЕЗ DevTools. УДАЛИТЬ вместе с остальной
+                TEMP-диагностикой. */}
+            {isBusy && flowStage && (
+              <div className={styles.warningText}>
+                Текущий этап: {FLOW_STAGE_LABELS[flowStage.stage] ?? flowStage.stage}
+              </div>
+            )}
 
             <div className={styles.videoSection}>
               <div className={styles.videoSectionLabel}>{t('trainerTechniques.uploadVideo')}</div>
@@ -306,6 +434,18 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
               </div>
             )}
             {errorKey && <div className={styles.errorText}>{t(`trainerTechniques.${errorKey}`)}</div>}
+            {/* TEMP DIAGNOSTICS — точная стадия upload/DB insert, на
+                которой реально произошла ошибка (errorKey выше показывает
+                только i18n-текст, без указания upload это было или DB
+                insert) + исходное имя/сообщение, БЕЗ stack trace. УДАЛИТЬ
+                вместе с остальной TEMP-диагностикой. */}
+            {flowStage?.stage === 'FLOW_ERROR' && (
+              <div className={styles.warningText}>
+                Этап: {flowStage.details?.stage}
+                <br />
+                Ошибка: {flowStage.details?.name}: {flowStage.details?.message}
+              </div>
+            )}
             {error?.orphanCleanupFailed && (
               <div className={styles.warningText}>{t('trainerTechniques.couldNotDeletePerformanceVideo')}</div>
             )}

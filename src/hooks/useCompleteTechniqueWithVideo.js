@@ -18,7 +18,7 @@ import {
 // Если upload (шаг 1) не удался — до INSERT дело не доходит вообще,
 // completed record НЕ создаётся (задание, этап 8: "Если upload FAILED —
 // completed record НЕ создавать").
-export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompleted }) {
+export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompleted, onFlowStage }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -40,6 +40,16 @@ export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompl
 
       setIsSubmitting(true);
 
+      // TEMP DIAGNOSTICS: физический iPhone Safari retest показал случай,
+      // когда после нажатия "Отметить как выполнено" модалка молча
+      // закрывается через 1-2 сек БЕЗ видимой ошибки и БЕЗ появления новой
+      // записи — ни processingErrorKey, ни error hook'а ничего не
+      // показали. Флоу-стадии (onFlowStage) нужны, чтобы точно увидеть, на
+      // каком шаге (upload/insert) реально останавливается выполнение —
+      // УДАЛИТЬ вместе с остальной TEMP-диагностикой после подтверждённого
+      // фикса.
+      onFlowStage?.('FLOW_UPLOAD_START');
+
       let uploadedPath = null;
       try {
         const { path } = await uploadStudentVideo({
@@ -48,9 +58,17 @@ export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompl
           techniqueName: technique.name,
           file
         });
+        // Защитная проверка: uploadStudentVideo() по коду либо throw, либо
+        // возвращает непустой path — но раз мы уже расследуем "тихое
+        // исчезновение операции без throw", лучше явно проверить, чем
+        // предполагать.
+        if (!path) {
+          throw new VideoUploadError(new Error('uploadStudentVideo returned empty path without throwing'));
+        }
         uploadedPath = path;
       } catch (err) {
         setIsSubmitting(false);
+        onFlowStage?.('FLOW_ERROR', { stage: 'upload', name: err?.name, message: err?.message });
         if (err instanceof VideoValidationError) {
           setError({ reason: err.reason }); // 'unsupported_format' | 'too_large'
         } else if (err instanceof VideoUploadError) {
@@ -60,7 +78,15 @@ export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompl
         }
         return;
       }
+      // НЕ передаём сам uploadedPath дальше в onFlowStage — он содержит
+      // studentId и фамилию ученика (см. buildStudentVideoObjectPath:
+      // `${studentId}/${фамилия}-${техника}-${id}.ext`), а onFlowStage
+      // сохраняется в localStorage (задание: "localStorage не должен
+      // хранить student personal data / полный storage path"). Для
+      // диагностики достаточно факта "path получен и непустой".
+      onFlowStage?.('FLOW_UPLOAD_SUCCESS', { pathReceived: true });
 
+      onFlowStage?.('FLOW_DB_INSERT_START');
       try {
         const record = await markStudentTechniqueCompleted({
           studentId,
@@ -69,9 +95,24 @@ export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompl
           trainerRowId: writeContext.trainerRowId,
           studentVideoPath: uploadedPath
         });
+        // Защитная проверка: markStudentTechniqueCompleted() использует
+        // .select(...).single() — Supabase гарантированно возвращает либо
+        // error, либо непустую строку; но, как и выше, не предполагаем.
+        if (!record || !record.id) {
+          throw new MarkTechniqueError('unknown', new Error('markStudentTechniqueCompleted returned no record'));
+        }
+        onFlowStage?.('FLOW_DB_INSERT_SUCCESS', { recordId: record.id });
+        onFlowStage?.('FLOW_REFRESH_START');
         onCompleted?.(record);
+        // onCompleted (handleModalCompleted в TrainerStudentPage) синхронно
+        // добавляет запись локально И закрывает модалку (setPendingTechnique
+        // (null)) — если мы дошли до этой строки без исключения, весь flow
+        // успешно завершён.
+        onFlowStage?.('FLOW_REFRESH_SUCCESS');
+        onFlowStage?.('FLOW_MODAL_CLOSE_SUCCESS');
       } catch (err) {
         const reason = err instanceof MarkTechniqueError ? err.reason : 'unknown';
+        onFlowStage?.('FLOW_ERROR', { stage: 'db_insert', name: err?.name, message: err?.message });
 
         let orphanCleanupFailed = false;
         try {
@@ -85,7 +126,7 @@ export function useCompleteTechniqueWithVideo({ studentId, writeContext, onCompl
         setIsSubmitting(false);
       }
     },
-    [studentId, writeContext, onCompleted]
+    [studentId, writeContext, onCompleted, onFlowStage]
   );
 
   const clearError = useCallback(() => setError(null), []);
