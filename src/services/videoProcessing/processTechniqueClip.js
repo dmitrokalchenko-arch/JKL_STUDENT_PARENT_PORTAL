@@ -452,24 +452,60 @@ function drawSampleToCanvas(sample, width, height) {
 // после add()), поэтому падать не должны — и по отчёту с iPhone это именно
 // так (preview/timeline с этим НЕ связаны, они не используют WebCodecs).
 //
-// Targeted fix: ТОЛЬКО для этого единственного самого первого кадра
-// материализуем НЕЗАВИСИМЫЙ ImageBitmap (createImageBitmap гарантированно,
-// по спецификации, копирует/владеет собственным bitmap, не завязанным на
-// жизненный цикл исходного canvas) и строим VideoSample из него, а не из
-// canvas напрямую. Один createImageBitmap() на весь клип (не на каждый
-// кадр) — сознательно не платим этой ценой за остальные ~sotни кадров, где
-// такого async-разрыва нет и риска нет.
-async function createOutputVideoSample(canvas, timestamp, duration, needsIndependentBitmap) {
-  if (!needsIndependentBitmap) {
+// ВТОРОЙ физический iPhone retest (после успешного runtime AVC fallback —
+// candidate #5, avc1.4d0020 Main/prefer-hardware, реально прошёл preflight)
+// уронил processing НА ЭТОМ САМОМ targeted-фиксе:
+//   Этап: I_FRAME_DRAWN frame=1
+//   Ошибка: InvalidStateError: Cannot create ImageBitmap from canvas that
+//   can't be rendered
+// Диагностика подтверждает: OffscreenCanvas создан и sample.draw() уже
+// отработал (стадия I_FRAME_DRAWN достигнута) — рисование в OffscreenCanvas
+// 2D само по себе на этом iPhone работает. Ломается именно связка
+// createImageBitmap(OffscreenCanvas) — судя по всему, эта конкретная
+// комбинация (сравнительно новая: OffscreenCanvas в Safari — 16.4+, и не
+// каждая API-комбинация с ним одинаково зрело поддержана) на данном
+// устройстве не работает, хотя оба API по отдельности существуют.
+//
+// ИСПРАВЛЕНИЕ: вместо createImageBitmap используем ctx.getImageData() —
+// метод Canvas 2D API, существующий и стабильный намного дольше
+// OffscreenCanvas, без каких-либо известных проблем именно на этой связке.
+// getImageData() возвращает Uint8ClampedArray — чистые байты в обычной
+// JS-памяти, НИКАК не привязанные к canvas/GPU backing store (в отличие от
+// ImageBitmap, который остаётся canvas/GPU-ресурсом до явного copy).
+//
+// Критично — почему это ещё и надёжнее самого ImageBitmap-подхода: у
+// mediabunny VideoSample для raw pixel data (Uint8Array/ArrayBufferView,
+// node_modules/mediabunny/src/sample.ts:478-480) конвертация в настоящий
+// WebCodecs VideoFrame СОЗНАТЕЛЬНО ОТКЛАДЫВАЕТСЯ до самого вызова
+// toVideoFrame() внутри mediabunny (комментарий авторов библиотеки прямо
+// в исходнике, sample.ts:473-477, про известный баг Chromium при
+// преждевременной конвертации raw-data в VideoFrame) — то есть ДО МОМЕНТА,
+// когда encoder уже точно готов (после await ensureEncoderPromise, см.
+// подробный комментарий про сам async-разрыв выше). Все canvas/bitmap
+// сущности с этого момента вообще не участвуют — есть только независимый
+// массив байт в памяти, который не может "потерять backing store".
+//
+// Один getImageData() на весь клип (не на каждый кадр) — та же экономия,
+// что была у ImageBitmap-варианта: платим этой ценой только за единственный
+// самый первый кадр всего pipeline, где реально есть async-разрыв.
+async function createOutputVideoSample(canvas, timestamp, duration, needsIndependentPixelData, onStage) {
+  if (!needsIndependentPixelData) {
     return new VideoSample(canvas, { timestamp, duration });
   }
 
-  const bitmap = await createImageBitmap(canvas);
-  try {
-    return new VideoSample(bitmap, { timestamp, duration });
-  } finally {
-    bitmap.close();
-  }
+  onStage?.('I3_PIXELDATA_EXTRACT_START', { forceLog: true });
+  const ctx = canvas.getContext('2d');
+  const { width, height } = canvas;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  onStage?.('I4_PIXELDATA_EXTRACT_DONE', { forceLog: true });
+
+  return new VideoSample(imageData.data, {
+    format: 'RGBA',
+    codedWidth: width,
+    codedHeight: height,
+    timestamp,
+    duration
+  });
 }
 
 // Кодирует один сегмент (PART1 обычная скорость ИЛИ PART2 замедление) в уже
@@ -554,19 +590,24 @@ async function encodeSegment({
       continue;
     }
 
-    // needsIndependentBitmap: ТОЛЬКО самый первый кадр, отправляемый в
-    // videoSampleSource.add() за весь pipeline (PART1, 1-й кадр) — см.
-    // подробный комментарий у createOutputVideoSample выше. Для PART2
-    // isFirstSegment=false всегда, поэтому там ветка не сработает (encoder
-    // к этому моменту уже инициализирован из PART1, async-разрыва нет).
-    const isVeryFirstPipelineFrame = isFirstSegment && isFirstFrameOfSegment;
+    // needsIndependentPixelData: ТОЛЬКО самый первый кадр, отправляемый в
+    // ЭТОТ videoSampleSource.add() (isFirstSegment=true передаётся при
+    // каждой новой попытке AVC candidate из findWorkingAvcEncoderConfig —
+    // у каждой попытки свой новый VideoSampleSource с encoderInitialized=
+    // false, поэтому async-разрыв риска существует заново на первом кадре
+    // КАЖДОЙ попытки, не только самой первой во всём pipeline). Для PART2
+    // isFirstSegment=false всегда (той же самой, уже подтверждённой,
+    // попытки) — там ветка не сработает, encoder уже инициализирован.
+    // Подробный комментарий — у createOutputVideoSample выше.
+    const isFirstFrameOfThisEncoderAttempt = isFirstSegment && isFirstFrameOfSegment;
     const outputSample = await createOutputVideoSample(
       canvas,
       timestampOffsetSec + relativeTimestampSec,
       scaledDurationSec,
-      isVeryFirstPipelineFrame
+      isFirstFrameOfThisEncoderAttempt,
+      onStage
     );
-    onStage?.(`I2_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`);
+    onStage?.(`I5_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`);
 
     onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`);
     try {
