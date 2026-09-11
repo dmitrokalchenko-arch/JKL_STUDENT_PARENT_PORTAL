@@ -38,6 +38,11 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // а во время isSubmitting закрытие остаётся заблокированным, как раньше.
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingErrorKey, setProcessingErrorKey] = useState(null);
+  // TEMP DIAGNOSTICS (физический iPhone Safari retest processing-бага) —
+  // на устройстве нет DevTools, поэтому этап+исходная ошибка временно
+  // показываются прямо в модалке; УДАЛИТЬ вместе с diagnosticStage в
+  // processTechniqueClip.js после подтверждённого фикса.
+  const [processingDiagnostic, setProcessingDiagnostic] = useState(null);
 
   const { completeWithVideo, isSubmitting, error, clearError } = useCompleteTechniqueWithVideo({
     studentId: student?.id,
@@ -62,6 +67,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setClipRange({ clipStart: 0, clipEnd: 0 });
     setIsProcessing(false);
     setProcessingErrorKey(null);
+    setProcessingDiagnostic(null);
     clearError();
     onClose?.();
   }
@@ -70,6 +76,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
     setProcessingErrorKey(null);
+    setProcessingDiagnostic(null);
     clearError();
   }
 
@@ -77,6 +84,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     if (!selectedFile || isSubmitting || isProcessing) return;
 
     setProcessingErrorKey(null);
+    setProcessingDiagnostic(null);
     setIsProcessing(true);
 
     const controller = new AbortController();
@@ -101,6 +109,17 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
         // error-текст здесь показывать не нужно.
         return;
       }
+
+      // TEMP DIAGNOSTICS: console.error дублирует то, что уже залогировано
+      // внутри processTechniqueClip (на случай, если stack теряется при
+      // проходе через границы промисов), plus видимый в UI этап+ошибка —
+      // на физическом iPhone нет DevTools, только так можно увидеть причину.
+      console.error('[clip-processing] caught in modal', err);
+      setProcessingDiagnostic({
+        stage: err?.diagnosticStage ?? 'unknown',
+        name: err?.name ?? 'Error',
+        message: err?.message ?? String(err)
+      });
 
       setProcessingErrorKey(
         err instanceof VideoProcessingUnsupportedError ? 'videoProcessingUnsupported' : 'videoProcessingFailed'
@@ -216,6 +235,17 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
 
             {processingErrorKey && (
               <div className={styles.errorText}>{t(`trainerTechniques.${processingErrorKey}`)}</div>
+            )}
+            {/* TEMP DIAGNOSTICS — расследование processing-бага на реальном
+                iPhone Safari (DevTools недоступны на устройстве). Показывает
+                только этап+имя/сообщение ошибки, БЕЗ stack trace. УДАЛИТЬ
+                после подтверждённого фикса вместе с processingDiagnostic. */}
+            {processingDiagnostic && (
+              <div className={styles.warningText}>
+                Этап: {processingDiagnostic.stage}
+                <br />
+                Ошибка: {processingDiagnostic.name}: {processingDiagnostic.message}
+              </div>
             )}
             {errorKey && <div className={styles.errorText}>{t(`trainerTechniques.${errorKey}`)}</div>}
             {error?.orphanCleanupFailed && (

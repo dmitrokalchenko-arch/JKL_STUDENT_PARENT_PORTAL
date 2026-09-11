@@ -83,6 +83,16 @@ function throwIfAborted(signal) {
   }
 }
 
+// TEMP DIAGNOSTICS (физический iPhone Safari retest, чёрный preview уже
+// исправлен — теперь падает processing с generic "Видео не удалось
+// обработать"; исходная ошибка нигде не логировалась). Стадии — только для
+// расследования, где именно рвётся pipeline на реальном устройстве; УДАЛИТЬ
+// после подтверждённого фикса, алгоритм обработки эти логи не меняют.
+function logStage(stage) {
+  // eslint-disable-next-line no-console
+  console.log('[clip-processing]', stage);
+}
+
 // Сохраняет aspect ratio, ограничивает длинную сторону MAX_LONG_EDGE_PX и
 // короткую MAX_SHORT_EDGE_PX одновременно (работает одинаково для landscape
 // и portrait источников), никогда не увеличивает (scale <= 1 — маленькие
@@ -132,12 +142,25 @@ async function encodeSegment({
   speedFactor,
   timestampOffsetSec,
   frameIntervalSec,
-  signal
+  signal,
+  // TEMP DIAGNOSTICS — см. logStage выше; onStage вызывается только для
+  // самого первого сегмента/первого кадра всего pipeline (isFirstSegment),
+  // чтобы не засорять console на каждый из сотен кадров.
+  onStage,
+  isFirstSegment
 }) {
   let nextAllowedTimestamp = rangeStart;
   let segmentEndSec = timestampOffsetSec;
+  let isFirstFrameOfSegment = true;
 
   for await (const sample of videoSampleSink.samples(rangeStart, rangeEnd)) {
+    if (isFirstSegment && isFirstFrameOfSegment) {
+      // Получение первого sample из videoSampleSink уже подразумевает, что
+      // внутренний WebCodecs VideoDecoder создан и успешно декодировал хотя
+      // бы один кадр (mediabunny создаёт/конфигурирует decoder лениво здесь).
+      onStage?.('F_DECODER_CREATED');
+      onStage?.('G_FIRST_FRAME_DECODED');
+    }
     // sample.close() ВСЕГДА вызывается до любой возможной точки throw
     // (throwIfAborted) ниже — иначе abort() ровно в момент получения
     // нового кадра оставляет его незакрытым (реально пойманная утечка при
@@ -149,6 +172,10 @@ async function encodeSegment({
     }
 
     const canvas = shouldSkip ? null : drawSampleToCanvas(sample, targetWidth, targetHeight);
+    if (isFirstSegment && isFirstFrameOfSegment && canvas) {
+      onStage?.('H_CANVAS_CREATED');
+      onStage?.('I_FIRST_FRAME_DRAWN');
+    }
 
     // videoSampleSink.samples(rangeStart, ...) отдаёт кадр, АКТИВНЫЙ в момент
     // rangeStart — его собственный sample.timestamp может быть НЕМНОГО МЕНЬШЕ
@@ -179,11 +206,24 @@ async function encodeSegment({
       duration: scaledDurationSec
     });
 
+    if (isFirstSegment && isFirstFrameOfSegment) {
+      onStage?.('J_ENCODER_CONFIG_CREATED');
+    }
+
     try {
       await videoSampleSource.add(outputSample);
     } finally {
       outputSample.close();
     }
+
+    if (isFirstSegment && isFirstFrameOfSegment) {
+      // videoSampleSource.add() лениво конфигурирует и создаёт реальный
+      // WebCodecs VideoEncoder на первый вызов (mediabunny) — успешное
+      // разрешение промиса выше означает encoder создан И кадр закодирован.
+      onStage?.('L_ENCODER_CREATED');
+      onStage?.('M_FIRST_FRAME_ENCODED');
+    }
+    isFirstFrameOfSegment = false;
 
     segmentEndSec = timestampOffsetSec + relativeTimestampSec + scaledDurationSec;
     throwIfAborted(signal);
@@ -200,23 +240,38 @@ async function encodeSegment({
 export async function processTechniqueClip({ sourceFile, clipStart, clipDuration }, { signal } = {}) {
   throwIfAborted(signal);
 
+  // TEMP DIAGNOSTICS: текущая стадия pipeline на момент возможного throw —
+  // используется только для прикрепления к ошибке ниже (err.diagnosticStage),
+  // сам алгоритм обработки от этой переменной не зависит. УДАЛИТЬ вместе с
+  // logStage() после подтверждённого фикса на физическом iPhone.
+  let currentStage = 'A_INPUT_LOAD';
+  const onStage = (stage) => {
+    currentStage = stage;
+    logStage(stage);
+  };
+  onStage('A_INPUT_LOAD');
+
   const input = new Input({ source: new BlobSource(sourceFile), formats: ALL_FORMATS });
   let output = null;
 
   try {
+    onStage('B_DEMUX');
     const videoTrack = await input.getPrimaryVideoTrack();
     if (!videoTrack) {
       throw new VideoProcessingUnsupportedError('no_video_track');
     }
+    onStage('C_VIDEO_TRACK_FOUND');
 
     // Задание: "не предполагать декодируемость — использовать
     // VideoDecoder.isConfigSupported() или эквивалент". canDecode() —
     // эквивалент из mediabunny, учитывающий реальный codec string трека
     // (включая случаи типа iPhone HEVC/MOV).
+    onStage('D_CODEC_CONFIG');
     const canDecode = await videoTrack.canDecode();
     if (!canDecode) {
       throw new VideoProcessingUnsupportedError('cannot_decode');
     }
+    onStage('E_CAN_DECODE');
 
     const displayWidth = await videoTrack.getDisplayWidth();
     const displayHeight = await videoTrack.getDisplayHeight();
@@ -235,6 +290,7 @@ export async function processTechniqueClip({ sourceFile, clipStart, clipDuration
     if (!canEncode) {
       throw new VideoProcessingUnsupportedError('cannot_encode');
     }
+    onStage('K_CAN_ENCODE');
 
     throwIfAborted(signal);
 
@@ -249,6 +305,7 @@ export async function processTechniqueClip({ sourceFile, clipStart, clipDuration
     const videoSampleSource = new VideoSampleSource({ codec: OUTPUT_VIDEO_CODEC, quality });
     output.addVideoTrack(videoSampleSource);
     await output.start();
+    onStage('N_MUX_START');
 
     const videoSampleSink = new VideoSampleSink(videoTrack);
 
@@ -262,8 +319,11 @@ export async function processTechniqueClip({ sourceFile, clipStart, clipDuration
       speedFactor: 1,
       timestampOffsetSec: 0,
       frameIntervalSec,
-      signal
+      signal,
+      onStage,
+      isFirstSegment: true
     });
+    onStage('O_NORMAL_SEGMENT_COMPLETE');
 
     throwIfAborted(signal);
 
@@ -277,13 +337,37 @@ export async function processTechniqueClip({ sourceFile, clipStart, clipDuration
       speedFactor: 2,
       timestampOffsetSec: part1EndSec,
       frameIntervalSec,
-      signal
+      signal,
+      onStage,
+      isFirstSegment: false
     });
+    onStage('P_SLOW_SEGMENT_COMPLETE');
 
+    onStage('Q_FINALIZE');
     await output.finalize();
 
-    return new Blob([output.target.buffer], { type: 'video/mp4' });
+    const blob = new Blob([output.target.buffer], { type: 'video/mp4' });
+    onStage('R_OUTPUT_BLOB_CREATED');
+    return blob;
   } catch (err) {
+    // TEMP DIAGNOSTICS: раньше исходная ошибка (name/message/stack) нигде не
+    // логировалась — в MarkTechniqueCompletedModal она всегда превращалась в
+    // generic 'videoProcessingFailed', и на физическом устройстве без
+    // DevTools узнать точную причину было невозможно. err.diagnosticStage
+    // прокидывается наверх для временного отображения в UI (см. модалку).
+    console.error('[clip-processing] FAILED at stage', currentStage, {
+      name: err?.name,
+      message: err?.message,
+      stack: err?.stack,
+      cause: err?.cause
+    });
+    try {
+      err.diagnosticStage = currentStage;
+    } catch {
+      // некоторые значения (напр. строки/примитивы, брошенные не через Error)
+      // нельзя аннотировать доп. свойством — не критично для диагностики
+    }
+
     if (output) {
       try {
         await output.cancel();
