@@ -1,0 +1,192 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.videoWrap {
+  position: relative;
+  width: 100%;
+  max-height: 260px;
+  background: #000;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video {
+  width: 100%;
+  max-height: 260px;
+  display: block;
+}
+
+.stateText {
+  padding: 10px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.timelineRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timelineLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Родной range input — уже touch-friendly по умолчанию в браузерах,
+   увеличиваем только высоту трека/thumb для уверенного попадания пальцем
+   (задание, этап 10: timeline "достаточно большой для touch"). */
+.timelineInput {
+  width: 100%;
+  height: 32px;
+  cursor: pointer;
+}
+
+.timeRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.timeValue {
+  font-weight: 600;
+}
+
+.durationRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.durationButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* min-width/height >= 44px — общепринятый минимальный touch-target
+   (задание, этап 10: "должны удобно нажиматься пальцем"). */
+.durationButton {
+  min-width: 52px;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-chip);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.durationButton:hover,
+.durationButton:focus-visible {
+  border-color: var(--color-gold);
+  outline: none;
+}
+
+.durationButtonActive {
+  border-color: var(--color-gold);
+  background: var(--color-gold);
+  color: #1a1a1a;
+}
+
+/* Не disabled (задание допускает, но не требует) — источник короче
+   номинальной duration всё равно даёт валидный (укороченный) клип, кнопка
+   остаётся кликабельной; только лёгкая визуальная пометка + пояснение в
+   clipNoteText ниже. */
+.durationButtonExceeds {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.clipNoteText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.fineAdjustRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fineAdjustButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.fineAdjustButton {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 8px 10px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.fineAdjustButton:hover:not(:disabled),
+.fineAdjustButton:focus-visible:not(:disabled) {
+  border-color: var(--color-gold);
+  outline: none;
+}
+
+.fineAdjustButton:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.previewButton {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 9px 16px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-gold);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.previewButton:hover:not(:disabled),
+.previewButton:focus-visible:not(:disabled) {
+  border-color: var(--color-gold);
+  outline: none;
+}
+
+.previewButton:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .durationButton {
+    flex: 1 1 30%;
+  }
+
+  .fineAdjustButtons {
+    flex-wrap: wrap;
+  }
+
+  .fineAdjustButton {
+    flex: 1 1 40%;
+  }
+}

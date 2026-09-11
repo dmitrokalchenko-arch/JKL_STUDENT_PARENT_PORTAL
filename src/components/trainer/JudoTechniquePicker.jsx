@@ -17,18 +17,20 @@ import styles from './JudoTechniquePicker.module.css';
 // который сам их грузит через useStudentTechniqueRecords — Picker ничего
 // не знает про студента/прогресс напрямую, только про то, какие id уже
 // "выполнены", чтобы показать бейдж вместо кнопки (задание, этап 6).
-// markingId — id техники, для которой прямо сейчас идёт INSERT (per-row
-// loading, не блокирует остальной список). onMarkCompleted не вызывается
-// повторно для уже выполненной техники — кнопка отметки заменяется бейджем,
-// повторный INSERT физически недостижим из UI (задание, этап 4/6); видео
-// при этом остаётся доступным всегда, независимо от completed-статуса.
-export default function JudoTechniquePicker({
-  completedTechniqueIds,
-  markingId,
-  markError,
-  onMarkCompleted,
-  onPlay
-}) {
+// onMarkCompleted не вызывается повторно для уже выполненной техники —
+// кнопка отметки заменяется бейджем, повторное открытие модалки для уже
+// выполненной техники физически недостижимо из UI; видео (каталожное,
+// YouTube) при этом остаётся доступным всегда, независимо от
+// completed-статуса.
+//
+// onMarkCompleted теперь ТОЛЬКО открывает модалку подтверждения
+// (MarkTechniqueCompletedModal, см. TrainerStudentPage.jsx) — сам INSERT
+// больше не происходит по клику здесь (задание: "нажатие больше не должно
+// отмечать технику сразу"). Поэтому markingId/markError, которые раньше
+// показывали per-row loading/ошибку INSERT прямо в этом списке, больше не
+// нужны — вся эта async-логика и её ошибки теперь внутри модалки, не в
+// каталоге.
+export default function JudoTechniquePicker({ completedTechniqueIds, onMarkCompleted, onPlay }) {
   const { t } = useTranslation();
   const { techniques, isLoading, error, refetch } = useJudoTechniques();
   const [query, setQuery] = useState('');
@@ -90,9 +92,7 @@ export default function JudoTechniquePicker({
                 <ul className={styles.list}>
                   {categoryTechniques.map((technique) => {
                     const isCompleted = completedTechniqueIds?.has(technique.id) ?? false;
-                    const isMarking = markingId === technique.id;
                     const hasVideo = Boolean(technique.youtube_video_id);
-                    const rowError = markError?.techniqueId === technique.id ? markError : null;
 
                     return (
                       <li key={technique.id} className={styles.item}>
@@ -107,13 +107,8 @@ export default function JudoTechniquePicker({
                               {t('trainerTechniques.completedBadge')}
                             </span>
                           ) : (
-                            <button
-                              type="button"
-                              className={styles.markButton}
-                              onClick={() => onMarkCompleted?.(technique)}
-                              disabled={isMarking}
-                            >
-                              {isMarking ? t('trainerTechniques.marking') : t('trainerTechniques.markCompleted')}
+                            <button type="button" className={styles.markButton} onClick={() => onMarkCompleted?.(technique)}>
+                              {t('trainerTechniques.markCompleted')}
                             </button>
                           )}
 
@@ -128,20 +123,6 @@ export default function JudoTechniquePicker({
                             <Icon name="play" size={14} />
                           </button>
                         </div>
-
-                        {rowError && (
-                          <div className={styles.rowError}>
-                            {t(
-                              rowError.reason === 'duplicate'
-                                ? 'trainerTechniques.alreadyCompleted'
-                                : rowError.reason === 'access_denied'
-                                  ? 'trainerTechniques.accessDenied'
-                                  : rowError.reason === 'no_write_context'
-                                    ? 'trainerTechniques.writeContextError'
-                                    : 'trainerTechniques.markError'
-                            )}
-                          </div>
-                        )}
                       </li>
                     );
                   })}

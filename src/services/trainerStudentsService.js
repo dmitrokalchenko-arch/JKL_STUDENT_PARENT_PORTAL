@@ -28,3 +28,32 @@ export async function searchTrainerStudents(query) {
     birthDate: row.geburtsdatum
   }));
 }
+
+// get_trainer_student_by_id(p_student_id) (migration 049, ещё НЕ применена
+// к production) — точечный lookup ОДНОГО ученика по id, для страниц вроде
+// TrainerStudentPage, которые получают от роутинга только studentId и
+// нигде рядом уже не загружали Vorname/Nachname (см. App.jsx —
+// window.location.href без переданного state). НЕ переиспользует
+// searchTrainerStudents — та ищет по подстроке имени, не по id. Тот же
+// access-gate (can_trainer_access_student), что и у остального RLS этой
+// цепочки — 0 строк, если доступа нет, не ошибка.
+export async function getTrainerStudentById(studentId) {
+  if (!isSupabaseConfigured || !studentId) return null;
+
+  const { data, error } = await trainerSupabase.rpc('get_trainer_student_by_id', {
+    p_student_id: studentId
+  });
+
+  if (error) {
+    throw new Error(`Schülerdaten konnten nicht geladen werden: ${error.message}`);
+  }
+
+  const row = data?.[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    firstName: row.vorname,
+    lastName: row.nachname
+  };
+}

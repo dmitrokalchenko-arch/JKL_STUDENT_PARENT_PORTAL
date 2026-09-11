@@ -130,15 +130,10 @@
   cursor: pointer;
 }
 
-.markButton:hover:not(:disabled),
-.markButton:focus-visible:not(:disabled) {
+.markButton:hover,
+.markButton:focus-visible {
   border-color: var(--color-gold);
   outline: none;
-}
-
-.markButton:disabled {
-  color: var(--color-text-muted);
-  cursor: default;
 }
 
 .completedBadge {
@@ -153,12 +148,6 @@
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.rowError {
-  padding: 0 12px;
-  color: var(--color-error);
-  font-size: 12px;
 }
 
 .playButton {

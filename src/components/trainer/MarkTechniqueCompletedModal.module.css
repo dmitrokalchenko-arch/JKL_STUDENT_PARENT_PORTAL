@@ -1,0 +1,205 @@
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.closeButton:hover:not(:disabled) {
+  border-color: var(--color-gold);
+  color: var(--color-text-primary);
+}
+
+.closeButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.studentLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.studentName {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+
+.techniquePreview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.techniqueName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.videoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.videoSectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.addVideoButton {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.addVideoButton:hover:not(:disabled),
+.addVideoButton:focus-visible:not(:disabled) {
+  border-color: var(--color-gold);
+  outline: none;
+}
+
+.addVideoButton:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.selectedFile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.selectedFileName {
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
+.errorText {
+  color: var(--color-error);
+  font-size: 13px;
+}
+
+.warningText {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.cancelButton {
+  padding: 9px 16px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cancelButton:hover:not(:disabled),
+.cancelButton:focus-visible:not(:disabled) {
+  border-color: var(--color-gold);
+  outline: none;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.confirmButton {
+  padding: 9px 18px;
+  background: var(--color-gold);
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-button);
+  color: #1a1a1a;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmButton:hover:not(:disabled),
+.confirmButton:focus-visible:not(:disabled) {
+  outline: none;
+  filter: brightness(1.05);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .footer {
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .confirmButton {
+    width: 100%;
+  }
+}

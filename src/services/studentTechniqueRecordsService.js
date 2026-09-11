@@ -13,8 +13,13 @@ import { getTechniqueImageUrl } from './techniqueImageUrl.js';
 // принципом — это ссылка на изображение ЭТОЙ техники в каталоге, не копия:
 // одна и та же getTechniqueImageUrl(image_path), что и в
 // judoTechniquesService.js, гарантирует ту же самую картинку.
+// student_video_path — НАТИВНАЯ колонка этой же таблицы (не JOIN, в
+// отличие от name/category/.../image_path выше, которые идут ИЗ
+// judo_techniques) — персональное видео ВЫПОЛНЕНИЯ, никак не связанное с
+// youtube_url/youtube_video_id (задание, этап 3 — два разных источника
+// видео, никогда не смешивать/не подставлять YouTube как fallback).
 const RECORD_SELECT =
-  'id, technique_id, completed_at, judo_techniques(name, category, main_group, image_path, youtube_url, youtube_video_id)';
+  'id, technique_id, completed_at, student_video_path, judo_techniques(name, category, main_group, image_path, youtube_url, youtube_video_id)';
 
 function mapRecord(row) {
   const technique = row.judo_techniques
@@ -25,6 +30,10 @@ function mapRecord(row) {
     id: row.id,
     techniqueId: row.technique_id,
     completedAt: row.completed_at,
+    // NULL для записей, созданных до появления student_video_path
+    // (задание, этап 2/10 — старые записи без видео обязаны продолжать
+    // работать, video button для них просто disabled в UI).
+    studentVideoPath: row.student_video_path ?? null,
     // judo_techniques может быть null, если сама запись существует, но
     // JOIN ничего не вернул (RLS/edge case) — не должно случиться на
     // практике (technique_id -> judo_techniques(id) on delete restrict
@@ -75,7 +84,14 @@ export class MarkTechniqueError extends Error {
 // и сверяет с этим значением. Если они разойдутся (практически невозможно —
 // это тот же тренер, та же сессия), INSERT просто провалится RLS-проверкой
 // (42501), а не молча запишет неверные данные.
-export async function markStudentTechniqueCompleted({ studentId, techniqueId, clubId, trainerRowId, trainerComment }) {
+export async function markStudentTechniqueCompleted({
+  studentId,
+  techniqueId,
+  clubId,
+  trainerRowId,
+  trainerComment,
+  studentVideoPath
+}) {
   const { data, error } = await trainerSupabase
     .from('student_technique_records')
     .insert({
@@ -83,7 +99,8 @@ export async function markStudentTechniqueCompleted({ studentId, techniqueId, cl
       student_id: studentId,
       technique_id: techniqueId,
       completed_by: trainerRowId,
-      trainer_comment: trainerComment || null
+      trainer_comment: trainerComment || null,
+      student_video_path: studentVideoPath || null
     })
     .select(RECORD_SELECT)
     .single();

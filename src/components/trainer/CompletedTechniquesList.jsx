@@ -16,6 +16,16 @@ import styles from './CompletedTechniquesList.module.css';
 // открытым (не наши, JCL_Gruppen) policy этой чужой таблицы. Задание прямо
 // разрешает эту часть временно опустить, а не подрывать безопасность ради
 // одного отображаемого поля (этап 5).
+//
+// Video button здесь — ПЕРСОНАЛЬНОЕ видео выполнения (record.studentVideoPath,
+// private Storage + signed URL, см. StudentVideoPlayerModal), НЕ
+// record.technique.youtube_url/youtube_video_id — задание, этап 3/10/11:
+// "никогда не использовать YouTube как fallback для completed technique".
+// onPlay здесь принимает record целиком (не record.technique, как раньше) —
+// StudentVideoPlayerModal нужен именно studentVideoPath записи, а не
+// что-либо из каталога. Для старых записей без видео (studentVideoPath
+// null) кнопка disabled с tooltip через i18n (задание, этап 10) — YouTube
+// НЕ подставляется.
 export default function CompletedTechniquesList({
   records,
   isLoading,
@@ -62,7 +72,7 @@ export default function CompletedTechniquesList({
           );
         }
 
-        const hasVideo = Boolean(record.technique.youtube_video_id);
+        const hasStudentVideo = Boolean(record.studentVideoPath);
         const isUnmarking = unmarkingId === record.id;
         const rowError = unmarkError?.recordId === record.id ? unmarkError : null;
 
@@ -89,10 +99,10 @@ export default function CompletedTechniquesList({
             <button
               type="button"
               className={styles.playButton}
-              onClick={() => onPlay?.(record.technique)}
-              disabled={!hasVideo}
-              aria-label={t('trainerTechniques.watchVideo')}
-              title={t('trainerTechniques.watchVideo')}
+              onClick={() => onPlay?.(record)}
+              disabled={!hasStudentVideo}
+              aria-label={t(hasStudentVideo ? 'trainerTechniques.performanceVideo' : 'trainerTechniques.noPerformanceVideo')}
+              title={t(hasStudentVideo ? 'trainerTechniques.performanceVideo' : 'trainerTechniques.noPerformanceVideo')}
             >
               <Icon name="play" size={14} />
             </button>
