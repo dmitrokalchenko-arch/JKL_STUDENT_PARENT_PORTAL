@@ -43,6 +43,12 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // показываются прямо в модалке; УДАЛИТЬ вместе с diagnosticStage в
   // processTechniqueClip.js после подтверждённого фикса.
   const [processingDiagnostic, setProcessingDiagnostic] = useState(null);
+  // TEMP DIAGNOSTICS: какой именно AVC profile/level/hardwareAcceleration
+  // реально выбрал selectAvcEncoderConfig на ЭТОМ устройстве — нужно видеть
+  // и при следующем физическом iPhone-тесте независимо от того, упадёт ли
+  // обработка дальше на другом этапе. УДАЛИТЬ вместе с остальной TEMP-
+  // диагностикой.
+  const [processingEncoderConfig, setProcessingEncoderConfig] = useState(null);
 
   const { completeWithVideo, isSubmitting, error, clearError } = useCompleteTechniqueWithVideo({
     studentId: student?.id,
@@ -68,6 +74,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setIsProcessing(false);
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
+    setProcessingEncoderConfig(null);
     clearError();
     onClose?.();
   }
@@ -77,6 +84,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setSelectedFile(file);
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
+    setProcessingEncoderConfig(null);
     clearError();
   }
 
@@ -85,6 +93,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
 
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
+    setProcessingEncoderConfig(null);
     setIsProcessing(true);
 
     const controller = new AbortController();
@@ -98,7 +107,12 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
           clipStart: clipRange.clipStart,
           clipDuration: clipRange.clipEnd - clipRange.clipStart
         },
-        { signal: controller.signal }
+        {
+          signal: controller.signal,
+          // TEMP DIAGNOSTICS: вызывается сразу после выбора AVC-конфигурации,
+          // независимо от того, упадёт ли обработка дальше.
+          onEncoderConfigSelected: setProcessingEncoderConfig
+        }
       );
     } catch (err) {
       processingAbortControllerRef.current = null;
@@ -237,9 +251,24 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
               <div className={styles.errorText}>{t(`trainerTechniques.${processingErrorKey}`)}</div>
             )}
             {/* TEMP DIAGNOSTICS — расследование processing-бага на реальном
-                iPhone Safari (DevTools недоступны на устройстве). Показывает
-                только этап+имя/сообщение ошибки, БЕЗ stack trace. УДАЛИТЬ
-                после подтверждённого фикса вместе с processingDiagnostic. */}
+                iPhone Safari (DevTools недоступны на устройстве). Выбранный
+                encoder config показывается ВСЕГДА, как только он известен
+                (даже при успешной обработке) — чтобы на следующем физическом
+                тесте было видно, какую именно AVC-конфигурацию выбрал iPhone.
+                Этап+имя/сообщение ошибки — только при провале, БЕЗ stack
+                trace. УДАЛИТЬ вместе с processingDiagnostic/processingEncoderConfig
+                после подтверждённого фикса. */}
+            {processingEncoderConfig && (
+              <div className={styles.warningText}>
+                AVC codec: {processingEncoderConfig.fullCodecString} ({processingEncoderConfig.profileName})
+                <br />
+                Resolution: {processingEncoderConfig.width}x{processingEncoderConfig.height}
+                <br />
+                Bitrate: {processingEncoderConfig.bitrateBps} bps
+                <br />
+                Hardware acceleration: {processingEncoderConfig.hardwareAcceleration}
+              </div>
+            )}
             {processingDiagnostic && (
               <div className={styles.warningText}>
                 Этап: {processingDiagnostic.stage}
