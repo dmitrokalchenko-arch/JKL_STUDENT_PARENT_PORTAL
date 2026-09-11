@@ -92,6 +92,22 @@ function logStage(stage) {
   console.log('[clip-processing]', stage);
 }
 
+// TEMP DIAGNOSTICS: физический iPhone retest после AVC-фикса показал новую
+// ошибку ("InvalidStateError: Buffer has no frame") на стадии, которую
+// старый код обозначал как "M_FIRST_FRAME_ENCODED" — НО этот label
+// обновлялся ТОЛЬКО для самого первого кадра всего pipeline (см. старую
+// проверку isFirstSegment && isFirstFrameOfSegment ниже) и оставался
+// "залипшим" на этом значении для ЛЮБОГО кадра дальше (2-го, 10-го, из
+// PART2...), потому что per-frame стадии для остальных кадров вообще не
+// логировались. Поэтому диагноз "упало именно на первом кадре" был не
+// доказан — реальная точка отказа могла быть где угодно в сегменте.
+// Ниже — исправление ЭТОЙ диагностической неточности (не алгоритма):
+// per-frame стадии (I_FRAME_DRAWN/I2/M1/M2) теперь обновляются для КАЖДОГО
+// кадра (currentStage всегда отражает правду), а подробный console.log
+// ограничен MAX_DETAILED_FRAME_LOGS кадрами, чтобы не спамить консоль и не
+// тормозить обработку на длинных клипах (до ~750 кадров на 25 сек).
+const MAX_DETAILED_FRAME_LOGS = 24;
+
 // РЕАЛЬНЫЙ физический iPhone Safari retest (IMG_7163.mov, HEVC/MOV,
 // display 2160×3840 portrait → target 720×1280) уронил processing на этапе
 // J_ENCODER_CONFIG_CREATED с точной ошибкой:
@@ -204,12 +220,71 @@ function buildAvcEncoderCandidates({ width, height, bitrateBps, framerateHz }) {
   return candidates;
 }
 
-// Заменяет старую mediabunny canEncodeVideo(): та молча доверяет ЕДИНСТВЕННОМУ
-// жёстко подобранному codec string (см. комментарий выше) — здесь же
-// реально перебираем кандидатов и берём первый, который нативный
-// VideoEncoder.isConfigSupported() подтверждает на ЭТОМ конкретном
-// устройстве/браузере.
-async function selectAvcEncoderConfig({ width, height, bitrateBps, framerateHz, signal }) {
+// ВТОРОЙ физический iPhone retest (после AVC profile/level-фикса выше,
+// avc1.640020 корректно прошёл СТАТИЧЕСКУЮ проверку и был выбран) показал
+// НОВУЮ ошибку РОВНО на попытке реальной инициализации encoder:
+//   "This specific encoder configuration (avc1.640020, 2500000 bps,
+//   720x1280, hardware acceleration: no-preference) is not supported in
+//   this environment."
+// — то есть ТОТ ЖЕ кандидат, который наш собственный preflight
+// (VideoEncoder.isConfigSupported()) подтвердил как supported:true, на
+// РЕАЛЬНОЙ инициализации (mediabunny ensureEncoder(), которая тоже вызывает
+// isConfigSupported(), но уже ПОЗЖЕ, после того как HEVC-декодер уже
+// активно работает) — отклоняется.
+//
+// Ключевой вывод (см. также mediabunny/src/encode.ts:1135, собственный
+// комментарий авторов библиотеки: "isConfigSupported on Firefox appears to
+// unreliably indicate if encoding will actually succeed" — там для Firefox
+// уже есть workaround через реальную пробную кодировку кадра). На этом
+// iPhone Safari isConfigSupported() оказался НЕНАДЁЖЕН аналогичным
+// образом: статическая проверка не гарантирует успех реальной
+// VideoEncoder.configure()+encode(), возможно из-за конкуренции за
+// hardware video codec block между активным HEVC-декодером и попыткой
+// сконфигурировать H.264-энкодер именно в этот момент.
+//
+// ИСПРАВЛЕНИЕ: RUNTIME CANDIDATE FALLBACK. isConfigSupported() остаётся
+// дешёвым первым фильтром (отсекает заведомо нерабочие комбинации), но
+// решающим считается ТОЛЬКО реальный результат: создать Output+
+// VideoSampleSource с этим candidate, реально задекодировать/отправить
+// первый кадр через encodeSegment(). Если mediabunny выбрасывает именно
+// "...is not supported in this environment" — это ОТКАЗ ИМЕННО ЭТОГО
+// candidate (isEncoderConfigNotSupportedError ниже), не общая ошибка
+// pipeline: текущий Output отменяется, и пробуется следующий candidate.
+// Любая ДРУГАЯ ошибка (abort/decode/mux/...) пробрасывается как есть, без
+// маскировки под "ещё один candidate не подошёл".
+function isEncoderConfigNotSupportedError(err) {
+  return (
+    err instanceof Error &&
+    typeof err.message === 'string' &&
+    err.message.includes('is not supported in this environment')
+  );
+}
+
+// Заменяет старую mediabunny canEncodeVideo() (и наш прежний
+// selectAvcEncoderConfig(), который останавливался на первом
+// isConfigSupported()===true и БЕЗ реальной проверки объявлял его финальным
+// выбором — именно это и подвело на физическом iPhone, см. комментарий
+// выше). Для каждого candidate: сначала дешёвый статический фильтр
+// (isConfigSupported), затем — только если он пройден — РЕАЛЬНАЯ попытка
+// инициализировать encoder и закодировать весь PART1 (обычная скорость).
+// Первый candidate, который реально прошёл ОБА этапа, используется дальше
+// для PART2 (там encoder уже инициализирован, повторный отказ невозможен
+// — см. комментарий у createOutputVideoSample/encodeSegment).
+async function findWorkingAvcEncoderConfig({
+  width,
+  height,
+  bitrateBps,
+  framerateHz,
+  signal,
+  quality,
+  videoSampleSink,
+  clipStart,
+  clipEnd,
+  frameIntervalSec,
+  onStage,
+  frameCounter,
+  onCandidateAttempt
+}) {
   if (typeof VideoEncoder === 'undefined') {
     throw new VideoProcessingUnsupportedError('cannot_encode');
   }
@@ -218,6 +293,8 @@ async function selectAvcEncoderConfig({ width, height, bitrateBps, framerateHz, 
 
   for (const candidate of candidates) {
     throwIfAborted(signal);
+
+    let staticSupport = false;
     try {
       const support = await VideoEncoder.isConfigSupported({
         codec: candidate.fullCodecString,
@@ -227,12 +304,87 @@ async function selectAvcEncoderConfig({ width, height, bitrateBps, framerateHz, 
         framerate: framerateHz,
         hardwareAcceleration: candidate.hardwareAcceleration
       });
-      if (support.supported) {
-        return candidate;
-      }
+      staticSupport = support.supported === true;
     } catch {
-      // Некорректная/неизвестная для этого движка комбинация — пробуем
-      // следующего кандидата, как и раньше делала сама mediabunny.
+      staticSupport = false;
+    }
+
+    if (!staticSupport) {
+      onCandidateAttempt?.({ ...candidate, stage: 'preflight', result: 'rejected' });
+      continue;
+    }
+    onCandidateAttempt?.({ ...candidate, stage: 'preflight', result: 'accepted' });
+
+    let firstEncodedChunkSeen = false;
+    const attemptOutput = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
+    const attemptSource = new VideoSampleSource({
+      codec: OUTPUT_VIDEO_CODEC,
+      quality,
+      fullCodecString: candidate.fullCodecString,
+      hardwareAcceleration: candidate.hardwareAcceleration,
+      onEncoderConfig: () => onStage('L_ENCODER_READY', { forceLog: true }),
+      onEncodedPacket: () => {
+        if (!firstEncodedChunkSeen) {
+          firstEncodedChunkSeen = true;
+          onStage('M3_FIRST_ENCODED_CHUNK', { forceLog: true });
+        }
+      }
+    });
+    attemptOutput.addVideoTrack(attemptSource);
+
+    // Сброс на каждую попытку — иначе номера кадров в диагностике "прыгали"
+    // бы между несколькими неудачными/удачными candidate-попытками.
+    frameCounter.value = 0;
+
+    try {
+      await attemptOutput.start();
+      const part1EndSec = await encodeSegment({
+        videoSampleSink,
+        videoSampleSource: attemptSource,
+        rangeStart: clipStart,
+        rangeEnd: clipEnd,
+        targetWidth: width,
+        targetHeight: height,
+        speedFactor: 1,
+        timestampOffsetSec: 0,
+        frameIntervalSec,
+        signal,
+        onStage,
+        frameCounter,
+        isFirstSegment: true
+      });
+
+      onCandidateAttempt?.({ ...candidate, stage: 'runtime', result: 'accepted' });
+      onStage(
+        `RUNTIME_ENCODER_INITIALIZED candidate=${candidate.fullCodecString} hwAccel=${candidate.hardwareAcceleration}`,
+        { forceLog: true }
+      );
+
+      return { candidate, output: attemptOutput, videoSampleSource: attemptSource, part1EndSec };
+    } catch (err) {
+      const isCandidateRejection = isEncoderConfigNotSupportedError(err);
+      onCandidateAttempt?.({
+        ...candidate,
+        stage: 'runtime',
+        result: 'rejected',
+        error: err?.message,
+        isCandidateSpecific: isCandidateRejection
+      });
+
+      try {
+        await attemptOutput.cancel();
+      } catch {
+        // best-effort — не маскируем исходную ошибку кандидата
+      }
+
+      if (!isCandidateRejection) {
+        // Настоящая ошибка (отмена/decode/mux/...), не связанная с выбором
+        // AVC candidate — пробрасываем как есть, не пытаемся "подобрать
+        // другой candidate" для проблемы, которая не в этом.
+        throw err;
+      }
+      // Иначе — этот candidate реально не поддержан устройством, пробуем
+      // следующего.
     }
   }
 
@@ -269,6 +421,57 @@ function drawSampleToCanvas(sample, width, height) {
   return canvas;
 }
 
+// РЕАЛЬНЫЙ физический iPhone retest (после AVC-фикса, avc1.640020 принят)
+// уронил processing дальше: "InvalidStateError: Buffer has no frame".
+//
+// Root cause (проверено чтением исходников mediabunny 1.56.1):
+// new VideoSample(canvas, {timestamp, duration}) СРАЗУ, синхронно,
+// конструирует внутренний new VideoFrame(canvas, {...})
+// (node_modules/mediabunny/src/sample.ts:542-557) — это происходит в
+// момент вызова, сразу после sample.draw() на canvas. Но РЕАЛЬНАЯ передача
+// этого кадра в WebCodecs VideoEncoder (sampleToEncode.toVideoFrame(),
+// media-source.ts:548) происходит только ПОСЛЕ того, как разрешится
+// this.ensureEncoderPromise — а ensureEncoder() (media-source.ts:651-741)
+// сама асинхронно перебирает кандидатов через VideoEncoder.isConfigSupported()
+// и вызывает encoder.configure(). Этот await-разрыв между "VideoFrame
+// создан из canvas" и "VideoFrame реально использован" существует ТОЛЬКО
+// для САМОГО ПЕРВОГО кадра, отправленного в videoSampleSource.add() за всё
+// время pipeline (see media-source.ts:484-497: `if (!this.encoderInitialized)
+// {...await this.ensureEncoderPromise...}` — для всех следующих кадров эта
+// ветка уже пропускается, encoderInitialized=true).
+//
+// InvalidStateError "Buffer has no frame" — это ровно ошибка WebCodecs про
+// VideoFrame с уже недоступным backing buffer. Наиболее вероятный механизм
+// на WebKit: OffscreenCanvas, на который ничего кроме локальной переменной
+// в цикле не ссылается, теряет единственную сильную JS-ссылку сразу после
+// return из drawSampleToCanvas — и именно для ПЕРВОГО кадра успевает пройти
+// реальный await-разрыв (несколько isConfigSupported()+configure()), в
+// течение которого GC на мобильном Safari может освободить backing store
+// canvas/VideoFrame раньше, чем encoder успевает его прочитать. Все
+// остальные кадры идут без такого разрыва (закодированы практически сразу
+// после add()), поэтому падать не должны — и по отчёту с iPhone это именно
+// так (preview/timeline с этим НЕ связаны, они не используют WebCodecs).
+//
+// Targeted fix: ТОЛЬКО для этого единственного самого первого кадра
+// материализуем НЕЗАВИСИМЫЙ ImageBitmap (createImageBitmap гарантированно,
+// по спецификации, копирует/владеет собственным bitmap, не завязанным на
+// жизненный цикл исходного canvas) и строим VideoSample из него, а не из
+// canvas напрямую. Один createImageBitmap() на весь клип (не на каждый
+// кадр) — сознательно не платим этой ценой за остальные ~sotни кадров, где
+// такого async-разрыва нет и риска нет.
+async function createOutputVideoSample(canvas, timestamp, duration, needsIndependentBitmap) {
+  if (!needsIndependentBitmap) {
+    return new VideoSample(canvas, { timestamp, duration });
+  }
+
+  const bitmap = await createImageBitmap(canvas);
+  try {
+    return new VideoSample(bitmap, { timestamp, duration });
+  } finally {
+    bitmap.close();
+  }
+}
+
 // Кодирует один сегмент (PART1 обычная скорость ИЛИ PART2 замедление) в уже
 // открытый videoSampleSource, начиная с timestampOffsetSec. speedFactor=2
 // растягивает и timestamp, и duration каждого кадра вдвое — то самое
@@ -289,10 +492,14 @@ async function encodeSegment({
   timestampOffsetSec,
   frameIntervalSec,
   signal,
-  // TEMP DIAGNOSTICS — см. logStage выше; onStage вызывается только для
-  // самого первого сегмента/первого кадра всего pipeline (isFirstSegment),
-  // чтобы не засорять console на каждый из сотен кадров.
+  // TEMP DIAGNOSTICS — см. logStage/MAX_DETAILED_FRAME_LOGS выше. onStage
+  // теперь вызывается для КАЖДОГО кадра (не только первого) — currentStage
+  // в processTechniqueClip больше не "залипает" на первом кадре, если
+  // реальная ошибка происходит на 2-м/10-м/любом другом. frameCounter —
+  // общий на весь pipeline (PART1+PART2), чтобы видеть номер кадра, на
+  // котором реально упало, а не только "где-то в сегменте".
   onStage,
+  frameCounter,
   isFirstSegment
 }) {
   let nextAllowedTimestamp = rangeStart;
@@ -304,8 +511,8 @@ async function encodeSegment({
       // Получение первого sample из videoSampleSink уже подразумевает, что
       // внутренний WebCodecs VideoDecoder создан и успешно декодировал хотя
       // бы один кадр (mediabunny создаёт/конфигурирует decoder лениво здесь).
-      onStage?.('F_DECODER_CREATED');
-      onStage?.('G_FIRST_FRAME_DECODED');
+      onStage?.('F_DECODER_CREATED', { forceLog: true });
+      onStage?.('G_FIRST_FRAME_DECODED', { forceLog: true });
     }
     // sample.close() ВСЕГДА вызывается до любой возможной точки throw
     // (throwIfAborted) ниже — иначе abort() ровно в момент получения
@@ -318,9 +525,9 @@ async function encodeSegment({
     }
 
     const canvas = shouldSkip ? null : drawSampleToCanvas(sample, targetWidth, targetHeight);
-    if (isFirstSegment && isFirstFrameOfSegment && canvas) {
-      onStage?.('H_CANVAS_CREATED');
-      onStage?.('I_FIRST_FRAME_DRAWN');
+    const frameNumber = shouldSkip ? null : ++frameCounter.value;
+    if (canvas) {
+      onStage?.(`I_FRAME_DRAWN frame=${frameNumber}`);
     }
 
     // videoSampleSink.samples(rangeStart, ...) отдаёт кадр, АКТИВНЫЙ в момент
@@ -347,28 +554,27 @@ async function encodeSegment({
       continue;
     }
 
-    const outputSample = new VideoSample(canvas, {
-      timestamp: timestampOffsetSec + relativeTimestampSec,
-      duration: scaledDurationSec
-    });
+    // needsIndependentBitmap: ТОЛЬКО самый первый кадр, отправляемый в
+    // videoSampleSource.add() за весь pipeline (PART1, 1-й кадр) — см.
+    // подробный комментарий у createOutputVideoSample выше. Для PART2
+    // isFirstSegment=false всегда, поэтому там ветка не сработает (encoder
+    // к этому моменту уже инициализирован из PART1, async-разрыва нет).
+    const isVeryFirstPipelineFrame = isFirstSegment && isFirstFrameOfSegment;
+    const outputSample = await createOutputVideoSample(
+      canvas,
+      timestampOffsetSec + relativeTimestampSec,
+      scaledDurationSec,
+      isVeryFirstPipelineFrame
+    );
+    onStage?.(`I2_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`);
 
-    if (isFirstSegment && isFirstFrameOfSegment) {
-      onStage?.('J_ENCODER_CONFIG_CREATED');
-    }
-
+    onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`);
     try {
       await videoSampleSource.add(outputSample);
     } finally {
       outputSample.close();
     }
-
-    if (isFirstSegment && isFirstFrameOfSegment) {
-      // videoSampleSource.add() лениво конфигурирует и создаёт реальный
-      // WebCodecs VideoEncoder на первый вызов (mediabunny) — успешное
-      // разрешение промиса выше означает encoder создан И кадр закодирован.
-      onStage?.('L_ENCODER_CREATED');
-      onStage?.('M_FIRST_FRAME_ENCODED');
-    }
+    onStage?.(`M2_FRAME_SUBMIT_DONE frame=${frameNumber}`);
     isFirstFrameOfSegment = false;
 
     segmentEndSec = timestampOffsetSec + relativeTimestampSec + scaledDurationSec;
@@ -389,46 +595,65 @@ export async function processTechniqueClip(
     signal,
     // TEMP DIAGNOSTICS: единственный способ увидеть на физическом iPhone
     // (нет DevTools), какую именно AVC profile/level/hardwareAcceleration
-    // комбинацию реально выбрал selectAvcEncoderConfig — вызывается сразу
-    // после выбора, НЕЗАВИСИМО от того, успешно ли завершится обработка
-    // дальше. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
-    onEncoderConfigSelected
+    // комбинацию РЕАЛЬНО (после runtime-проверки, не только preflight)
+    // выбрал findWorkingAvcEncoderConfig — вызывается после того, как
+    // candidate реально пережил инициализацию encoder и весь PART1.
+    // УДАЛИТЬ вместе с остальной TEMP-диагностикой.
+    onEncoderConfigSelected,
+    // TEMP DIAGNOSTICS: вызывается на КАЖДУЮ попытку candidate (и на
+    // preflight-фильтре, и на реальной инициализации) с результатом
+    // accepted/rejected — чтобы на физическом iPhone было видно ВСЕ
+    // попытки, а не только финальный выбор. УДАЛИТЬ вместе с остальной
+    // TEMP-диагностикой.
+    onCandidateAttempt
   } = {}
 ) {
   throwIfAborted(signal);
 
   // TEMP DIAGNOSTICS: текущая стадия pipeline на момент возможного throw —
   // используется только для прикрепления к ошибке ниже (err.diagnosticStage),
-  // сам алгоритм обработки от этой переменной не зависит. УДАЛИТЬ вместе с
-  // logStage() после подтверждённого фикса на физическом iPhone.
+  // сам алгоритм обработки от этой переменной не зависит. forceLog — для
+  // редких one-time вех (всегда логируем); per-frame стадии (без forceLog)
+  // логируются только первые MAX_DETAILED_FRAME_LOGS раз — currentStage
+  // при этом обновляется ВСЕГДА, даже когда console.log уже пропускается,
+  // поэтому диагноз ошибки остаётся точным на любом кадре. УДАЛИТЬ вместе с
+  // logStage()/frameCounter после подтверждённого фикса на физическом
+  // iPhone.
   let currentStage = 'A_INPUT_LOAD';
-  const onStage = (stage) => {
+  let detailedFrameLogCount = 0;
+  const onStage = (stage, { forceLog = false } = {}) => {
     currentStage = stage;
-    logStage(stage);
+    if (forceLog || detailedFrameLogCount < MAX_DETAILED_FRAME_LOGS) {
+      logStage(stage);
+      if (!forceLog) {
+        detailedFrameLogCount++;
+      }
+    }
   };
-  onStage('A_INPUT_LOAD');
+  const frameCounter = { value: 0 };
+  onStage('A_INPUT_LOAD', { forceLog: true });
 
   const input = new Input({ source: new BlobSource(sourceFile), formats: ALL_FORMATS });
   let output = null;
 
   try {
-    onStage('B_DEMUX');
+    onStage('B_DEMUX', { forceLog: true });
     const videoTrack = await input.getPrimaryVideoTrack();
     if (!videoTrack) {
       throw new VideoProcessingUnsupportedError('no_video_track');
     }
-    onStage('C_VIDEO_TRACK_FOUND');
+    onStage('C_VIDEO_TRACK_FOUND', { forceLog: true });
 
     // Задание: "не предполагать декодируемость — использовать
     // VideoDecoder.isConfigSupported() или эквивалент". canDecode() —
     // эквивалент из mediabunny, учитывающий реальный codec string трека
     // (включая случаи типа iPhone HEVC/MOV).
-    onStage('D_CODEC_CONFIG');
+    onStage('D_CODEC_CONFIG', { forceLog: true });
     const canDecode = await videoTrack.canDecode();
     if (!canDecode) {
       throw new VideoProcessingUnsupportedError('cannot_decode');
     }
-    onStage('E_CAN_DECODE');
+    onStage('E_CAN_DECODE', { forceLog: true });
 
     const displayWidth = await videoTrack.getDisplayWidth();
     const displayHeight = await videoTrack.getDisplayHeight();
@@ -445,19 +670,40 @@ export async function processTechniqueClip(
     const frameIntervalSec = frameRateMetrics.bestGuessFrameRate > MAX_FRAME_RATE ? 1 / MAX_FRAME_RATE : null;
     const outputFramerateHz = Math.min(frameRateMetrics.bestGuessFrameRate, MAX_FRAME_RATE);
 
+    const clipEnd = clipStart + clipDuration;
+    const videoSampleSink = new VideoSampleSink(videoTrack);
+
     // Задание: аналогично, проверка на стороне энкодера, а не только
     // декодера — некоторые браузеры/устройства декодируют, но не умеют
-    // кодировать H.264 на нужном разрешении. Заменяет старый mediabunny
-    // canEncodeVideo() (см. подробный комментарий у selectAvcEncoderConfig
-    // выше — единственный жёстко подобранный codec string не прошёл
-    // реальную проверку на физическом iPhone).
-    const selectedEncoderConfig = await selectAvcEncoderConfig({
+    // кодировать H.264 на нужном разрешении. RUNTIME CANDIDATE FALLBACK
+    // (см. подробный комментарий у findWorkingAvcEncoderConfig выше) —
+    // isConfigSupported() сам по себе оказался недостаточен на физическом
+    // iPhone (preflight PASS, реальная инициализация FAIL): здесь для
+    // каждого candidate реально инициализируется encoder и кодируется весь
+    // PART1, прежде чем считать candidate финальным выбором. Первый
+    // candidate, реально переживший PART1, используется дальше и для PART2.
+    const {
+      candidate: selectedEncoderConfig,
+      output: workingOutput,
+      videoSampleSource,
+      part1EndSec
+    } = await findWorkingAvcEncoderConfig({
       width: targetWidth,
       height: targetHeight,
       bitrateBps: TARGET_VIDEO_BITRATE_BPS,
       framerateHz: outputFramerateHz,
-      signal
+      signal,
+      quality,
+      videoSampleSink,
+      clipStart,
+      clipEnd,
+      frameIntervalSec,
+      onStage,
+      frameCounter,
+      onCandidateAttempt
     });
+    output = workingOutput;
+
     onEncoderConfigSelected?.({
       fullCodecString: selectedEncoderConfig.fullCodecString,
       profileName: selectedEncoderConfig.profileName,
@@ -467,43 +713,7 @@ export async function processTechniqueClip(
       bitrateBps: TARGET_VIDEO_BITRATE_BPS,
       framerateHz: outputFramerateHz
     });
-    logStage(
-      `K_CAN_ENCODE selected=${selectedEncoderConfig.fullCodecString} hwAccel=${selectedEncoderConfig.hardwareAcceleration}`
-    );
-    onStage('K_CAN_ENCODE');
-
-    throwIfAborted(signal);
-
-    const clipEnd = clipStart + clipDuration;
-
-    output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
-    const videoSampleSource = new VideoSampleSource({
-      codec: OUTPUT_VIDEO_CODEC,
-      quality,
-      fullCodecString: selectedEncoderConfig.fullCodecString,
-      hardwareAcceleration: selectedEncoderConfig.hardwareAcceleration
-    });
-    output.addVideoTrack(videoSampleSource);
-    await output.start();
-    onStage('N_MUX_START');
-
-    const videoSampleSink = new VideoSampleSink(videoTrack);
-
-    const part1EndSec = await encodeSegment({
-      videoSampleSink,
-      videoSampleSource,
-      rangeStart: clipStart,
-      rangeEnd: clipEnd,
-      targetWidth,
-      targetHeight,
-      speedFactor: 1,
-      timestampOffsetSec: 0,
-      frameIntervalSec,
-      signal,
-      onStage,
-      isFirstSegment: true
-    });
-    onStage('O_NORMAL_SEGMENT_COMPLETE');
+    onStage('O_NORMAL_SEGMENT_COMPLETE', { forceLog: true });
 
     throwIfAborted(signal);
 
@@ -519,15 +729,16 @@ export async function processTechniqueClip(
       frameIntervalSec,
       signal,
       onStage,
+      frameCounter,
       isFirstSegment: false
     });
-    onStage('P_SLOW_SEGMENT_COMPLETE');
+    onStage('P_SLOW_SEGMENT_COMPLETE', { forceLog: true });
 
-    onStage('Q_FINALIZE');
+    onStage('Q_FINALIZE', { forceLog: true });
     await output.finalize();
 
     const blob = new Blob([output.target.buffer], { type: 'video/mp4' });
-    onStage('R_OUTPUT_BLOB_CREATED');
+    onStage('R_OUTPUT_BLOB_CREATED', { forceLog: true });
     return blob;
   } catch (err) {
     // TEMP DIAGNOSTICS: раньше исходная ошибка (name/message/stack) нигде не

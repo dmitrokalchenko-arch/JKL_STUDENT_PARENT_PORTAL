@@ -49,6 +49,13 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // обработка дальше на другом этапе. УДАЛИТЬ вместе с остальной TEMP-
   // диагностикой.
   const [processingEncoderConfig, setProcessingEncoderConfig] = useState(null);
+  // TEMP DIAGNOSTICS: список ВСЕХ попыток AVC candidate (preflight +
+  // runtime, ACCEPTED/REJECTED) — второй физический iPhone retest показал,
+  // что isConfigSupported() (preflight) сам по себе недостаточен: кандидат,
+  // прошедший preflight, может быть отклонён реальной инициализацией
+  // encoder. Список нужен, чтобы на следующем тесте видеть ВСЕ попытки, а
+  // не только финальный выбор. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
+  const [processingCandidateAttempts, setProcessingCandidateAttempts] = useState([]);
 
   const { completeWithVideo, isSubmitting, error, clearError } = useCompleteTechniqueWithVideo({
     studentId: student?.id,
@@ -75,6 +82,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
+    setProcessingCandidateAttempts([]);
     clearError();
     onClose?.();
   }
@@ -85,6 +93,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
+    setProcessingCandidateAttempts([]);
     clearError();
   }
 
@@ -94,6 +103,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingErrorKey(null);
     setProcessingDiagnostic(null);
     setProcessingEncoderConfig(null);
+    setProcessingCandidateAttempts([]);
     setIsProcessing(true);
 
     const controller = new AbortController();
@@ -109,9 +119,13 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
         },
         {
           signal: controller.signal,
-          // TEMP DIAGNOSTICS: вызывается сразу после выбора AVC-конфигурации,
-          // независимо от того, упадёт ли обработка дальше.
-          onEncoderConfigSelected: setProcessingEncoderConfig
+          // TEMP DIAGNOSTICS: вызывается после того, как candidate РЕАЛЬНО
+          // пережил инициализацию encoder (не только preflight), независимо
+          // от того, упадёт ли обработка дальше.
+          onEncoderConfigSelected: setProcessingEncoderConfig,
+          // TEMP DIAGNOSTICS: вызывается на каждую попытку candidate
+          // (preflight и runtime), чтобы видеть весь fallback-перебор.
+          onCandidateAttempt: (attempt) => setProcessingCandidateAttempts((prev) => [...prev, attempt])
         }
       );
     } catch (err) {
@@ -251,16 +265,31 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
               <div className={styles.errorText}>{t(`trainerTechniques.${processingErrorKey}`)}</div>
             )}
             {/* TEMP DIAGNOSTICS — расследование processing-бага на реальном
-                iPhone Safari (DevTools недоступны на устройстве). Выбранный
-                encoder config показывается ВСЕГДА, как только он известен
-                (даже при успешной обработке) — чтобы на следующем физическом
-                тесте было видно, какую именно AVC-конфигурацию выбрал iPhone.
-                Этап+имя/сообщение ошибки — только при провале, БЕЗ stack
-                trace. УДАЛИТЬ вместе с processingDiagnostic/processingEncoderConfig
-                после подтверждённого фикса. */}
+                iPhone Safari (DevTools недоступны на устройстве). Список
+                попыток encoder candidate (preflight+runtime, ACCEPTED/
+                REJECTED) и итоговый выбранный config показываются ВСЕГДА,
+                как только известны (даже при успешной обработке) — чтобы на
+                следующем физическом тесте было видно ВЕСЬ fallback-перебор,
+                а не только финальный выбор. Этап+имя/сообщение ошибки —
+                только при провале, БЕЗ stack trace. УДАЛИТЬ вместе с
+                processingDiagnostic/processingEncoderConfig/
+                processingCandidateAttempts после подтверждённого фикса. */}
+            {processingCandidateAttempts.length > 0 && (
+              <div className={styles.warningText}>
+                Попытки encoder candidate:
+                {processingCandidateAttempts.map((attempt, index) => (
+                  <div key={index}>
+                    {index + 1}. {attempt.fullCodecString} ({attempt.profileName}, {attempt.hardwareAcceleration}) —{' '}
+                    {attempt.stage}: {attempt.result === 'accepted' ? 'ACCEPTED' : 'REJECTED'}
+                    {attempt.error ? ` (${attempt.error})` : ''}
+                  </div>
+                ))}
+              </div>
+            )}
             {processingEncoderConfig && (
               <div className={styles.warningText}>
-                AVC codec: {processingEncoderConfig.fullCodecString} ({processingEncoderConfig.profileName})
+                Итоговый выбранный AVC codec: {processingEncoderConfig.fullCodecString} (
+                {processingEncoderConfig.profileName})
                 <br />
                 Resolution: {processingEncoderConfig.width}x{processingEncoderConfig.height}
                 <br />
