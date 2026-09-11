@@ -108,6 +108,19 @@ function logStage(stage) {
 // тормозить обработку на длинных клипах (до ~750 кадров на 25 сек).
 const MAX_DETAILED_FRAME_LOGS = 24;
 
+// TEMP DIAGNOSTICS: физический iPhone retest показал, что после падения
+// (вероятно, полная перезагрузка/креш вкладки Safari — модалка "тихо"
+// исчезала без ошибки) localStorage remnant в модалке содержал только
+// верхнеуровневый FLOW_PROCESSING_START — сама модалка НЕ видела внутренние
+// стадии processTechniqueClip() (currentStage — приватное замыкание внутри
+// этой функции), поэтому не могла сохранить persistent ТОЧНУЮ внутреннюю
+// стадию перед обрывом. onInternalStage (опциональный, ниже) даёт наружу
+// throttled поток internal-стадий именно для persistent-записи в
+// localStorage — trottling нужен, чтобы не писать в localStorage на каждый
+// из ~750 кадров четверть-минутного клипа (лишняя нагрузка на устройство,
+// которое и так может быть уже на грани по памяти/ресурсам).
+const INTERNAL_STAGE_FRAME_THROTTLE = 30; // ~раз в секунду видео при 30fps
+
 // РЕАЛЬНЫЙ физический iPhone Safari retest (IMG_7163.mov, HEVC/MOV,
 // display 2160×3840 portrait → target 720×1280) уронил processing на этапе
 // J_ENCODER_CONFIG_CREATED с точной ошибкой:
@@ -290,9 +303,24 @@ async function findWorkingAvcEncoderConfig({
   }
 
   const candidates = buildAvcEncoderCandidates({ width, height, bitrateBps, framerateHz });
+  let candidateIndex = 0;
 
   for (const candidate of candidates) {
+    candidateIndex++;
     throwIfAborted(signal);
+
+    // TEMP DIAGNOSTICS: candidate context (candidateIndex/codec/
+    // hardwareAcceleration/phase), автоматически подмешивается в КАЖДЫЙ
+    // onStage-вызов внутри этой попытки — без этого persistent localStorage
+    // marker после crash показывал бы только "M1_FRAME_SUBMIT_START frame=1"
+    // без ответа на вопрос "какой это был candidate из 9".
+    const candidateMeta = {
+      candidateIndex,
+      codec: candidate.fullCodecString,
+      hardwareAcceleration: candidate.hardwareAcceleration
+    };
+    const onStageForThisCandidate = (stage, options = {}) =>
+      onStage(stage, { ...options, ...candidateMeta, phase: options.phase ?? 'runtime' });
 
     let staticSupport = false;
     try {
@@ -314,6 +342,7 @@ async function findWorkingAvcEncoderConfig({
       continue;
     }
     onCandidateAttempt?.({ ...candidate, stage: 'preflight', result: 'accepted' });
+    onStageForThisCandidate(`K_PREFLIGHT_ACCEPTED candidate=${candidateIndex}`, { forceLog: true, phase: 'preflight' });
 
     let firstEncodedChunkSeen = false;
     const attemptOutput = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
@@ -322,11 +351,11 @@ async function findWorkingAvcEncoderConfig({
       quality,
       fullCodecString: candidate.fullCodecString,
       hardwareAcceleration: candidate.hardwareAcceleration,
-      onEncoderConfig: () => onStage('L_ENCODER_READY', { forceLog: true }),
+      onEncoderConfig: () => onStageForThisCandidate('L_ENCODER_READY', { forceLog: true }),
       onEncodedPacket: () => {
         if (!firstEncodedChunkSeen) {
           firstEncodedChunkSeen = true;
-          onStage('M3_FIRST_ENCODED_CHUNK', { forceLog: true });
+          onStageForThisCandidate('M3_FIRST_ENCODED_CHUNK', { forceLog: true });
         }
       }
     });
@@ -349,13 +378,13 @@ async function findWorkingAvcEncoderConfig({
         timestampOffsetSec: 0,
         frameIntervalSec,
         signal,
-        onStage,
+        onStage: onStageForThisCandidate,
         frameCounter,
         isFirstSegment: true
       });
 
       onCandidateAttempt?.({ ...candidate, stage: 'runtime', result: 'accepted' });
-      onStage(
+      onStageForThisCandidate(
         `RUNTIME_ENCODER_INITIALIZED candidate=${candidate.fullCodecString} hwAccel=${candidate.hardwareAcceleration}`,
         { forceLog: true }
       );
@@ -384,7 +413,10 @@ async function findWorkingAvcEncoderConfig({
         throw err;
       }
       // Иначе — этот candidate реально не поддержан устройством, пробуем
-      // следующего.
+      // следующего. Персистентная отметка перехода — полезно видеть на
+      // remnant, что мы дошли ДО этой точки (candidate N отклонён) перед
+      // возможным crash на следующем.
+      onStageForThisCandidate(`K_CANDIDATE_REJECTED candidate=${candidateIndex}`, { forceLog: true });
     }
   }
 
@@ -563,7 +595,7 @@ async function encodeSegment({
     const canvas = shouldSkip ? null : drawSampleToCanvas(sample, targetWidth, targetHeight);
     const frameNumber = shouldSkip ? null : ++frameCounter.value;
     if (canvas) {
-      onStage?.(`I_FRAME_DRAWN frame=${frameNumber}`);
+      onStage?.(`I_FRAME_DRAWN frame=${frameNumber}`, { frameNumber });
     }
 
     // videoSampleSink.samples(rangeStart, ...) отдаёт кадр, АКТИВНЫЙ в момент
@@ -607,15 +639,15 @@ async function encodeSegment({
       isFirstFrameOfThisEncoderAttempt,
       onStage
     );
-    onStage?.(`I5_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`);
+    onStage?.(`I5_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`, { frameNumber });
 
-    onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`);
+    onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`, { frameNumber });
     try {
       await videoSampleSource.add(outputSample);
     } finally {
       outputSample.close();
     }
-    onStage?.(`M2_FRAME_SUBMIT_DONE frame=${frameNumber}`);
+    onStage?.(`M2_FRAME_SUBMIT_DONE frame=${frameNumber}`, { frameNumber });
     isFirstFrameOfSegment = false;
 
     segmentEndSec = timestampOffsetSec + relativeTimestampSec + scaledDurationSec;
@@ -646,7 +678,16 @@ export async function processTechniqueClip(
     // accepted/rejected — чтобы на физическом iPhone было видно ВСЕ
     // попытки, а не только финальный выбор. УДАЛИТЬ вместе с остальной
     // TEMP-диагностикой.
-    onCandidateAttempt
+    onCandidateAttempt,
+    // TEMP DIAGNOSTICS: throttled поток ВНУТРЕННИХ стадий (см. комментарий у
+    // INTERNAL_STAGE_FRAME_THROTTLE выше) — для persistent-записи в
+    // localStorage на стороне модалки (currentStage внутри этой функции —
+    // приватное замыкание, снаружи иначе недоступно). Throttling здесь (не
+    // просто console.log-лимит выше) — единственный способ пережить
+    // возможный crash/reload вкладки и увидеть ТОЧНУЮ последнюю внутреннюю
+    // стадию на следующем запуске. УДАЛИТЬ вместе с остальной TEMP-
+    // диагностикой.
+    onInternalStage
   } = {}
 ) {
   throwIfAborted(signal);
@@ -662,13 +703,27 @@ export async function processTechniqueClip(
   // iPhone.
   let currentStage = 'A_INPUT_LOAD';
   let detailedFrameLogCount = 0;
-  const onStage = (stage, { forceLog = false } = {}) => {
+  const onStage = (stage, { forceLog = false, frameNumber, ...candidateMeta } = {}) => {
     currentStage = stage;
     if (forceLog || detailedFrameLogCount < MAX_DETAILED_FRAME_LOGS) {
       logStage(stage);
       if (!forceLog) {
         detailedFrameLogCount++;
       }
+    }
+
+    // Persist только редкие one-time вехи (forceLog/без frameNumber — таких
+    // немного) ВСЕГДА, а per-frame стадии — только для frame=1 (самый
+    // критичный, там же async-разрыв encoder init) и далее раз в
+    // INTERNAL_STAGE_FRAME_THROTTLE кадров — не спамим localStorage.setItem
+    // на каждый из сотен кадров длинного клипа.
+    const shouldPersist =
+      frameNumber === undefined ||
+      frameNumber === null ||
+      frameNumber === 1 ||
+      frameNumber % INTERNAL_STAGE_FRAME_THROTTLE === 0;
+    if (shouldPersist) {
+      onInternalStage?.(stage, { frameNumber, ...candidateMeta });
     }
   };
   const frameCounter = { value: 0 };

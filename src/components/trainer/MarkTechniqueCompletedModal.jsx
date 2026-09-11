@@ -53,6 +53,37 @@ function logFlowStage(stage, details) {
   }
 }
 
+// TEMP DIAGNOSTICS: физический iPhone retest после первой версии flow-
+// diagnostics показал remnant, застрявший на верхнеуровневом
+// FLOW_PROCESSING_START — сам processTechniqueClip() падает/обрывается
+// ВНУТРИ себя (currentStage — приватное замыкание внутри той функции,
+// снаружи была видна только грубая "обработка идёт", а не точная внутренняя
+// стадия типа "M1_FRAME_SUBMIT_START frame=1" на конкретном AVC candidate).
+// logInternalProcessingStage пишет в ТОТ ЖЕ persistent marker (перезаписывая
+// его, как и logFlowStage) более подробную структуру — processTechniqueClip
+// сам решает throttling (см. INTERNAL_STAGE_FRAME_THROTTLE в
+// processTechniqueClip.js), здесь только синхронная запись. УДАЛИТЬ вместе
+// с остальной TEMP-диагностикой.
+function logInternalProcessingStage(processingStage, meta) {
+  const entry = {
+    stage: 'FLOW_PROCESSING_INTERNAL',
+    processingStage,
+    candidateIndex: meta?.candidateIndex ?? null,
+    codec: meta?.codec ?? null,
+    hardwareAcceleration: meta?.hardwareAcceleration ?? null,
+    phase: meta?.phase ?? null,
+    frameNumber: meta?.frameNumber ?? null,
+    timestamp: new Date().toISOString()
+  };
+  // eslint-disable-next-line no-console
+  console.log('[completion-flow] [internal]', processingStage, meta ?? '');
+  try {
+    localStorage.setItem(FLOW_STAGE_STORAGE_KEY, JSON.stringify(entry));
+  } catch {
+    // localStorage может быть недоступен — console.log выше всё равно работает.
+  }
+}
+
 function readFlowStageRemnant() {
   try {
     const raw = localStorage.getItem(FLOW_STAGE_STORAGE_KEY);
@@ -72,6 +103,7 @@ function readFlowStageRemnant() {
 const FLOW_STAGE_LABELS = {
   FLOW_CONFIRM_CLICKED: 'Начало',
   FLOW_PROCESSING_START: 'Обработка видео',
+  FLOW_PROCESSING_INTERNAL: 'Обработка видео',
   FLOW_PROCESSING_SUCCESS: 'Обработка видео завершена',
   FLOW_OUTPUT_BLOB_READY: 'Клип готов',
   FLOW_UPLOAD_START: 'Загрузка видео',
@@ -83,6 +115,28 @@ const FLOW_STAGE_LABELS = {
   FLOW_MODAL_CLOSE_SUCCESS: 'Готово',
   FLOW_ERROR: 'Ошибка'
 };
+
+// TEMP DIAGNOSTICS: единая функция рендера "доп. полей" (candidate context /
+// frame number / внутренняя стадия) — используется и для remnant-блока, и
+// для FLOW_ERROR-блока, чтобы не дублировать разметку. Пропускает поля,
+// которых нет (задание: "не показывать пустые строки").
+function renderInternalStageDetails(entry) {
+  if (!entry) return null;
+  const rows = [];
+  if (entry.processingStage) rows.push(['Внутренняя стадия', entry.processingStage]);
+  if (entry.candidateIndex != null) rows.push(['Encoder candidate', entry.candidateIndex]);
+  if (entry.codec) rows.push(['Codec', entry.codec]);
+  if (entry.hardwareAcceleration) rows.push(['Hardware', entry.hardwareAcceleration]);
+  if (entry.phase) rows.push(['Phase', entry.phase]);
+  if (entry.frameNumber != null) rows.push(['Frame', entry.frameNumber]);
+  if (rows.length === 0) return null;
+  return rows.map(([label, value]) => (
+    <span key={label}>
+      <br />
+      {label}: {String(value)}
+    </span>
+  ));
+}
 
 export default function MarkTechniqueCompletedModal({ technique, student, writeContext, onCompleted, onClose }) {
   const { t } = useTranslation();
@@ -128,10 +182,28 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // последняя известная стадия. УДАЛИТЬ вместе с остальной TEMP-
   // диагностикой.
   const [previousRunRemnant, setPreviousRunRemnant] = useState(null);
+  // TEMP DIAGNOSTICS: последняя ВНУТРЕННЯЯ стадия processTechniqueClip(),
+  // полученная через onInternalStage — ref (не state), потому что нужна
+  // только синхронно в момент формирования FLOW_ERROR (candidate context
+  // теряется при обычной ошибке, если её не сохранить отдельно — err несёт
+  // только diagnosticStage строкой, без candidateIndex/codec/hwAccel).
+  // УДАЛИТЬ вместе с остальной TEMP-диагностикой.
+  const lastInternalStageRef = useRef(null);
 
   function setFlowStage(stage, details) {
     logFlowStage(stage, details);
     setFlowStageState({ stage, details });
+  }
+
+  function handleInternalStage(processingStage, meta) {
+    lastInternalStageRef.current = { processingStage, ...meta };
+    logInternalProcessingStage(processingStage, meta);
+    // Отображаем "живьём" во время обработки в том же месте, что и обычные
+    // flow-стадии — тренер видит не просто "Обработка видео", а какая
+    // именно внутренняя стадия сейчас идёт. Плоская структура (не
+    // {stage, details}, как у обычных FLOW_*) — так renderInternalStageDetails
+    // может читать поля напрямую.
+    setFlowStageState({ stage: 'FLOW_PROCESSING_INTERNAL', ...lastInternalStageRef.current });
   }
 
   useEffect(() => {
@@ -169,6 +241,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
     setFlowStageState(null);
+    lastInternalStageRef.current = null;
     clearError();
     onClose?.();
   }
@@ -181,6 +254,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
     setFlowStageState(null);
+    lastInternalStageRef.current = null;
     clearError();
   }
 
@@ -192,6 +266,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setProcessingEncoderConfig(null);
     setProcessingCandidateAttempts([]);
     setPreviousRunRemnant(null);
+    lastInternalStageRef.current = null;
     setIsProcessing(true);
     setFlowStage('FLOW_CONFIRM_CLICKED');
 
@@ -215,7 +290,11 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
           onEncoderConfigSelected: setProcessingEncoderConfig,
           // TEMP DIAGNOSTICS: вызывается на каждую попытку candidate
           // (preflight и runtime), чтобы видеть весь fallback-перебор.
-          onCandidateAttempt: (attempt) => setProcessingCandidateAttempts((prev) => [...prev, attempt])
+          onCandidateAttempt: (attempt) => setProcessingCandidateAttempts((prev) => [...prev, attempt]),
+          // TEMP DIAGNOSTICS: throttled внутренние стадии pipeline (decode/
+          // canvas/encode) — persistent в localStorage, чтобы пережить
+          // возможный crash/reload вкладки на реальном устройстве.
+          onInternalStage: handleInternalStage
         }
       );
 
@@ -246,7 +325,23 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
       // проходе через границы промисов), plus видимый в UI этап+ошибка —
       // на физическом iPhone нет DevTools, только так можно увидеть причину.
       console.error('[clip-processing] caught in modal', err);
-      setFlowStage('FLOW_ERROR', { stage: 'processing', name: err?.name, message: err?.message });
+      // TEMP DIAGNOSTICS (задание, п.11): "не затирай processingStage общим
+      // FLOW_ERROR" — err.diagnosticStage (точная строка стадии на момент
+      // throw, обновляется на КАЖДОМ кадре внутри processTechniqueClip, без
+      // throttling) плюс candidate context из lastInternalStageRef
+      // (throttled, но единственный источник для candidateIndex/codec/
+      // hardwareAcceleration/phase, которых error-объект не несёт).
+      setFlowStage('FLOW_ERROR', {
+        stage: 'processing',
+        name: err?.name,
+        message: err?.message,
+        processingStage: err?.diagnosticStage ?? lastInternalStageRef.current?.processingStage ?? null,
+        candidateIndex: lastInternalStageRef.current?.candidateIndex ?? null,
+        codec: lastInternalStageRef.current?.codec ?? null,
+        hardwareAcceleration: lastInternalStageRef.current?.hardwareAcceleration ?? null,
+        phase: lastInternalStageRef.current?.phase ?? null,
+        frameNumber: lastInternalStageRef.current?.frameNumber ?? null
+      });
       setProcessingDiagnostic({
         stage: err?.diagnosticStage ?? 'unknown',
         name: err?.name ?? 'Error',
@@ -339,16 +434,20 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
                 ⚠ Обнаружен незавершённый предыдущий запуск ({previousRunRemnant.timestamp}). Последний известный
                 этап: {FLOW_STAGE_LABELS[previousRunRemnant.stage] ?? previousRunRemnant.stage}
                 {previousRunRemnant.details ? ` (${JSON.stringify(previousRunRemnant.details)})` : ''}
+                {renderInternalStageDetails(previousRunRemnant)}
               </div>
             )}
 
             {/* TEMP DIAGNOSTICS — текущий этап ПОЛНОГО completion flow
                 (confirm → processing → upload → DB insert → refresh),
-                человекочитаемый, БЕЗ DevTools. УДАЛИТЬ вместе с остальной
+                человекочитаемый, БЕЗ DevTools. Для FLOW_PROCESSING_INTERNAL
+                дополнительно показывает внутреннюю стадию/candidate — см.
+                renderInternalStageDetails. УДАЛИТЬ вместе с остальной
                 TEMP-диагностикой. */}
             {isBusy && flowStage && (
               <div className={styles.warningText}>
                 Текущий этап: {FLOW_STAGE_LABELS[flowStage.stage] ?? flowStage.stage}
+                {renderInternalStageDetails(flowStage)}
               </div>
             )}
 
@@ -444,6 +543,7 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
                 Этап: {flowStage.details?.stage}
                 <br />
                 Ошибка: {flowStage.details?.name}: {flowStage.details?.message}
+                {renderInternalStageDetails(flowStage.details)}
               </div>
             )}
             {error?.orphanCleanupFailed && (
