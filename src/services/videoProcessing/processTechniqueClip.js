@@ -273,16 +273,147 @@ function isEncoderConfigNotSupportedError(err) {
   );
 }
 
-// Заменяет старую mediabunny canEncodeVideo() (и наш прежний
+// ТРЕТИЙ физический iPhone retest (после успешного runtime AVC fallback —
+// persistent internal-stage diagnostics) показал: pipeline доходит до
+// L_ENCODER_READY на candidate #6 (Baseline, prefer-hardware) — то есть
+// ПОСЛЕ ПЯТИ отклонённых runtime-попыток на РЕАЛЬНОМ 4K HEVC source — и
+// затем Safari через 2-3 сек перезапускает страницу (без JS-исключения).
+//
+// Root cause (проверено чтением исходников mediabunny 1.56.1): СТАРАЯ
+// архитектура (см. ниже, оставлено для истории) для КАЖДОЙ candidate-
+// попытки вызывала encodeSegment(), а та — videoSampleSink.samples() —
+// это ВСЕГДА создаёт НОВЫЙ WebCodecs VideoDecoder
+// (node_modules/mediabunny/src/media-sink.ts:494, _createDecoder внутри
+// mediaSamplesInRange), даже если попытка отклоняется на первом же кадре.
+// mediabunny КОРРЕКТНО закрывает decoder при прерывании итерации (custom
+// .return() на итераторе, media-sink.ts:631-639 → decoder?.close() в
+// finally "pump"-промиса, media-sink.ts:590-591) — НО это закрытие
+// АСИНХРОННОЕ (происходит когда внутренний "pump"-цикл добирается до
+// следующей проверки условия), а старый код НЕ ЖДАЛ этого закрытия перед
+// тем как немедленно запросить НОВЫЙ decoder для следующего candidate. На
+// iOS Safari/VideoToolbox, где лимит одновременных HEVC hardware decode
+// sessions строгий (нередко ровно 1), это создавало race: предыдущая
+// decode-сессия ещё не освобождена, а новая уже запрашивается — после
+// нескольких таких попыток подряд WebContent process, судя по всему,
+// убивается memory/media-resource pressure (типичное поведение iOS Safari
+// при исчерпании media-ресурсов — молчаливый reload, без JS-ошибки).
+//
+// ИСПРАВЛЕНИЕ: разделяем ENCODER PROBING (выбор рабочего AVC candidate) и
+// РЕАЛЬНУЮ ОБРАБОТКУ. Для probe НЕ используем source video/HEVC decoder
+// вообще — вместо этого отправляем в encoder ОДИН синтетический RGBA-кадр
+// (raw pixel data — тот же безопасный путь, что уже подтверждён рабочим на
+// физическом iPhone для первого кадра реальной обработки, см. комментарий
+// у createOutputVideoSample). HEVC decoder создаётся РОВНО ОДИН РАЗ — только
+// после того, как рабочий candidate уже найден и подтверждён synthetic
+// probe'ом. Список/порядок candidates, preflight-фильтр (isConfigSupported)
+// и итоговые параметры вывода (720×1280/30fps/2.5Mbps/H.264/1.0x+0.5x) —
+// БЕЗ изменений.
+async function probeAvcEncoderConfig(
+  candidate,
+  candidateIndex,
+  { width, height, bitrateBps, framerateHz, quality, signal, onStage }
+) {
+  const candidateMeta = {
+    candidateIndex,
+    codec: candidate.fullCodecString,
+    hardwareAcceleration: candidate.hardwareAcceleration
+  };
+  const onStageForProbe = (stage, options = {}) =>
+    onStage(stage, { ...options, ...candidateMeta, phase: options.phase ?? 'probe' });
+
+  onStageForProbe(`PROBE_CANDIDATE_START candidate=${candidateIndex}`, { forceLog: true });
+
+  let firstEncodedChunkSeen = false;
+  const probeOutput = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
+  const probeSource = new VideoSampleSource({
+    codec: OUTPUT_VIDEO_CODEC,
+    quality,
+    fullCodecString: candidate.fullCodecString,
+    hardwareAcceleration: candidate.hardwareAcceleration,
+    onEncoderConfig: () => onStageForProbe('PROBE_ENCODER_CREATED', { forceLog: true }),
+    onEncodedPacket: () => {
+      if (!firstEncodedChunkSeen) {
+        firstEncodedChunkSeen = true;
+        onStageForProbe('PROBE_FIRST_CHUNK', { forceLog: true });
+      }
+    }
+  });
+  probeOutput.addVideoTrack(probeSource);
+
+  try {
+    await probeOutput.start();
+    throwIfAborted(signal);
+
+    // Один синтетический RGBA-кадр — нужного (реального output) размера,
+    // валидные timestamp/duration, БЕЗ какого-либо обращения к source video
+    // или HEVC-декодеру. Пиксели могут быть полностью чёрными (нулевой
+    // Uint8Array) — encoder'у для проверки реальной инициализации не важно
+    // содержимое кадра, важен только факт успешного encode.
+    const probePixelData = new Uint8Array(width * height * 4);
+    onStageForProbe('PROBE_FRAME_CREATED', { forceLog: true });
+    const probeSample = new VideoSample(probePixelData, {
+      format: 'RGBA',
+      codedWidth: width,
+      codedHeight: height,
+      timestamp: 0,
+      duration: 1 / (framerateHz ?? MAX_FRAME_RATE)
+    });
+
+    onStageForProbe('PROBE_FRAME_SUBMIT_START', { forceLog: true });
+    try {
+      await probeSource.add(probeSample);
+    } finally {
+      probeSample.close();
+    }
+    onStageForProbe('PROBE_FRAME_SUBMIT_DONE', { forceLog: true });
+
+    onStageForProbe('PROBE_FINALIZE_START', { forceLog: true });
+    await probeOutput.finalize();
+    onStageForProbe('PROBE_FINALIZE_DONE', { forceLog: true });
+
+    if (!firstEncodedChunkSeen) {
+      // Не должно случиться (finalize() дожидается вывода всех пакетов),
+      // но раз задание требует считать probe успешным ТОЛЬКО при реально
+      // полученном encoded chunk — проверяем явно, а не предполагаем.
+      throw new Error('Probe finalized without producing an encoded chunk');
+    }
+
+    onStageForProbe(`PROBE_CANDIDATE_ACCEPTED candidate=${candidateIndex}`, { forceLog: true });
+    return { accepted: true };
+  } catch (err) {
+    const isCandidateRejection = isEncoderConfigNotSupportedError(err);
+    onStageForProbe(`PROBE_CANDIDATE_REJECTED candidate=${candidateIndex}`, { forceLog: true });
+    if (!isCandidateRejection) {
+      // Настоящая ошибка (abort/mux/...), не связанная с выбором AVC
+      // candidate — пробрасываем как есть.
+      throw err;
+    }
+    return { accepted: false, error: err };
+  } finally {
+    // Output.cancel() безопасен для повторного вызова даже ПОСЛЕ успешного
+    // finalize() (mediabunny просто no-op'ает с предупреждением, не бросает
+    // — node_modules/mediabunny/src/output.ts:922-930), поэтому единый
+    // cleanup без доп. флагов "уже ли finalized". cancel()/finalize() любой
+    // ветки гарантированно закрывает реальный WebCodecs VideoEncoder этой
+    // попытки (encoder.close() в finally у flushAndClose(),
+    // media-source.ts:980-983) — до перехода к следующему candidate.
+    try {
+      await probeOutput.cancel();
+    } catch {
+      // best-effort — не маскируем исходную ошибку/результат probe
+    }
+    onStageForProbe('PROBE_CLEANUP_DONE', { forceLog: true });
+  }
+}
+
+// Заменяет старую mediabunny canEncodeVideo() (и наш ещё более ранний
 // selectAvcEncoderConfig(), который останавливался на первом
-// isConfigSupported()===true и БЕЗ реальной проверки объявлял его финальным
-// выбором — именно это и подвело на физическом iPhone, см. комментарий
-// выше). Для каждого candidate: сначала дешёвый статический фильтр
-// (isConfigSupported), затем — только если он пройден — РЕАЛЬНАЯ попытка
-// инициализировать encoder и закодировать весь PART1 (обычная скорость).
-// Первый candidate, который реально прошёл ОБА этапа, используется дальше
-// для PART2 (там encoder уже инициализирован, повторный отказ невозможен
-// — см. комментарий у createOutputVideoSample/encodeSegment).
+// isConfigSupported()===true без реальной проверки). Для каждого candidate:
+// дешёвый статический фильтр (isConfigSupported) → synthetic PROBE (см.
+// probeAvcEncoderConfig выше, БЕЗ HEVC decoder) → и ТОЛЬКО для первого
+// candidate, реально прошедшего probe, — ОДНА настоящая инициализация
+// encoder'а + декодирование PART1 реального source video (см. подробный
+// комментарий про root cause выше).
 async function findWorkingAvcEncoderConfig({
   width,
   height,
@@ -309,18 +440,13 @@ async function findWorkingAvcEncoderConfig({
     candidateIndex++;
     throwIfAborted(signal);
 
-    // TEMP DIAGNOSTICS: candidate context (candidateIndex/codec/
-    // hardwareAcceleration/phase), автоматически подмешивается в КАЖДЫЙ
-    // onStage-вызов внутри этой попытки — без этого persistent localStorage
-    // marker после crash показывал бы только "M1_FRAME_SUBMIT_START frame=1"
-    // без ответа на вопрос "какой это был candidate из 9".
     const candidateMeta = {
       candidateIndex,
       codec: candidate.fullCodecString,
       hardwareAcceleration: candidate.hardwareAcceleration
     };
     const onStageForThisCandidate = (stage, options = {}) =>
-      onStage(stage, { ...options, ...candidateMeta, phase: options.phase ?? 'runtime' });
+      onStage(stage, { ...options, ...candidateMeta, phase: options.phase ?? 'real' });
 
     let staticSupport = false;
     try {
@@ -343,6 +469,34 @@ async function findWorkingAvcEncoderConfig({
     }
     onCandidateAttempt?.({ ...candidate, stage: 'preflight', result: 'accepted' });
     onStageForThisCandidate(`K_PREFLIGHT_ACCEPTED candidate=${candidateIndex}`, { forceLog: true, phase: 'preflight' });
+
+    // ФАЗА A: PROBE — synthetic RGBA-кадр, БЕЗ source video decoder.
+    const probeResult = await probeAvcEncoderConfig(candidate, candidateIndex, {
+      width,
+      height,
+      bitrateBps,
+      framerateHz,
+      quality,
+      signal,
+      onStage
+    });
+    onCandidateAttempt?.({
+      ...candidate,
+      stage: 'probe',
+      result: probeResult.accepted ? 'accepted' : 'rejected',
+      error: probeResult.error?.message
+    });
+
+    if (!probeResult.accepted) {
+      // Этот candidate реально не поддержан устройством — пробуем
+      // следующего. Настоящий source video decoder ЕЩЁ НИ РАЗУ не
+      // запускался.
+      continue;
+    }
+
+    // ФАЗА B: РЕАЛЬНАЯ обработка — HEVC decoder запускается здесь впервые
+    // (и, в штатном случае, единственный раз для всего PART1).
+    onStageForThisCandidate(`REAL_PROCESSING_START candidate=${candidateIndex}`, { forceLog: true, phase: 'real' });
 
     let firstEncodedChunkSeen = false;
     const attemptOutput = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
@@ -412,10 +566,9 @@ async function findWorkingAvcEncoderConfig({
         // другой candidate" для проблемы, которая не в этом.
         throw err;
       }
-      // Иначе — этот candidate реально не поддержан устройством, пробуем
-      // следующего. Персистентная отметка перехода — полезно видеть на
-      // remnant, что мы дошли ДО этой точки (candidate N отклонён) перед
-      // возможным crash на следующем.
+      // Редкий edge case: candidate прошёл synthetic probe, но реальная
+      // инициализация на настоящих данных всё равно отклонена — пробуем
+      // следующего candidate (probe заново для него), а не сдаёмся сразу.
       onStageForThisCandidate(`K_CANDIDATE_REJECTED candidate=${candidateIndex}`, { forceLog: true });
     }
   }
