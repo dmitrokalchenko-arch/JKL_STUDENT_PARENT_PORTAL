@@ -8,8 +8,26 @@ import {
   VideoSample,
   VideoSampleSink,
   VideoSampleSource,
-  Quality
+  Quality,
+  registerEncoder
 } from 'mediabunny';
+import {
+  DirectWebCodecsVideoEncoder,
+  setDirectEncoderDiagnosticStage
+} from './directWebCodecsVideoEncoder.js';
+
+// TEMP DIAGNOSTICS (ПУТЬ A): регистрируем наш CustomVideoEncoder ОДИН РАЗ
+// на модуль — registerEncoder() сама по себе идемпотентна (проверяет
+// customVideoEncoders.includes(...) по ссылке на класс и просто логирует
+// warning при повторном вызове, не бросает и не дублирует, см. custom-
+// coder.js) — этот флаг лишь дополнительно исключает даже лишний warning
+// при повторном выполнении модуля в рамках одной сессии. См. подробный
+// комментарий в directWebCodecsVideoEncoder.js.
+let directEncoderRegistered = false;
+if (!directEncoderRegistered) {
+  registerEncoder(DirectWebCodecsVideoEncoder);
+  directEncoderRegistered = true;
+}
 
 // PHASE 2 — реальная физическая генерация Student Performance Clip
 // (задание, этап "Переходим к PHASE 2"). Чистый media-layer модуль, без
@@ -361,6 +379,24 @@ function buildAvcEncoderCandidates({ width, height, bitrateBps, framerateHz }) {
 // Любая ДРУГАЯ ошибка (abort/decode/mux/...) пробрасывается как есть, без
 // маскировки под "ещё один candidate не подошёл".
 function isEncoderConfigNotSupportedError(err) {
+  // TEMP DIAGNOSTICS (ПУТЬ A): с DirectWebCodecsVideoEncoder mediabunny
+  // больше НЕ бросает свою собственную строку "is not supported in this
+  // environment" при отказе кандидата — она даже не видит отказа, т.к. мы
+  // сами вызываем нативный encoder.configure() внутри
+  // DirectWebCodecsVideoEncoder.init() (см. этот файл), в обход
+  // mediabunny's внутреннего isConfigSupported()-гейта. Реальный отказ
+  // теперь приходит как ЧЕСТНАЯ, стандартная WebCodecs ошибка —
+  // DOMException с name='NotSupportedError' (ровно то имя, которое spec
+  // предписывает VideoEncoder.configure() для "конфигурация не
+  // поддерживается"). Локально подтверждено (принудительный throw в
+  // тестовом monkey-patch VideoEncoder.configure()): без этой проверки
+  // findWorkingAvcEncoderConfig считал такую ошибку "настоящей" и
+  // пробрасывал её наверх, ЛОМАЯ candidate fallback вместо перехода к
+  // следующему candidate — добавлена проверка err.name, чтобы сохранить
+  // тот же fallback-путь и для честного ответа custom encoder'а.
+  if (err instanceof Error && err.name === 'NotSupportedError') {
+    return true;
+  }
   return (
     err instanceof Error &&
     typeof err.message === 'string' &&
@@ -620,6 +656,14 @@ async function findWorkingAvcEncoderConfig({
     // ФАЗА B: РЕАЛЬНАЯ обработка — HEVC decoder запускается здесь впервые
     // (и, в штатном случае, единственный раз для всего PART1).
     onStageForThisCandidate(`REAL_PROCESSING_START candidate=${candidateIndex}`, { forceLog: true, phase: 'real' });
+
+    // TEMP DIAGNOSTICS (ПУТЬ A): announce диагностический bridge для
+    // DirectWebCodecsVideoEncoder ДО создания VideoSampleSource ниже — сама
+    // mediabunny инстанцирует наш custom encoder внутри ensureEncoder() на
+    // первом добавленном кадре (см. directWebCodecsVideoEncoder.js), т.е.
+    // ПОСЛЕ этой строки. onStageForThisCandidate уже несёт
+    // candidateIndex/codec/hardwareAcceleration/phase этой попытки.
+    setDirectEncoderDiagnosticStage(onStageForThisCandidate);
 
     let firstEncodedChunkSeen = false;
     const attemptOutput = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
