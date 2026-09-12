@@ -101,6 +101,30 @@ const OUTPUT_VIDEO_CODEC = 'avc'; // H.264 — задание: "MP4/H.264(AVC)"
 // как гипотеза будет подтверждена/опровергнута и заменена постоянным фиксом.
 const RESOURCE_SETTLE_DELAY_MS = 500;
 
+// TEMP DIAGNOSTICS: физический iPhone Safari retest с RESOURCE_SETTLE_DELAY_MS=500
+// показал, что задержка НЕ устранила проблему — real processing по-прежнему
+// отклоняет ТОТ ЖЕ candidate, который только что принял synthetic probe, с
+// той же ошибкой "is not supported in this environment", для ВСЕХ
+// профилей/hardwareAcceleration подряд. Это не опровергает саму гипотезу
+// resource-release race, но требует проверить ДРУГУЮ её часть: влияет ли
+// сам ФАКТ создания/использования/закрытия probe-encoder'а (а не просто
+// недостаточное время на его освобождение) на последующую real-сессию.
+// SKIP_SYNTHETIC_ENCODER_PROBE — ЧИСТО ДИАГНОСТИЧЕСКИЙ bypass-флаг для
+// СЛЕДУЮЩЕГО физического теста: при true synthetic probe для КАЖДОГО
+// candidate полностью пропускается (probeAvcEncoderConfig() не вызывается
+// вообще, никакой probe VideoEncoder/Output не создаётся) — сразу после
+// preflight (isConfigSupported()) переходим к REAL_PROCESSING_START. Это
+// позволяет на физическом устройстве сравнить: "probe ON" (предыдущие
+// тесты) vs "probe OFF" (этот тест) — если runtime rejection исчезнет при
+// SKIP_SYNTHETIC_ENCODER_PROBE=true, это докажет, что сам probe (а не
+// просто недостаточная пауза после него) — источник resource contention.
+// Реализация самого probe (probeAvcEncoderConfig) НЕ удаляется — только
+// временно обходится, чтобы после физического теста можно было легко
+// переключить обратно (false) без архитектурного рефакторинга. УДАЛИТЬ
+// вместе с остальной TEMP-диагностикой после того, как гипотеза будет
+// подтверждена/опровергнута и заменена постоянным фиксом.
+const SKIP_SYNTHETIC_ENCODER_PROBE = true;
+
 function throwIfAborted(signal) {
   if (signal?.aborted) {
     throw new VideoProcessingCanceledError();
@@ -541,41 +565,57 @@ async function findWorkingAvcEncoderConfig({
     onCandidateAttempt?.({ ...candidate, stage: 'preflight', result: 'accepted' });
     onStageForThisCandidate(`K_PREFLIGHT_ACCEPTED candidate=${candidateIndex}`, { forceLog: true, phase: 'preflight' });
 
-    // ФАЗА A: PROBE — synthetic RGBA-кадр, БЕЗ source video decoder.
-    const probeResult = await probeAvcEncoderConfig(candidate, candidateIndex, {
-      width,
-      height,
-      bitrateBps,
-      framerateHz,
-      quality,
-      signal,
-      onStage
-    });
-    onCandidateAttempt?.({
-      ...candidate,
-      stage: 'probe',
-      result: probeResult.accepted ? 'accepted' : 'rejected',
-      error: probeResult.error?.message
-    });
+    if (SKIP_SYNTHETIC_ENCODER_PROBE) {
+      // TEMP DIAGNOSTICS: см. комментарий у SKIP_SYNTHETIC_ENCODER_PROBE —
+      // probeAvcEncoderConfig() сознательно НЕ вызывается в этой ветке:
+      // никакой probe VideoEncoder/Output/VideoSampleSource для этого
+      // candidate не создаётся вообще. reason:'diagnostic-test' явно
+      // помечает происхождение стадии, timestamp — для сопоставления с
+      // остальным persistent-логом на физическом устройстве.
+      onStageForThisCandidate('SYNTHETIC_PROBE_SKIPPED', {
+        forceLog: true,
+        phase: 'diagnostic',
+        reason: 'diagnostic-test',
+        timestamp: Date.now()
+      });
+    } else {
+      // ФАЗА A: PROBE — synthetic RGBA-кадр, БЕЗ source video decoder.
+      const probeResult = await probeAvcEncoderConfig(candidate, candidateIndex, {
+        width,
+        height,
+        bitrateBps,
+        framerateHz,
+        quality,
+        signal,
+        onStage
+      });
+      onCandidateAttempt?.({
+        ...candidate,
+        stage: 'probe',
+        result: probeResult.accepted ? 'accepted' : 'rejected',
+        error: probeResult.error?.message
+      });
 
-    if (!probeResult.accepted) {
-      // Этот candidate реально не поддержан устройством — пробуем
-      // следующего. Настоящий source video decoder ЕЩЁ НИ РАЗУ не
-      // запускался.
-      continue;
+      if (!probeResult.accepted) {
+        // Этот candidate реально не поддержан устройством — пробуем
+        // следующего. Настоящий source video decoder ЕЩЁ НИ РАЗУ не
+        // запускался.
+        continue;
+      }
+
+      // TEMP DIAGNOSTICS: см. комментарий у RESOURCE_SETTLE_DELAY_MS — probe
+      // уже завершил свой cleanup (probeAvcEncoderConfig's finally, включая
+      // PROBE_CLEANUP_DONE) ДО этой точки; здесь только пауза перед стартом
+      // real encoder ТОГО ЖЕ candidate, порядок существующего cleanup не
+      // меняется. Естественно НЕ вызывается при SKIP_SYNTHETIC_ENCODER_PROBE
+      // (нет probe — нечего "settle"-ить).
+      await resourceSettleDelay(
+        onStageForThisCandidate,
+        signal,
+        'RESOURCE_SETTLE_AFTER_PROBE_START',
+        'RESOURCE_SETTLE_AFTER_PROBE_DONE'
+      );
     }
-
-    // TEMP DIAGNOSTICS: см. комментарий у RESOURCE_SETTLE_DELAY_MS — probe
-    // уже завершил свой cleanup (probeAvcEncoderConfig's finally, включая
-    // PROBE_CLEANUP_DONE) ДО этой точки; здесь только пауза перед стартом
-    // real encoder ТОГО ЖЕ candidate, порядок существующего cleanup не
-    // меняется.
-    await resourceSettleDelay(
-      onStageForThisCandidate,
-      signal,
-      'RESOURCE_SETTLE_AFTER_PROBE_START',
-      'RESOURCE_SETTLE_AFTER_PROBE_DONE'
-    );
 
     // ФАЗА B: РЕАЛЬНАЯ обработка — HEVC decoder запускается здесь впервые
     // (и, в штатном случае, единственный раз для всего PART1).
