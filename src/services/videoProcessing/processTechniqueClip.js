@@ -76,10 +76,81 @@ const MAX_FRAME_RATE = 30;
 const TARGET_VIDEO_BITRATE_BPS = 2_500_000;
 const OUTPUT_VIDEO_CODEC = 'avc'; // H.264 — задание: "MP4/H.264(AVC)"
 
+// TEMP DIAGNOSTICS: физический iPhone Safari тест после устранения "Buffer
+// has no frame" показал НОВУЮ воспроизводимую проблему — synthetic probe
+// ПРИНИМАЕТ candidate (реально создаёт+использует+закрывает H.264 encoder),
+// но real processing СРАЗУ ПОСЛЕ этого ОТКЛОНЯЕТ ТОТ ЖЕ candidate с
+// идентичной ошибкой "is not supported in this environment". Структурное
+// сравнение (перехват VideoEncoder.configure()) доказало: фактический
+// VideoEncoderConfig у probe и real БАЙТ-В-БАЙТ идентичен — причина НЕ в
+// конфиге. Рабочая гипотеза — device-level resource-release race: WebCodecs
+// VideoEncoder.close() синхронен на уровне JS, но освобождение аппаратной
+// VideoToolbox-сессии на уровне ОС может быть асинхронным и не даёт JS
+// awaitable-сигнала о завершении (та же категория проблемы, что уже была
+// найдена и устранена для HEVC source decoder — см. probe/real separation
+// у probeAvcEncoderConfig). RESOURCE_SETTLE_DELAY_MS — ЧИСТО ДИАГНОСТИЧЕСКИЙ
+// параметр для СЛЕДУЮЩЕГО физического iPhone теста: простое wall-clock
+// ожидание (НЕ fake-await несуществующего decoder/encoder teardown hook —
+// mediabunny такого hook'а не предоставляет, и лезть в её internals не
+// нужно), которое даёт ОС время на освобождение video codec сессии. НЕ
+// влияет на алгоритм выбора candidate, на порядок кандидатов, на
+// resolution/bitrate/fps/1.0x+0.5x — только добавляет паузу в двух точках
+// (см. resourceSettleDelay ниже). Единственное место для изменения значения
+// при следующих экспериментах (0/250/500/1000 мс) — без архитектурного
+// рефакторинга. УДАЛИТЬ вместе с остальной TEMP-диагностикой после того,
+// как гипотеза будет подтверждена/опровергнута и заменена постоянным фиксом.
+const RESOURCE_SETTLE_DELAY_MS = 500;
+
 function throwIfAborted(signal) {
   if (signal?.aborted) {
     throw new VideoProcessingCanceledError();
   }
+}
+
+// Прерываемое ожидание: если signal прерывается ПОКА мы ждём, немедленно
+// разрешаем промис (не блокируем cancellation на всю длительность delay).
+// throwIfAborted() сразу после вызова этой функции (см. resourceSettleDelay)
+// гарантирует, что отмена реально останавливает обработку, а не просто
+// "тихо" продолжает после укороченного ожидания.
+function waitOrAbort(ms, signal) {
+  if (ms <= 0) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      signal?.removeEventListener('abort', finish);
+      resolve();
+    };
+    const timeoutId = setTimeout(finish, ms);
+    signal?.addEventListener('abort', finish, { once: true });
+  });
+}
+
+// TEMP DIAGNOSTICS: см. комментарий у RESOURCE_SETTLE_DELAY_MS. Вызывается
+// ТОЛЬКО в двух точках findWorkingAvcEncoderConfig (после cleanup успешного
+// probe перед стартом real encoder; после cleanup отклонённой real-попытки
+// перед следующим candidate) — НЕ на каждый кадр, НЕ внутри encodeSegment.
+// onStageForCandidate — уже существующий per-candidate wrapper (несёт
+// candidateIndex/codec/hardwareAcceleration) — persistent diagnostics видят
+// delayMs/aborted через тот же существующий механизм onInternalStage, без
+// дополнительного кода.
+async function resourceSettleDelay(onStageForCandidate, signal, startStage, doneStage) {
+  if (RESOURCE_SETTLE_DELAY_MS <= 0) {
+    return;
+  }
+  onStageForCandidate(startStage, { forceLog: true, phase: 'settle', delayMs: RESOURCE_SETTLE_DELAY_MS });
+  await waitOrAbort(RESOURCE_SETTLE_DELAY_MS, signal);
+  onStageForCandidate(doneStage, {
+    forceLog: true,
+    phase: 'settle',
+    delayMs: RESOURCE_SETTLE_DELAY_MS,
+    aborted: signal?.aborted === true
+  });
+  throwIfAborted(signal);
 }
 
 // TEMP DIAGNOSTICS (физический iPhone Safari retest, чёрный preview уже
@@ -494,6 +565,18 @@ async function findWorkingAvcEncoderConfig({
       continue;
     }
 
+    // TEMP DIAGNOSTICS: см. комментарий у RESOURCE_SETTLE_DELAY_MS — probe
+    // уже завершил свой cleanup (probeAvcEncoderConfig's finally, включая
+    // PROBE_CLEANUP_DONE) ДО этой точки; здесь только пауза перед стартом
+    // real encoder ТОГО ЖЕ candidate, порядок существующего cleanup не
+    // меняется.
+    await resourceSettleDelay(
+      onStageForThisCandidate,
+      signal,
+      'RESOURCE_SETTLE_AFTER_PROBE_START',
+      'RESOURCE_SETTLE_AFTER_PROBE_DONE'
+    );
+
     // ФАЗА B: РЕАЛЬНАЯ обработка — HEVC decoder запускается здесь впервые
     // (и, в штатном случае, единственный раз для всего PART1).
     onStageForThisCandidate(`REAL_PROCESSING_START candidate=${candidateIndex}`, { forceLog: true, phase: 'real' });
@@ -570,6 +653,19 @@ async function findWorkingAvcEncoderConfig({
       // инициализация на настоящих данных всё равно отклонена — пробуем
       // следующего candidate (probe заново для него), а не сдаёмся сразу.
       onStageForThisCandidate(`K_CANDIDATE_REJECTED candidate=${candidateIndex}`, { forceLog: true });
+
+      // TEMP DIAGNOSTICS: см. комментарий у RESOURCE_SETTLE_DELAY_MS —
+      // cleanup этой (отклонённой) real-попытки уже выполнен выше
+      // (attemptOutput.cancel(), что закрывает encoder через
+      // flushAndClose(); IteratorClose у encodeSegment's for-await уже
+      // вызвал .return() у videoSampleSink.samples()); здесь только пауза
+      // перед следующим candidate, порядок cleanup не меняется.
+      await resourceSettleDelay(
+        onStageForThisCandidate,
+        signal,
+        'RESOURCE_SETTLE_AFTER_REAL_FAIL_START',
+        'RESOURCE_SETTLE_AFTER_REAL_FAIL_DONE'
+      );
     }
   }
 
