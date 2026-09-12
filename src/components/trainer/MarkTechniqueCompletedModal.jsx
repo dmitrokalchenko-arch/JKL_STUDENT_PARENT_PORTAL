@@ -328,19 +328,31 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
       // TEMP DIAGNOSTICS (задание, п.11): "не затирай processingStage общим
       // FLOW_ERROR" — err.diagnosticStage (точная строка стадии на момент
       // throw, обновляется на КАЖДОМ кадре внутри processTechniqueClip, без
-      // throttling) плюс candidate context из lastInternalStageRef
-      // (throttled, но единственный источник для candidateIndex/codec/
-      // hardwareAcceleration/phase, которых error-объект не несёт).
+      // throttling).
+      //
+      // Третий физический iPhone retest вскрыл несоответствие: candidate
+      // context (candidateIndex/codec/hardwareAcceleration/phase/frameNumber)
+      // брался ТОЛЬКО из lastInternalStageRef (throttled-поток — обновляется
+      // лишь на frame=1 и далее раз в 30 кадров), поэтому при падении на
+      // frame=4 UI показывал "Frame: 1" рядом с точным
+      // "processingStage: ...frame=4" — застрявший, а не актуальный snapshot.
+      // err.diagnosticMeta — не throttled twin для err.diagnosticStage
+      // (см. processTechniqueClip.js, currentStageMeta), обновляется
+      // синхронно на КАЖДЫЙ onStage вызов — берём candidate context ОТТУДА в
+      // первую очередь, lastInternalStageRef остаётся только fallback-ом на
+      // случай, если err почему-то не удалось аннотировать (см. try/catch
+      // вокруг err.diagnosticStage= в processTechniqueClip.js).
+      const diagnosticMeta = err?.diagnosticMeta ?? null;
       setFlowStage('FLOW_ERROR', {
         stage: 'processing',
         name: err?.name,
         message: err?.message,
         processingStage: err?.diagnosticStage ?? lastInternalStageRef.current?.processingStage ?? null,
-        candidateIndex: lastInternalStageRef.current?.candidateIndex ?? null,
-        codec: lastInternalStageRef.current?.codec ?? null,
-        hardwareAcceleration: lastInternalStageRef.current?.hardwareAcceleration ?? null,
-        phase: lastInternalStageRef.current?.phase ?? null,
-        frameNumber: lastInternalStageRef.current?.frameNumber ?? null
+        candidateIndex: diagnosticMeta?.candidateIndex ?? lastInternalStageRef.current?.candidateIndex ?? null,
+        codec: diagnosticMeta?.codec ?? lastInternalStageRef.current?.codec ?? null,
+        hardwareAcceleration: diagnosticMeta?.hardwareAcceleration ?? lastInternalStageRef.current?.hardwareAcceleration ?? null,
+        phase: diagnosticMeta?.phase ?? lastInternalStageRef.current?.phase ?? null,
+        frameNumber: diagnosticMeta?.frameNumber ?? lastInternalStageRef.current?.frameNumber ?? null
       });
       setProcessingDiagnostic({
         stage: err?.diagnosticStage ?? 'unknown',

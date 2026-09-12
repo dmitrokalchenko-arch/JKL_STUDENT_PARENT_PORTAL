@@ -664,25 +664,46 @@ function drawSampleToCanvas(sample, width, height) {
 // WebCodecs VideoFrame СОЗНАТЕЛЬНО ОТКЛАДЫВАЕТСЯ до самого вызова
 // toVideoFrame() внутри mediabunny (комментарий авторов библиотеки прямо
 // в исходнике, sample.ts:473-477, про известный баг Chromium при
-// преждевременной конвертации raw-data в VideoFrame) — то есть ДО МОМЕНТА,
-// когда encoder уже точно готов (после await ensureEncoderPromise, см.
-// подробный комментарий про сам async-разрыв выше). Все canvas/bitmap
-// сущности с этого момента вообще не участвуют — есть только независимый
-// массив байт в памяти, который не может "потерять backing store".
+// преждевременной конвертации raw-data в VideoFrame). Для raw ArrayBuffer/
+// TypedArray источника WebCodecs КОНСТРУКТОР VideoFrame гарантированно
+// (по спецификации) копирует байты синхронно — в отличие от canvas/
+// ImageBitmap источника, где spec просит "снимок", но конкретные движки
+// могут реализовать это как ленивую ссылку на backing store.
 //
-// Один getImageData() на весь клип (не на каждый кадр) — та же экономия,
-// что была у ImageBitmap-варианта: платим этой ценой только за единственный
-// самый первый кадр всего pipeline, где реально есть async-разрыв.
-async function createOutputVideoSample(canvas, timestamp, duration, needsIndependentPixelData, onStage) {
-  if (!needsIndependentPixelData) {
-    return new VideoSample(canvas, { timestamp, duration });
-  }
-
-  onStage?.('I3_PIXELDATA_EXTRACT_START', { forceLog: true });
+// ТРЕТИЙ физический iPhone retest (после разделения AVC probe/real
+// processing — сама проблема multiple-decoder-crash решена) показал НОВУЮ
+// ошибку: "InvalidStateError: Buffer has no frame" уже НЕ на первом кадре
+// (тот защищён getImageData() с самого начала), а на frame=4 — то есть на
+// ОБЫЧНОМ кадре, который шёл через СТАРЫЙ путь `new VideoSample(canvas,
+// {...})` (canvas-backed, БЕЗ getImageData). Это доказывает: риск "canvas
+// backing store истёк до того, как encoder его прочитал" НЕ ограничен
+// async-разрывом инициализации энкодера (который существует только для
+// самого первого кадра) — это ФУНДАМЕНТАЛЬНАЯ уязвимость ЛЮБОГО canvas-
+// backed VideoFrame на этом WebKit (вероятно, WebKit не делает eager copy
+// пикселей при `new VideoFrame(offscreenCanvas, ...)`, а держит ленивую
+// ссылку на canvas backing store, который GC/WebKit может освободить в
+// любой момент под memory pressure на мобильном устройстве — не только
+// "на первом кадре", а на ЛЮБОМ, когда GC решит сработать).
+//
+// ИСПРАВЛЕНИЕ: getImageData() применяется теперь КО ВСЕМ кадрам, не только
+// первому — единственный путь материализации output-кадра. Дороже
+// ImageBitmap-варианта по CPU (RGBA readback на каждый кадр вместо canvas-
+// reference), но КАЖДЫЙ output-кадр становится независимым от canvas/GPU
+// backing store сразу после отрисовки — тот же безопасный raw-pixel путь,
+// что уже подтверждён рабочим для первого кадра. Память не растёт: цикл в
+// encodeSegment строго последовательный (await add() перед следующим
+// кадром), поэтому одновременно "жив" РОВНО ОДИН raw RGBA буфер
+// (720×1280×4 ≈ 3.5 MB) — не очередь из десятков/сотен кадров.
+async function createOutputVideoSample(canvas, timestamp, duration, onStage, frameNumber) {
+  // forceLog только для первых 10 кадров (задание, раздел 4) — начиная с
+  // 11-го эти стадии проходят через обычный throttled console-лимит
+  // (MAX_DETAILED_FRAME_LOGS), чтобы не заспамить консоль на длинных клипах.
+  const forceLog = frameNumber !== null && frameNumber !== undefined && frameNumber <= 10;
+  onStage?.('PIXEL_COPY_START', { forceLog, frameNumber });
   const ctx = canvas.getContext('2d');
   const { width, height } = canvas;
   const imageData = ctx.getImageData(0, 0, width, height);
-  onStage?.('I4_PIXELDATA_EXTRACT_DONE', { forceLog: true });
+  onStage?.('PIXEL_COPY_DONE', { forceLog, frameNumber });
 
   return new VideoSample(imageData.data, {
     format: 'RGBA',
@@ -745,10 +766,22 @@ async function encodeSegment({
       nextAllowedTimestamp = sample.timestamp + frameIntervalSec;
     }
 
-    const canvas = shouldSkip ? null : drawSampleToCanvas(sample, targetWidth, targetHeight);
     const frameNumber = shouldSkip ? null : ++frameCounter.value;
+    // Задание, раздел 4: детальная frame-lifecycle диагностика форсированно
+    // логируется для первых 10 кадров каждой попытки; дальше — обычный
+    // throttled режим (MAX_DETAILED_FRAME_LOGS), чтобы не спамить консоль на
+    // длинных клипах.
+    const detailedLifecycle = frameNumber !== null && frameNumber <= 10;
+    if (!shouldSkip) {
+      onStage?.('FRAME_SOURCE_RECEIVED', { forceLog: detailedLifecycle, frameNumber });
+    }
+    if (!shouldSkip) {
+      onStage?.('FRAME_DRAW_START', { forceLog: detailedLifecycle, frameNumber });
+    }
+    const canvas = shouldSkip ? null : drawSampleToCanvas(sample, targetWidth, targetHeight);
     if (canvas) {
-      onStage?.(`I_FRAME_DRAWN frame=${frameNumber}`, { frameNumber });
+      onStage?.('FRAME_DRAW_DONE', { forceLog: detailedLifecycle, frameNumber });
+      onStage?.(`I_FRAME_DRAWN frame=${frameNumber}`, { forceLog: detailedLifecycle, frameNumber });
     }
 
     // videoSampleSink.samples(rangeStart, ...) отдаёт кадр, АКТИВНЫЙ в момент
@@ -767,7 +800,10 @@ async function encodeSegment({
 
     const relativeTimestampSec = clampedRelativeSec * speedFactor;
     const scaledDurationSec = adjustedDurationSec * speedFactor;
+
+    onStage?.('SOURCE_SAMPLE_CLOSE_START', { forceLog: detailedLifecycle, frameNumber });
     sample.close();
+    onStage?.('SOURCE_SAMPLE_CLOSE_DONE', { forceLog: detailedLifecycle, frameNumber });
 
     throwIfAborted(signal);
 
@@ -775,32 +811,31 @@ async function encodeSegment({
       continue;
     }
 
-    // needsIndependentPixelData: ТОЛЬКО самый первый кадр, отправляемый в
-    // ЭТОТ videoSampleSource.add() (isFirstSegment=true передаётся при
-    // каждой новой попытке AVC candidate из findWorkingAvcEncoderConfig —
-    // у каждой попытки свой новый VideoSampleSource с encoderInitialized=
-    // false, поэтому async-разрыв риска существует заново на первом кадре
-    // КАЖДОЙ попытки, не только самой первой во всём pipeline). Для PART2
-    // isFirstSegment=false всегда (той же самой, уже подтверждённой,
-    // попытки) — там ветка не сработает, encoder уже инициализирован.
-    // Подробный комментарий — у createOutputVideoSample выше.
-    const isFirstFrameOfThisEncoderAttempt = isFirstSegment && isFirstFrameOfSegment;
+    // createOutputVideoSample теперь ВСЕГДА материализует независимый raw
+    // RGBA pixel buffer через getImageData() — для ВСЕХ output-кадров, не
+    // только первого (см. подробный комментарий у createOutputVideoSample
+    // выше про третий физический iPhone retest и "Buffer has no frame" на
+    // frame=4). isFirstSegment/isFirstFrameOfSegment больше не влияют на
+    // выбор пути материализации кадра.
     const outputSample = await createOutputVideoSample(
       canvas,
       timestampOffsetSec + relativeTimestampSec,
       scaledDurationSec,
-      isFirstFrameOfThisEncoderAttempt,
-      onStage
+      onStage,
+      frameNumber
     );
-    onStage?.(`I5_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`, { frameNumber });
+    onStage?.('OUTPUT_SAMPLE_CREATED', { forceLog: detailedLifecycle, frameNumber });
+    onStage?.(`I5_OUTPUT_SAMPLE_CREATED frame=${frameNumber}`, { forceLog: detailedLifecycle, frameNumber });
 
-    onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`, { frameNumber });
+    onStage?.(`M1_FRAME_SUBMIT_START frame=${frameNumber}`, { forceLog: detailedLifecycle, frameNumber });
+    onStage?.('OUTPUT_ADD_START', { forceLog: detailedLifecycle, frameNumber });
     try {
       await videoSampleSource.add(outputSample);
     } finally {
       outputSample.close();
     }
-    onStage?.(`M2_FRAME_SUBMIT_DONE frame=${frameNumber}`, { frameNumber });
+    onStage?.('OUTPUT_ADD_DONE', { forceLog: detailedLifecycle, frameNumber });
+    onStage?.(`M2_FRAME_SUBMIT_DONE frame=${frameNumber}`, { forceLog: detailedLifecycle, frameNumber });
     isFirstFrameOfSegment = false;
 
     segmentEndSec = timestampOffsetSec + relativeTimestampSec + scaledDurationSec;
@@ -855,9 +890,26 @@ export async function processTechniqueClip(
   // logStage()/frameCounter после подтверждённого фикса на физическом
   // iPhone.
   let currentStage = 'A_INPUT_LOAD';
+  // TEMP DIAGNOSTICS: третий физический iPhone retest вскрыл диагностическую
+  // (не алгоритмическую) неточность — err.diagnosticStage всегда точен
+  // (см. комментарий ниже, currentStage обновляется синхронно на КАЖДЫЙ
+  // onStage вызов), а throttled onInternalStage-поток, из которого модалка
+  // берёт frameNumber/candidateIndex/codec/hardwareAcceleration/phase для
+  // UI, обновляется только на frame=1 и далее раз в
+  // INTERNAL_STAGE_FRAME_THROTTLE кадров — на реальном тесте ошибка
+  // произошла на frame=4 (currentStage="I_FRAME_DRAWN frame=4"), но UI
+  // показал "Frame: 1", т.к. throttled-поток с frame=1 просто не успел ещё
+  // обновиться. currentStageMeta — тот же приём, что currentStage, но для
+  // МЕТАДАННЫХ (frameNumber+candidateMeta): обновляется синхронно на КАЖДЫЙ
+  // onStage вызов, без throttling, и прикрепляется к ошибке как
+  // err.diagnosticMeta — модалка теперь может показать однозначный,
+  // синхронный с diagnosticStage, номер кадра/candidate вместо устаревшего
+  // throttled snapshot.
+  let currentStageMeta = {};
   let detailedFrameLogCount = 0;
   const onStage = (stage, { forceLog = false, frameNumber, ...candidateMeta } = {}) => {
     currentStage = stage;
+    currentStageMeta = { frameNumber: frameNumber ?? null, ...candidateMeta };
     if (forceLog || detailedFrameLogCount < MAX_DETAILED_FRAME_LOGS) {
       logStage(stage);
       if (!forceLog) {
@@ -869,7 +921,10 @@ export async function processTechniqueClip(
     // немного) ВСЕГДА, а per-frame стадии — только для frame=1 (самый
     // критичный, там же async-разрыв encoder init) и далее раз в
     // INTERNAL_STAGE_FRAME_THROTTLE кадров — не спамим localStorage.setItem
-    // на каждый из сотен кадров длинного клипа.
+    // на каждый из сотен кадров длинного клипа. Это throttled-поток ТОЛЬКО
+    // для live-отображения "на лету" во время обработки — на случай реальной
+    // ошибки точный контекст берётся из err.diagnosticMeta (currentStageMeta
+    // выше), а не отсюда.
     const shouldPersist =
       frameNumber === undefined ||
       frameNumber === null ||
@@ -1003,6 +1058,7 @@ export async function processTechniqueClip(
     });
     try {
       err.diagnosticStage = currentStage;
+      err.diagnosticMeta = currentStageMeta;
     } catch {
       // некоторые значения (напр. строки/примитивы, брошенные не через Error)
       // нельзя аннотировать доп. свойством — не критично для диагностики
