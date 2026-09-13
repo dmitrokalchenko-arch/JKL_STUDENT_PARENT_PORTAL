@@ -263,5 +263,12 @@
   "studentPreview": {
     "badge": "Previzualizare Super Admin",
     "invalidOrExpired": "Acest link este invalid sau a expirat."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Familie",
+      "trainer": "Antrenor",
+      "superadmin": "Super Admin"
+    }
   }
 }

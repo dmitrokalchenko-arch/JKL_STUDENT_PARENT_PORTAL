@@ -8,6 +8,7 @@ import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
 import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
+import StudentPageDemoRoute from './pages/dev/StudentPageDemoRoute.jsx';
 import { useFamilySession } from './hooks/useFamilySession.js';
 import { isSupabaseConfigured } from './services/supabaseClient.js';
 import styles from './App.module.css';
@@ -75,6 +76,16 @@ export default function App() {
   const previewMatch = window.location.pathname.match(/^\/admin-preview\/([^/]+)\/?$/);
   if (previewMatch) {
     return <StudentPreviewPage token={previewMatch[1]} />;
+  }
+
+  // /dev/student-page-preview — ТОЛЬКО для визуальной проверки
+  // StudentPageContent через Netlify Deploy Preview, mock-данные, никакого
+  // backend. Сам компонент решает, показать ли реальный контент или "404" —
+  // см. guard (__NETLIFY_DEPLOY_CONTEXT__ + hostname) в
+  // StudentPageDemoRoute.jsx; здесь роутинг ничего дополнительно не
+  // проверяет, чтобы не дублировать источник истины про "не production".
+  if (window.location.pathname === '/dev/student-page-preview') {
+    return <StudentPageDemoRoute />;
   }
 
   // /superadmin(/*) — УДАЛЕНО из публичного routing (безопасный pre-deploy

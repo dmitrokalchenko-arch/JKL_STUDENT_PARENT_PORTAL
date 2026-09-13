@@ -293,5 +293,12 @@
   "studentPreview": {
     "badge": "معاينة المشرف العام",
     "invalidOrExpired": "الرابط غير صالح أو انتهت صلاحيته."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "العائلة",
+      "trainer": "المدرب",
+      "superadmin": "المشرف العام"
+    }
   }
 }

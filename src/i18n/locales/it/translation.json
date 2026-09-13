@@ -253,5 +253,12 @@
   "studentPreview": {
     "badge": "Anteprima Super Admin",
     "invalidOrExpired": "Questo link non è valido o è scaduto."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Famiglia",
+      "trainer": "Allenatore",
+      "superadmin": "Super Admin"
+    }
   }
 }
