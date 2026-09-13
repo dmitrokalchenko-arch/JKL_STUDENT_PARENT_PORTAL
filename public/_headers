@@ -1,0 +1,12 @@
+# Netlify custom headers — https://docs.netlify.com/routing/headers/
+#
+# Ограничение embedding ТОЛЬКО для Super Admin Student Preview
+# (/admin-preview/:token) — эта страница специально предназначена для
+# встраивания в iframe внутри Block 1 (JCL_Gruppen, кнопка «Family-Seite
+# ansehen» → большое модальное окно). До этого правила у сайта не было
+# вообще никакого X-Frame-Options/CSP frame-ancestors — эта запись строго
+# ДОБАВЛЯЕТ ограничение (сужает с "разрешено любому origin" до "разрешено
+# только Block 1"), а не ослабляет существующую защиту. Остальные маршруты
+# сайта (Family/Trainer Portal) этим правилом не затронуты.
+/admin-preview/*
+  Content-Security-Policy: frame-ancestors https://jcl-gruppen.netlify.app
