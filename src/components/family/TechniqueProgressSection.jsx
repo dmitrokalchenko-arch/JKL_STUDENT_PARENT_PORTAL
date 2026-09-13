@@ -44,10 +44,10 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
     return null;
   }
 
-  const { completed, requiredTachiWaza, requiredNeWaza } = selectTechniqueGroups(progressData.techniques);
+  const { completed, requiredNageWaza, requiredKatameWaza } = selectTechniqueGroups(progressData.techniques);
   const emptySlotCount = getEmptySlotCount(completed.length, progressData.bonusRequirement);
   const hasNoProgram =
-    completed.length === 0 && requiredTachiWaza.length === 0 && requiredNeWaza.length === 0;
+    completed.length === 0 && requiredNageWaza.length === 0 && requiredKatameWaza.length === 0;
 
   if (hasNoProgram) {
     return (
@@ -87,12 +87,12 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
       </div>
 
       <div className={styles.requiredGroup}>
-        <div className={styles.rowTitle}>{t('techniqueProgress.tachiWaza')}</div>
+        <div className={styles.rowTitle}>{t('techniqueProgress.nageWaza')}</div>
         <div className={styles.cardRowSmall}>
-          {requiredTachiWaza.length === 0 ? (
+          {requiredNageWaza.length === 0 ? (
             <div className={styles.emptyText}>{t('techniqueProgress.noRequiredTechniques')}</div>
           ) : (
-            requiredTachiWaza.map((technique) => (
+            requiredNageWaza.map((technique) => (
               <TechniqueCard key={technique.id} technique={technique} variant="required" />
             ))
           )}
@@ -100,12 +100,12 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
       </div>
 
       <div className={styles.requiredGroup}>
-        <div className={styles.rowTitle}>{t('techniqueProgress.neWaza')}</div>
+        <div className={styles.rowTitle}>{t('techniqueProgress.katameWaza')}</div>
         <div className={styles.cardRowSmall}>
-          {requiredNeWaza.length === 0 ? (
+          {requiredKatameWaza.length === 0 ? (
             <div className={styles.emptyText}>{t('techniqueProgress.noRequiredTechniques')}</div>
           ) : (
-            requiredNeWaza.map((technique) => (
+            requiredKatameWaza.map((technique) => (
               <TechniqueCard key={technique.id} technique={technique} variant="required" />
             ))
           )}

@@ -86,8 +86,8 @@
   "techniqueProgress": {
     "title": "Postęp technik",
     "bonusProgress": "{{completed}} z {{required}} technik do bonusu",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Wszystkie techniki w tej kategorii wykonane",
     "loading": "Ładowanie postępu technik…",
     "loadError": "Nie udało się załadować postępu technik.",

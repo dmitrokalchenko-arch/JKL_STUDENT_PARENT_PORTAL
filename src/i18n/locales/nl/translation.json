@@ -72,8 +72,8 @@
   "techniqueProgress": {
     "title": "Techniekvoortgang",
     "bonusProgress": "{{completed}} van {{required}} technieken voor de bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Alle technieken in deze categorie voltooid",
     "loading": "Techniekvoortgang wordt geladen…",
     "loadError": "Techniekvoortgang kon niet worden geladen.",

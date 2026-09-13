@@ -100,8 +100,8 @@
   "techniqueProgress": {
     "title": "تقدم التقنيات",
     "bonusProgress": "{{completed}} من {{required}} تقنيات للمكافأة",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "تم إتمام جميع التقنيات في هذه الفئة",
     "loading": "جارٍ تحميل تقدم التقنيات…",
     "loadError": "تعذّر تحميل تقدم التقنيات.",

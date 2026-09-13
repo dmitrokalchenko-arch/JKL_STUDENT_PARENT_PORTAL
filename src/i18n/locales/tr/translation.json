@@ -72,8 +72,8 @@
   "techniqueProgress": {
     "title": "Teknik İlerlemesi",
     "bonusProgress": "Bonus için {{required}} teknikten {{completed}} tamamlandı",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Bu kategorideki tüm teknikler tamamlandı",
     "loading": "Teknik ilerlemesi yükleniyor…",
     "loadError": "Teknik ilerlemesi yüklenemedi.",

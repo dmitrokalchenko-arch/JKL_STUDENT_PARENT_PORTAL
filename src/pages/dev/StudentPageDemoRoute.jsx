@@ -80,12 +80,12 @@ const MOCK_STUDENT = {
   beltLabel: 'weiß · 9. Kyu'
 };
 
-// MOCK, только здесь. category использует литералы 'tachi-waza'/'ne-waza',
-// которых требует TechniqueProgressSection/selectTechniqueGroups — это НЕ
-// реальная таксономия judo_techniques (8 IJF-категорий, main_group
-// Nage-waza/Katame-waza), а форма, которую понимает существующий
-// компонент. bonusRequirement = 30 — очевидно тестовое число, реального
-// источника для него в production пока нет (см. комментарий выше).
+// MOCK, только здесь. category использует РЕАЛЬНУЮ таксономию
+// public.judo_techniques.main_group ('Nage-waza'/'Katame-waza',
+// см. миграцию 20260908120041) — прежние 'tachi-waza'/'ne-waza' были
+// отдельным искусственным сопоставлением и больше не используются нигде
+// (см. utils/techniqueProgress.js). bonusRequirement = 30 — очевидно
+// тестовое число, реального источника для него в production пока нет.
 const MOCK_BONUS_REQUIREMENT = 30;
 const MOCK_COMPLETED_COUNT = 12;
 const MOCK_TECHNIQUE_PROGRESS = {
@@ -97,7 +97,7 @@ const MOCK_TECHNIQUE_PROGRESS = {
     ...Array.from({ length: MOCK_COMPLETED_COUNT }, (_, i) => ({
       id: `demo-completed-${i + 1}`,
       name: `Demo-Technik ${i + 1}`,
-      category: i % 2 === 0 ? 'tachi-waza' : 'ne-waza',
+      category: i % 2 === 0 ? 'Nage-waza' : 'Katame-waza',
       status: 'completed',
       imageUrl: null,
       hasVideo: false,
@@ -106,9 +106,9 @@ const MOCK_TECHNIQUE_PROGRESS = {
       trainerComment: null
     })),
     {
-      id: 'demo-required-tachi-1',
-      name: 'Demo Tachi-Waza (erforderlich)',
-      category: 'tachi-waza',
+      id: 'demo-required-nage-1',
+      name: 'Demo Nage-Waza (erforderlich)',
+      category: 'Nage-waza',
       status: 'required',
       imageUrl: null,
       hasVideo: false,
@@ -117,9 +117,9 @@ const MOCK_TECHNIQUE_PROGRESS = {
       trainerComment: null
     },
     {
-      id: 'demo-required-ne-1',
-      name: 'Demo Ne-Waza (erforderlich)',
-      category: 'ne-waza',
+      id: 'demo-required-katame-1',
+      name: 'Demo Katame-Waza (erforderlich)',
+      category: 'Katame-waza',
       status: 'required',
       imageUrl: null,
       hasVideo: false,

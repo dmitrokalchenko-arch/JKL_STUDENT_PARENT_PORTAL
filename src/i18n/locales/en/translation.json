@@ -72,8 +72,8 @@
   "techniqueProgress": {
     "title": "Technique Progress",
     "bonusProgress": "{{completed}} of {{required}} techniques for the bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "All techniques in this category completed",
     "loading": "Loading technique progress…",
     "loadError": "Couldn't load technique progress.",

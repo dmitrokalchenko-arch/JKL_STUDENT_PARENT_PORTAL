@@ -79,8 +79,8 @@
   "techniqueProgress": {
     "title": "Progresul tehnicilor",
     "bonusProgress": "{{completed}} din {{required}} tehnici pentru bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Toate tehnicile din această categorie au fost finalizate",
     "loading": "Se încarcă progresul tehnicilor…",
     "loadError": "Progresul tehnicilor nu a putut fi încărcat.",
