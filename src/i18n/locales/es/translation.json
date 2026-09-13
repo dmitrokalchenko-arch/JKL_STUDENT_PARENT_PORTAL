@@ -249,5 +249,9 @@
     "vornamePlaceholder": "Introduce el nombre",
     "noResults": "Sin resultados",
     "loadError": "La búsqueda ha fallado."
+  },
+  "studentPreview": {
+    "badge": "Vista previa de Super Admin",
+    "invalidOrExpired": "Este enlace no es válido o ha caducado."
   }
 }

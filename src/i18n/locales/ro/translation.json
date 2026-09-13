@@ -259,5 +259,9 @@
     "vornamePlaceholder": "Introduceți prenumele",
     "noResults": "Niciun rezultat",
     "loadError": "Căutarea a eșuat."
+  },
+  "studentPreview": {
+    "badge": "Previzualizare Super Admin",
+    "invalidOrExpired": "Acest link este invalid sau a expirat."
   }
 }

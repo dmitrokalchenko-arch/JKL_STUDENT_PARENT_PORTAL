@@ -250,5 +250,9 @@
     "vornamePlaceholder": "Enter first name",
     "noResults": "No results",
     "loadError": "Search failed."
+  },
+  "studentPreview": {
+    "badge": "Super Admin Preview",
+    "invalidOrExpired": "This link is invalid or has expired."
   }
 }

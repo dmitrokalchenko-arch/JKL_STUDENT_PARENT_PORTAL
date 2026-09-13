@@ -269,5 +269,9 @@
     "vornamePlaceholder": "Wpisz imię",
     "noResults": "Brak wyników",
     "loadError": "Wyszukiwanie nie powiodło się."
+  },
+  "studentPreview": {
+    "badge": "Podgląd Super Admina",
+    "invalidOrExpired": "Ten link jest nieprawidłowy lub wygasł."
   }
 }

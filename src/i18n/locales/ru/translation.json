@@ -270,5 +270,9 @@
     "vornamePlaceholder": "Введите имя",
     "noResults": "Нет результатов",
     "loadError": "Не удалось выполнить поиск."
+  },
+  "studentPreview": {
+    "badge": "Просмотр Super Admin",
+    "invalidOrExpired": "Ссылка недействительна или срок её действия истёк."
   }
 }

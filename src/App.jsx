@@ -7,6 +7,7 @@ import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
+import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
 import { useFamilySession } from './hooks/useFamilySession.js';
 import { isSupabaseConfigured } from './services/supabaseClient.js';
 import styles from './App.module.css';
@@ -61,6 +62,19 @@ export default function App() {
     }
 
     return <TrainerAuthGuard>{trainerContent}</TrainerAuthGuard>;
+  }
+
+  // /admin-preview/:token — Super Admin Preview (Block 1, JCL_Gruppen,
+  // кнопка «👁 Family-Seite ansehen» → get-student-preview). Проверяется ДО
+  // FamilyLogin/FamilyDashboard/useFamilySession и БЕЗ TrainerAuthGuard —
+  // здесь намеренно нет ни family-, ни trainer-сессии вовсе, единственный
+  // "пропуск" — одноразовый токен из URL (см. StudentPreviewPage.jsx).
+  // family_students.status/families.status не проверяются на этом уровне
+  // роутинга вообще — активация Familienzugang не является правом на
+  // Preview, это отдельная авторизация внутри get-student-preview.
+  const previewMatch = window.location.pathname.match(/^\/admin-preview\/([^/]+)\/?$/);
+  if (previewMatch) {
+    return <StudentPreviewPage token={previewMatch[1]} />;
   }
 
   // /superadmin(/*) — УДАЛЕНО из публичного routing (безопасный pre-deploy

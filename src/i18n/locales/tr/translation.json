@@ -249,5 +249,9 @@
     "vornamePlaceholder": "Ad girin",
     "noResults": "Sonuç yok",
     "loadError": "Arama başarısız oldu."
+  },
+  "studentPreview": {
+    "badge": "Süper Admin Önizleme",
+    "invalidOrExpired": "Bu bağlantı geçersiz veya süresi dolmuş."
   }
 }

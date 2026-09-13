@@ -269,5 +269,9 @@
     "vornamePlaceholder": "Введіть ім'я",
     "noResults": "Немає результатів",
     "loadError": "Не вдалося виконати пошук."
+  },
+  "studentPreview": {
+    "badge": "Перегляд Super Admin",
+    "invalidOrExpired": "Це посилання недійсне або термін його дії закінчився."
   }
 }

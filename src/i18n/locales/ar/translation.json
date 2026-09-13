@@ -289,5 +289,9 @@
     "vornamePlaceholder": "أدخل الاسم",
     "noResults": "لا توجد نتائج",
     "loadError": "فشل البحث."
+  },
+  "studentPreview": {
+    "badge": "معاينة المشرف العام",
+    "invalidOrExpired": "الرابط غير صالح أو انتهت صلاحيته."
   }
 }

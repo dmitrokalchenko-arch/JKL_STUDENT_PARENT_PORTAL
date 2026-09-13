@@ -249,5 +249,9 @@
     "vornamePlaceholder": "Saisir le prénom",
     "noResults": "Aucun résultat",
     "loadError": "La recherche a échoué."
+  },
+  "studentPreview": {
+    "badge": "Aperçu Super Admin",
+    "invalidOrExpired": "Ce lien est invalide ou a expiré."
   }
 }

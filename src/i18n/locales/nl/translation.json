@@ -249,5 +249,9 @@
     "vornamePlaceholder": "Voornaam invoeren",
     "noResults": "Geen resultaten",
     "loadError": "Zoeken mislukt."
+  },
+  "studentPreview": {
+    "badge": "Super Admin Voorbeeld",
+    "invalidOrExpired": "Deze link is ongeldig of verlopen."
   }
 }
