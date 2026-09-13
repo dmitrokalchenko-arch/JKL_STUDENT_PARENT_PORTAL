@@ -19,6 +19,17 @@ import styles from './StudentPreviewPage.module.css';
 // Student Page, вместо собственной отдельной разметки этой страницы.
 // Loading/error-состояния остаются локальными для этой страницы (общий
 // shell их не знает — он получает student только когда данные уже есть).
+//
+// REAL SUPER ADMIN STUDENT PAGE — STEP 1: студент ниже — РЕАЛЬНЫЕ данные
+// из get-student-preview (studentId/firstName/lastName/sportName/
+// groupName/beltLabel), backend не расширялся. showNavigationCards
+// показывает тот же ряд карточек «Моя семья/Мои тренировки/...», что и
+// демо-стенд, но БЕЗ mock-данных под ними (trainings/familyAccount/
+// contract сюда намеренно не передаются) — StudentPageContent сам покажет
+// нейтральное "подключим позже" вместо ContentArea, см. её комментарий.
+// Прогресс техник (techniqueProgress) пока не передаётся вообще — для
+// Super Admin ещё нет backend-источника, секция просто отсутствует на
+// странице, это ожидаемо на этом шаге.
 export default function StudentPreviewPage({ token }) {
   const { t } = useTranslation();
   const { student, isLoading, error } = useStudentPreview(token);
@@ -51,6 +62,7 @@ export default function StudentPreviewPage({ token }) {
     <StudentPageContent
       accessMode="superadmin"
       header={headerNode}
+      showNavigationCards
       student={{
         id: student.studentId,
         firstName: student.firstName,

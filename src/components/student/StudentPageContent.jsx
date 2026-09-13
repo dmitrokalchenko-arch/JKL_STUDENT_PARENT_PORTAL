@@ -27,11 +27,17 @@ export const STUDENT_PAGE_ACCESS_MODES = ['family', 'trainer', 'superadmin'];
 //     себе не умеет отличить "данных ещё нет от этого потребителя" от
 //     "идёт реальная загрузка", поэтому это разруливается здесь).
 //   - showNavigationCards (по умолчанию false) — ряд карточек «Моя семья/
-//     Мои тренировки/...» показывается только если вызывающая страница
-//     явно попросила (сейчас — только /dev/student-page-preview с
-//     mock-данными). Это НЕ включает новые данные для существующего
-//     Super Admin Preview (StudentPreviewPage) — тот продолжает вызывать
-//     этот компонент без этих пропов и визуально не меняется на этом шаге.
+//     Мои тренировки/...» показывается, если вызывающая страница попросила
+//     (реальный Super Admin Preview — StudentPreviewPage — и Deploy-Preview
+//     demo route оба это делают, см. REAL SUPER ADMIN STUDENT PAGE — STEP 1).
+//   - Содержимое под карточками: если ни trainings, ни familyAccount, ни
+//     contract не переданы (все undefined) — вместо ContentArea (которая
+//     сама разворачивает TrainingsSection/FamilySection/ContractSection и
+//     упала бы на FamilySection без familyAccount) показывается нейтральная
+//     заглушка "данные подключим позже" — НЕ mock-данные вместо реальных.
+//     Как только вызывающая страница передаст хотя бы одно из этих трёх —
+//     используется настоящий ContentArea с этими данными (ровно так уже
+//     делает demo route).
 //
 // header/selector — pass-through в DashboardLayout: у каждой роли своя
 // шапка (Family: приветствие+выход, Trainer: back-кнопка, Super Admin
@@ -66,6 +72,13 @@ export default function StudentPageContent({
   const activeSection = activeSectionProp !== undefined ? activeSectionProp : internalActiveSection;
   const handleSelectSection = onSelectSection ?? setInternalActiveSection;
 
+  // Реальные данные для секций под карточками ещё не подключены ни для
+  // одного accessMode на этом шаге — если вызывающая страница не передала
+  // НИ ОДНОГО из трёх, показываем нейтральное "подключим позже" вместо
+  // падения на отсутствующих данных внутри FamilySection/TrainingsSection/
+  // ContractSection.
+  const hasRealSectionData = trainings !== undefined || familyAccount !== undefined || contract !== undefined;
+
   return (
     <DashboardLayout header={header} selector={selector}>
       <span className={styles.modeBadge}>{t(`studentPage.accessMode.${mode}`)}</span>
@@ -86,13 +99,18 @@ export default function StudentPageContent({
       {showNavigationCards && (
         <>
           <DashboardButtons activeSection={activeSection} onSelectSection={handleSelectSection} />
-          <ContentArea
-            activeSection={activeSection}
-            trainings={trainings}
-            familyAccount={familyAccount}
-            children={familyChildren}
-            contract={contract}
-          />
+          {activeSection && !hasRealSectionData && (
+            <div className={styles.sectionNotConnected}>{t('studentPage.sectionNotConnectedYet')}</div>
+          )}
+          {activeSection && hasRealSectionData && (
+            <ContentArea
+              activeSection={activeSection}
+              trainings={trainings}
+              familyAccount={familyAccount}
+              children={familyChildren}
+              contract={contract}
+            />
+          )}
         </>
       )}
 

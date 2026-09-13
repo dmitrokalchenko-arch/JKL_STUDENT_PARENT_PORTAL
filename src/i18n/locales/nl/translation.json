@@ -259,6 +259,7 @@
       "family": "Familie",
       "trainer": "Trainer",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld."
   }
 }

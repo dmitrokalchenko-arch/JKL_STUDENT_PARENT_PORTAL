@@ -279,6 +279,7 @@
       "family": "Сім'я",
       "trainer": "Тренер",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Дані цього розділу буде підключено на наступному етапі."
   }
 }

@@ -269,6 +269,7 @@
       "family": "Familie",
       "trainer": "Antrenor",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Datele acestei secțiuni vor fi conectate într-un pas ulterior."
   }
 }

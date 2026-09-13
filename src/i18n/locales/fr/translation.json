@@ -259,6 +259,7 @@
       "family": "Famille",
       "trainer": "Entraîneur",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Les données de cette section seront connectées à une étape ultérieure."
   }
 }

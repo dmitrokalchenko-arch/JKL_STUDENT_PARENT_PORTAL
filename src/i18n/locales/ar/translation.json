@@ -299,6 +299,7 @@
       "family": "العائلة",
       "trainer": "المدرب",
       "superadmin": "المشرف العام"
-    }
+    },
+    "sectionNotConnectedYet": "سيتم ربط بيانات هذا القسم في خطوة لاحقة."
   }
 }

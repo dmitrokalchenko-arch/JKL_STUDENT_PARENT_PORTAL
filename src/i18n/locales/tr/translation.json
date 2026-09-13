@@ -259,6 +259,7 @@
       "family": "Aile",
       "trainer": "Antrenör",
       "superadmin": "Süper Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Bu bölümün verileri ileriki bir adımda bağlanacak."
   }
 }

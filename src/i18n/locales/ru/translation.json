@@ -280,6 +280,7 @@
       "family": "Семья",
       "trainer": "Тренер",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Данные этого раздела будут подключены на следующем этапе."
   }
 }

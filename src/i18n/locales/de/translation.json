@@ -271,6 +271,7 @@
       "family": "Familie",
       "trainer": "Trainer",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Die Daten dieses Bereichs werden in einem der nächsten Schritte angebunden."
   }
 }
