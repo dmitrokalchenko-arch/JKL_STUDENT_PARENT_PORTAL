@@ -254,5 +254,12 @@
   "studentPreview": {
     "badge": "Super Admin Preview",
     "invalidOrExpired": "This link is invalid or has expired."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Family",
+      "trainer": "Trainer",
+      "superadmin": "Super Admin"
+    }
   }
 }

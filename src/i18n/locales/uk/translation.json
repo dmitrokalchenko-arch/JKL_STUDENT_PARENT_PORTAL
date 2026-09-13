@@ -273,5 +273,12 @@
   "studentPreview": {
     "badge": "Перегляд Super Admin",
     "invalidOrExpired": "Це посилання недійсне або термін його дії закінчився."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Сім'я",
+      "trainer": "Тренер",
+      "superadmin": "Super Admin"
+    }
   }
 }

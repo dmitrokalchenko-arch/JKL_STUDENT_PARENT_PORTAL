@@ -253,5 +253,12 @@
   "studentPreview": {
     "badge": "Süper Admin Önizleme",
     "invalidOrExpired": "Bu bağlantı geçersiz veya süresi dolmuş."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Aile",
+      "trainer": "Antrenör",
+      "superadmin": "Süper Admin"
+    }
   }
 }

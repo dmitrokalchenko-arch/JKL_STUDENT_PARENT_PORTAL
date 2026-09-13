@@ -253,5 +253,12 @@
   "studentPreview": {
     "badge": "Super Admin Voorbeeld",
     "invalidOrExpired": "Deze link is ongeldig of verlopen."
+  },
+  "studentPage": {
+    "accessMode": {
+      "family": "Familie",
+      "trainer": "Trainer",
+      "superadmin": "Super Admin"
+    }
   }
 }
