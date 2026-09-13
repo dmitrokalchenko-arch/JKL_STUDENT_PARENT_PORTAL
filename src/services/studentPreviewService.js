@@ -45,6 +45,12 @@ export async function getStudentPreview(token) {
     lastName: data.lastName ?? null,
     sportName: data.sportName ?? null,
     groupName: data.groupName ?? null,
-    beltLabel: data.beltLabel ?? null
+    beltLabel: data.beltLabel ?? null,
+    // Отсутствует в ответе, пока club-scoped миграция/данные не готовы —
+    // см. get-student-preview: undefined, а не null, чтобы
+    // StudentPageContent корректно не рендерил секцию вовсе (та же
+    // семантика "не подключено", что уже используется для остальных
+    // секций, см. StudentPreviewPage.jsx).
+    techniqueProgress: data.techniqueProgress ?? undefined
   };
 }

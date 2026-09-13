@@ -45,7 +45,14 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
   }
 
   const { completed, requiredNageWaza, requiredKatameWaza } = selectTechniqueGroups(progressData.techniques);
-  const emptySlotCount = getEmptySlotCount(completed.length, progressData.bonusRequirement);
+  // bonusRequirement может отсутствовать (club-scoped настройка ещё не
+  // задана этим клубом, см. club_technique_program_settings) — валидное
+  // состояние, не ошибка. getEmptySlotCount(x, null) уже безопасно даёт 0
+  // (null арифметически ведёт себя как 0), но строку "N из null" в
+  // заголовке показывать нельзя — сама bonus-строка скрывается ниже,
+  // completed-карточки и required-группы отображаются как обычно.
+  const hasBonusRequirement = progressData.bonusRequirement != null;
+  const emptySlotCount = hasBonusRequirement ? getEmptySlotCount(completed.length, progressData.bonusRequirement) : 0;
   const hasNoProgram =
     completed.length === 0 && requiredNageWaza.length === 0 && requiredKatameWaza.length === 0;
 
@@ -64,12 +71,14 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
     <div className={styles.section}>
       <div className={styles.headerRow}>
         <h2 className={styles.title}>{t('techniqueProgress.title')}</h2>
-        <div className={styles.bonusProgress}>
-          {t('techniqueProgress.bonusProgress', {
-            completed: completed.length,
-            required: progressData.bonusRequirement
-          })}
-        </div>
+        {hasBonusRequirement && (
+          <div className={styles.bonusProgress}>
+            {t('techniqueProgress.bonusProgress', {
+              completed: completed.length,
+              required: progressData.bonusRequirement
+            })}
+          </div>
+        )}
       </div>
 
       <div className={styles.cardRow}>

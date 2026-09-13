@@ -21,6 +21,17 @@
 // одинаково для not_set_up/active/suspended ученика (сама Preview-
 // авторизация никогда не читает эти таблицы).
 //
+// CLUB-SCOPED TECHNIQUE PROGRESS (добавлено отдельным шагом, см. миграцию
+// 20260913120053_create_club_technique_program_schema.sql): после
+// разрешения claimed.student_id/club_id ТЕМ ЖЕ токеном читает
+// club_technique_program_settings/club_required_techniques СТРОГО по
+// club_id ЭТОГО студента (никогда не club_id с клиента) + собственные
+// student_technique_records — клуб A никогда не может повлиять на то, что
+// увидит студент клуба B. Обе новые таблицы читаются best-effort: если
+// миграция ещё не применена (таблиц физически нет), techniqueProgress
+// просто отсутствует в ответе — та же деградация, что уже было ДО этого
+// шага, ничего не ломается независимо от порядка деплоя.
+//
 // ⚠️ Деплой требует отключённой JWT-проверки на уровне Supabase API Gateway
 // (verify_jwt = false) — как и остальные пока-анонимные функции проекта
 // (admin-pin-login/super-admin-pin-login), эта функция вызывается ДО
@@ -157,6 +168,13 @@ Deno.serve(async (req: Request) => {
 
   const beltLabel = [studentRow.guertelfarbe, studentRow.kyu_grad].filter(Boolean).join(' · ') || null;
 
+  // ── Club-scoped technique progress — best-effort, никогда не роняет
+  // основной ответ. club_id берётся ИЗ УЖЕ ПРОВЕРЕННОГО claimed.club_id
+  // (тот же club_id, что и у claimed.student_id — целостность гарантирует
+  // create-student-preview-token, который резолвит club_id из самой
+  // students-строки, не принимает его отдельным параметром). ──────────────
+  const techniqueProgress = await buildTechniqueProgress(supabaseAdmin, claimed.club_id, studentRow.id);
+
   return jsonResponse(
     {
       studentId: String(studentRow.id),
@@ -164,8 +182,121 @@ Deno.serve(async (req: Request) => {
       lastName: studentRow.nachname,
       sportName: sportRow?.name ?? null,
       groupName: groupRow?.gruppenname ?? null,
-      beltLabel
+      beltLabel,
+      ...(techniqueProgress ? { techniqueProgress } : {})
     },
     200
   );
 });
+
+// Форма объекта — ТОТ ЖЕ контракт, что уже потребляет существующий
+// (немодифицированный по данным) TechniqueProgressSection/
+// selectTechniqueGroups: { featureEnabled, bonusRequirement, bonusPoints,
+// belt, techniques: [{id, name, category, status, imageUrl, hasVideo,
+// videoPath, completedAt, trainerComment}] }. category — main_group
+// judo_techniques ('Nage-waza'/'Katame-waza'), status — 'completed' |
+// 'required', взаимоисключающе (та же гарантия, что в исходном дизайне
+// selectTechniqueGroups). belt_key IS NULL — единственная программа,
+// которую сегодня читает этот путь (см. комментарий в миграции).
+//
+// Возвращает null при ЛЮБОЙ ошибке (включая "таблицы ещё нет" —
+// PGRST205/42P01 до применения миграции) — вызывающий код просто не
+// добавляет techniqueProgress в ответ, старое поведение полностью
+// сохраняется.
+async function buildTechniqueProgress(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  clubId: string,
+  studentId: number
+): Promise<Record<string, unknown> | null> {
+  try {
+    const [{ data: settingsRow }, { data: requiredRows, error: requiredError }, { data: completedRows, error: completedError }] =
+      await Promise.all([
+        supabaseAdmin
+          .from('club_technique_program_settings')
+          .select('bonus_requirement')
+          .eq('club_id', clubId)
+          .maybeSingle(),
+        supabaseAdmin
+          .from('club_required_techniques')
+          .select('technique_id, judo_techniques(id, name, main_group, image_path)')
+          .eq('club_id', clubId)
+          .is('belt_key', null),
+        supabaseAdmin
+          .from('student_technique_records')
+          .select('technique_id, completed_at, trainer_comment, judo_techniques(id, name, main_group, image_path)')
+          .eq('student_id', studentId)
+      ]);
+
+    if (requiredError || completedError) {
+      // Таблица ещё не существует (миграция не применена) или другая
+      // ошибка — не роняем основной ответ, просто не показываем прогресс.
+      console.error('[get-student-preview] technique progress unavailable', requiredError, completedError);
+      return null;
+    }
+
+    const buildImageUrl = (imagePath: string | null) =>
+      imagePath
+        ? `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/judo-techniques/${imagePath}`
+        : null;
+
+    const completedByTechniqueId = new Map<string, (typeof completedRows)[number]>();
+    for (const row of completedRows ?? []) {
+      completedByTechniqueId.set(row.technique_id, row);
+    }
+
+    const techniques: Array<Record<string, unknown>> = [];
+    const seenTechniqueIds = new Set<string>();
+
+    for (const row of requiredRows ?? []) {
+      const catalog = row.judo_techniques as { id: string; name: string; main_group: string; image_path: string | null } | null;
+      if (!catalog) continue; // защитный борт: technique_id не должен указывать в никуда (FK), но join может вернуть null при рассинхронизации кэша схемы
+      seenTechniqueIds.add(row.technique_id);
+      const completedRow = completedByTechniqueId.get(row.technique_id);
+      techniques.push({
+        id: catalog.id,
+        name: catalog.name,
+        category: catalog.main_group,
+        status: completedRow ? 'completed' : 'required',
+        imageUrl: buildImageUrl(catalog.image_path),
+        hasVideo: false,
+        videoPath: null,
+        completedAt: completedRow?.completed_at ?? null,
+        trainerComment: completedRow?.trainer_comment ?? null
+      });
+    }
+
+    // Выполненные техники, которых нет в required-списке клуба (например,
+    // студент выполнил технику сверх программы) — тоже считаются
+    // completed для общего счётчика/бонуса, просто не попадают ни в одну
+    // required-группу (ровно так это уже работает в
+    // selectTechniqueGroups — required-группы фильтруют по status
+    // 'required', extra completed сюда не попадают, и это корректно).
+    for (const row of completedRows ?? []) {
+      if (seenTechniqueIds.has(row.technique_id)) continue;
+      const catalog = row.judo_techniques as { id: string; name: string; main_group: string; image_path: string | null } | null;
+      if (!catalog) continue;
+      techniques.push({
+        id: catalog.id,
+        name: catalog.name,
+        category: catalog.main_group,
+        status: 'completed',
+        imageUrl: buildImageUrl(catalog.image_path),
+        hasVideo: false,
+        videoPath: null,
+        completedAt: row.completed_at,
+        trainerComment: row.trainer_comment ?? null
+      });
+    }
+
+    return {
+      featureEnabled: true,
+      bonusRequirement: settingsRow?.bonus_requirement ?? null,
+      bonusPoints: null,
+      belt: null,
+      techniques
+    };
+  } catch (e) {
+    console.error('[get-student-preview] technique progress build failed', e);
+    return null;
+  }
+}
