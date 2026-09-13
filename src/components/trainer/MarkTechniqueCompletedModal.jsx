@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../common/Modal.jsx';
 import Icon from '../common/Icon.jsx';
@@ -11,6 +11,7 @@ import {
   VideoProcessingCanceledError
 } from '../../services/videoProcessing/processTechniqueClip.js';
 import { ALLOWED_VIDEO_MIME_TYPES } from '../../utils/studentVideoFilename.js';
+import { isVideoProcessingSupportedDevice } from '../../utils/videoProcessingDeviceSupport.js';
 import styles from './MarkTechniqueCompletedModal.module.css';
 
 // Новый workflow "Отметить как выполнено" (задание, этап 1) — раньше
@@ -24,120 +25,6 @@ import styles from './MarkTechniqueCompletedModal.module.css';
 // читается (name/image_url) — youtube_url/youtube_video_id техники здесь
 // вообще не используются, это персональное видео ученика, другой источник
 // (задание, этап 3).
-
-// TEMP DIAGNOSTICS: физический iPhone Safari retest показал случай, когда
-// модалка молча "исчезает" через 1-2 сек после "Отметить как выполнено" —
-// без processingErrorKey, без diagnostic-UI, без новой записи. Ни один код-
-// путь в handleConfirm/useCompleteTechniqueWithVideo/TrainerStudentPage не
-// закрывает модалку иначе, чем через УСПЕШНЫЙ onCompleted (Modal.jsx тоже
-// закрывается только через явный onClose) — значит наиболее вероятная
-// причина ТАКОГО поведения на реальном устройстве это ПОЛНАЯ перезагрузка/
-// креш вкладки Safari (типично при memory pressure от нескольких decode/
-// encode попыток подряд для разных AVC candidates на тяжёлом 4K HEVC),
-// стирающая весь in-memory React state — обычная console.log/React-
-// диагностика такое НЕ переживает. Поэтому здесь флоу-стадии дублируются в
-// localStorage (переживает reload) — если тренер снова откроет модалку
-// после такого краша, мы увидим "remnant" последней стадии предыдущей
-// попытки. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
-const FLOW_STAGE_STORAGE_KEY = 'jkl_debug_completion_flow_last_stage';
-
-function logFlowStage(stage, details) {
-  const entry = { stage, details: details ?? null, timestamp: new Date().toISOString() };
-  // eslint-disable-next-line no-console
-  console.log('[completion-flow]', stage, details ?? '');
-  try {
-    localStorage.setItem(FLOW_STAGE_STORAGE_KEY, JSON.stringify(entry));
-  } catch {
-    // localStorage может быть недоступен (приватный режим и т.п.) —
-    // остальная диагностика (console.log) при этом всё равно работает.
-  }
-}
-
-// TEMP DIAGNOSTICS: физический iPhone retest после первой версии flow-
-// diagnostics показал remnant, застрявший на верхнеуровневом
-// FLOW_PROCESSING_START — сам processTechniqueClip() падает/обрывается
-// ВНУТРИ себя (currentStage — приватное замыкание внутри той функции,
-// снаружи была видна только грубая "обработка идёт", а не точная внутренняя
-// стадия типа "M1_FRAME_SUBMIT_START frame=1" на конкретном AVC candidate).
-// logInternalProcessingStage пишет в ТОТ ЖЕ persistent marker (перезаписывая
-// его, как и logFlowStage) более подробную структуру — processTechniqueClip
-// сам решает throttling (см. INTERNAL_STAGE_FRAME_THROTTLE в
-// processTechniqueClip.js), здесь только синхронная запись. УДАЛИТЬ вместе
-// с остальной TEMP-диагностикой.
-function logInternalProcessingStage(processingStage, meta) {
-  const entry = {
-    stage: 'FLOW_PROCESSING_INTERNAL',
-    processingStage,
-    candidateIndex: meta?.candidateIndex ?? null,
-    codec: meta?.codec ?? null,
-    hardwareAcceleration: meta?.hardwareAcceleration ?? null,
-    phase: meta?.phase ?? null,
-    frameNumber: meta?.frameNumber ?? null,
-    timestamp: new Date().toISOString()
-  };
-  // eslint-disable-next-line no-console
-  console.log('[completion-flow] [internal]', processingStage, meta ?? '');
-  try {
-    localStorage.setItem(FLOW_STAGE_STORAGE_KEY, JSON.stringify(entry));
-  } catch {
-    // localStorage может быть недоступен — console.log выше всё равно работает.
-  }
-}
-
-function readFlowStageRemnant() {
-  try {
-    const raw = localStorage.getItem(FLOW_STAGE_STORAGE_KEY);
-    if (!raw) return null;
-    const entry = JSON.parse(raw);
-    // FLOW_MODAL_CLOSE_SUCCESS — последняя стадия ПОЛНОСТЬЮ успешного
-    // прогона; если last stage что-то другое, предыдущая попытка не
-    // завершилась штатно (либо ошибка, которую тоже стоит показать, либо
-    // именно тот самый "тихий" обрыв, который мы расследуем).
-    if (entry?.stage === 'FLOW_MODAL_CLOSE_SUCCESS') return null;
-    return entry;
-  } catch {
-    return null;
-  }
-}
-
-const FLOW_STAGE_LABELS = {
-  FLOW_CONFIRM_CLICKED: 'Начало',
-  FLOW_PROCESSING_START: 'Обработка видео',
-  FLOW_PROCESSING_INTERNAL: 'Обработка видео',
-  FLOW_PROCESSING_SUCCESS: 'Обработка видео завершена',
-  FLOW_OUTPUT_BLOB_READY: 'Клип готов',
-  FLOW_UPLOAD_START: 'Загрузка видео',
-  FLOW_UPLOAD_SUCCESS: 'Видео загружено',
-  FLOW_DB_INSERT_START: 'Сохранение результата',
-  FLOW_DB_INSERT_SUCCESS: 'Результат сохранён',
-  FLOW_REFRESH_START: 'Обновление списка',
-  FLOW_REFRESH_SUCCESS: 'Список обновлён',
-  FLOW_MODAL_CLOSE_SUCCESS: 'Готово',
-  FLOW_ERROR: 'Ошибка'
-};
-
-// TEMP DIAGNOSTICS: единая функция рендера "доп. полей" (candidate context /
-// frame number / внутренняя стадия) — используется и для remnant-блока, и
-// для FLOW_ERROR-блока, чтобы не дублировать разметку. Пропускает поля,
-// которых нет (задание: "не показывать пустые строки").
-function renderInternalStageDetails(entry) {
-  if (!entry) return null;
-  const rows = [];
-  if (entry.processingStage) rows.push(['Внутренняя стадия', entry.processingStage]);
-  if (entry.candidateIndex != null) rows.push(['Encoder candidate', entry.candidateIndex]);
-  if (entry.codec) rows.push(['Codec', entry.codec]);
-  if (entry.hardwareAcceleration) rows.push(['Hardware', entry.hardwareAcceleration]);
-  if (entry.phase) rows.push(['Phase', entry.phase]);
-  if (entry.frameNumber != null) rows.push(['Frame', entry.frameNumber]);
-  if (rows.length === 0) return null;
-  return rows.map(([label, value]) => (
-    <span key={label}>
-      <br />
-      {label}: {String(value)}
-    </span>
-  ));
-}
-
 export default function MarkTechniqueCompletedModal({ technique, student, writeContext, onCompleted, onClose }) {
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
@@ -152,75 +39,21 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
   // а во время isSubmitting закрытие остаётся заблокированным, как раньше.
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingErrorKey, setProcessingErrorKey] = useState(null);
-  // TEMP DIAGNOSTICS (физический iPhone Safari retest processing-бага) —
-  // на устройстве нет DevTools, поэтому этап+исходная ошибка временно
-  // показываются прямо в модалке; УДАЛИТЬ вместе с diagnosticStage в
-  // processTechniqueClip.js после подтверждённого фикса.
-  const [processingDiagnostic, setProcessingDiagnostic] = useState(null);
-  // TEMP DIAGNOSTICS: какой именно AVC profile/level/hardwareAcceleration
-  // реально выбрал selectAvcEncoderConfig на ЭТОМ устройстве — нужно видеть
-  // и при следующем физическом iPhone-тесте независимо от того, упадёт ли
-  // обработка дальше на другом этапе. УДАЛИТЬ вместе с остальной TEMP-
-  // диагностикой.
-  const [processingEncoderConfig, setProcessingEncoderConfig] = useState(null);
-  // TEMP DIAGNOSTICS: список ВСЕХ попыток AVC candidate (preflight +
-  // runtime, ACCEPTED/REJECTED) — второй физический iPhone retest показал,
-  // что isConfigSupported() (preflight) сам по себе недостаточен: кандидат,
-  // прошедший preflight, может быть отклонён реальной инициализацией
-  // encoder. Список нужен, чтобы на следующем тесте видеть ВСЕ попытки, а
-  // не только финальный выбор. УДАЛИТЬ вместе с остальной TEMP-диагностикой.
-  const [processingCandidateAttempts, setProcessingCandidateAttempts] = useState([]);
-  // TEMP DIAGNOSTICS: текущая стадия ПОЛНОГО completion flow (confirm →
-  // processing → upload → DB insert → refresh) — человекочитаемая, для
-  // отображения в UI без DevTools. УДАЛИТЬ вместе с остальной TEMP-
-  // диагностикой.
-  const [flowStage, setFlowStageState] = useState(null);
-  // TEMP DIAGNOSTICS: remnant предыдущего незавершённого прогона,
-  // прочитанный из localStorage при открытии модалки для НОВОЙ техники —
-  // если предыдущая попытка не дошла до FLOW_MODAL_CLOSE_SUCCESS (в т.ч. из-
-  // за возможной перезагрузки/краша страницы), здесь будет видна её
-  // последняя известная стадия. УДАЛИТЬ вместе с остальной TEMP-
-  // диагностикой.
-  const [previousRunRemnant, setPreviousRunRemnant] = useState(null);
-  // TEMP DIAGNOSTICS: последняя ВНУТРЕННЯЯ стадия processTechniqueClip(),
-  // полученная через onInternalStage — ref (не state), потому что нужна
-  // только синхронно в момент формирования FLOW_ERROR (candidate context
-  // теряется при обычной ошибке, если её не сохранить отдельно — err несёт
-  // только diagnosticStage строкой, без candidateIndex/codec/hwAccel).
-  // УДАЛИТЬ вместе с остальной TEMP-диагностикой.
-  const lastInternalStageRef = useRef(null);
-
-  function setFlowStage(stage, details) {
-    logFlowStage(stage, details);
-    setFlowStageState({ stage, details });
-  }
-
-  function handleInternalStage(processingStage, meta) {
-    lastInternalStageRef.current = { processingStage, ...meta };
-    logInternalProcessingStage(processingStage, meta);
-    // Отображаем "живьём" во время обработки в том же месте, что и обычные
-    // flow-стадии — тренер видит не просто "Обработка видео", а какая
-    // именно внутренняя стадия сейчас идёт. Плоская структура (не
-    // {stage, details}, как у обычных FLOW_*) — так renderInternalStageDetails
-    // может читать поля напрямую.
-    setFlowStageState({ stage: 'FLOW_PROCESSING_INTERNAL', ...lastInternalStageRef.current });
-  }
-
-  useEffect(() => {
-    if (!technique) return;
-    setPreviousRunRemnant(readFlowStageRemnant());
-  }, [technique]);
 
   const { completeWithVideo, isSubmitting, error, clearError } = useCompleteTechniqueWithVideo({
     studentId: student?.id,
     writeContext,
-    onCompleted,
-    // TEMP DIAGNOSTICS: стадии upload/DB insert логируются изнутри хука —
-    // сюда попадают FLOW_UPLOAD_*/FLOW_DB_INSERT_*/FLOW_REFRESH_*/FLOW_ERROR.
-    onFlowStage: setFlowStage
+    onCompleted
   });
 
   const isOpen = Boolean(technique);
+  // Video processing (mediabunny/WebCodecs) работает ТОЛЬКО на desktop —
+  // мобильные браузеры (в т.ч. iPhone Safari) не имеют надёжного пути на
+  // уровне браузера (см. videoProcessingDeviceSupport.js). На мобильном
+  // устройстве не показываем file input/Clip Editor вообще — только
+  // сообщение открыть портал на компьютере; кнопка подтверждения остаётся
+  // disabled, т.к. selectedFile так и не появится.
+  const isSupportedDevice = isVideoProcessingSupportedDevice();
 
   // Закрытие (Escape/overlay-клик/крестик/Отмена) заблокировано только во
   // время upload+INSERT (isSubmitting, задание этап 15, не изменилось).
@@ -237,11 +70,6 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     setClipRange({ clipStart: 0, clipEnd: 0 });
     setIsProcessing(false);
     setProcessingErrorKey(null);
-    setProcessingDiagnostic(null);
-    setProcessingEncoderConfig(null);
-    setProcessingCandidateAttempts([]);
-    setFlowStageState(null);
-    lastInternalStageRef.current = null;
     clearError();
     onClose?.();
   }
@@ -250,11 +78,6 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
     setProcessingErrorKey(null);
-    setProcessingDiagnostic(null);
-    setProcessingEncoderConfig(null);
-    setProcessingCandidateAttempts([]);
-    setFlowStageState(null);
-    lastInternalStageRef.current = null;
     clearError();
   }
 
@@ -262,54 +85,21 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
     if (!selectedFile || isSubmitting || isProcessing) return;
 
     setProcessingErrorKey(null);
-    setProcessingDiagnostic(null);
-    setProcessingEncoderConfig(null);
-    setProcessingCandidateAttempts([]);
-    setPreviousRunRemnant(null);
-    lastInternalStageRef.current = null;
     setIsProcessing(true);
-    setFlowStage('FLOW_CONFIRM_CLICKED');
 
     const controller = new AbortController();
     processingAbortControllerRef.current = controller;
 
     let processedClipBlob;
     try {
-      setFlowStage('FLOW_PROCESSING_START');
       processedClipBlob = await processTechniqueClip(
         {
           sourceFile: selectedFile,
           clipStart: clipRange.clipStart,
           clipDuration: clipRange.clipEnd - clipRange.clipStart
         },
-        {
-          signal: controller.signal,
-          // TEMP DIAGNOSTICS: вызывается после того, как candidate РЕАЛЬНО
-          // пережил инициализацию encoder (не только preflight), независимо
-          // от того, упадёт ли обработка дальше.
-          onEncoderConfigSelected: setProcessingEncoderConfig,
-          // TEMP DIAGNOSTICS: вызывается на каждую попытку candidate
-          // (preflight и runtime), чтобы видеть весь fallback-перебор.
-          onCandidateAttempt: (attempt) => setProcessingCandidateAttempts((prev) => [...prev, attempt]),
-          // TEMP DIAGNOSTICS: throttled внутренние стадии pipeline (decode/
-          // canvas/encode) — persistent в localStorage, чтобы пережить
-          // возможный crash/reload вкладки на реальном устройстве.
-          onInternalStage: handleInternalStage
-        }
+        { signal: controller.signal }
       );
-
-      // Защитная проверка (задание, п.7): processTechniqueClip() по коду
-      // либо throw, либо возвращает валидный непустой Blob — но раз мы
-      // расследуем "тихое исчезновение операции без throw", лучше явно
-      // проверить, чем предполагать. Пустой/невалидный blob НЕ должен вести
-      // к upload — считаем это ошибкой обработки.
-      if (!(processedClipBlob instanceof Blob) || processedClipBlob.size === 0) {
-        throw new Error(
-          `processTechniqueClip returned invalid blob: instanceof Blob=${processedClipBlob instanceof Blob}, size=${processedClipBlob?.size}`
-        );
-      }
-      setFlowStage('FLOW_PROCESSING_SUCCESS', { blobSize: processedClipBlob.size });
-      setFlowStage('FLOW_OUTPUT_BLOB_READY', { size: processedClipBlob.size, type: processedClipBlob.type });
     } catch (err) {
       processingAbortControllerRef.current = null;
       setIsProcessing(false);
@@ -319,46 +109,6 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
         // error-текст здесь показывать не нужно.
         return;
       }
-
-      // TEMP DIAGNOSTICS: console.error дублирует то, что уже залогировано
-      // внутри processTechniqueClip (на случай, если stack теряется при
-      // проходе через границы промисов), plus видимый в UI этап+ошибка —
-      // на физическом iPhone нет DevTools, только так можно увидеть причину.
-      console.error('[clip-processing] caught in modal', err);
-      // TEMP DIAGNOSTICS (задание, п.11): "не затирай processingStage общим
-      // FLOW_ERROR" — err.diagnosticStage (точная строка стадии на момент
-      // throw, обновляется на КАЖДОМ кадре внутри processTechniqueClip, без
-      // throttling).
-      //
-      // Третий физический iPhone retest вскрыл несоответствие: candidate
-      // context (candidateIndex/codec/hardwareAcceleration/phase/frameNumber)
-      // брался ТОЛЬКО из lastInternalStageRef (throttled-поток — обновляется
-      // лишь на frame=1 и далее раз в 30 кадров), поэтому при падении на
-      // frame=4 UI показывал "Frame: 1" рядом с точным
-      // "processingStage: ...frame=4" — застрявший, а не актуальный snapshot.
-      // err.diagnosticMeta — не throttled twin для err.diagnosticStage
-      // (см. processTechniqueClip.js, currentStageMeta), обновляется
-      // синхронно на КАЖДЫЙ onStage вызов — берём candidate context ОТТУДА в
-      // первую очередь, lastInternalStageRef остаётся только fallback-ом на
-      // случай, если err почему-то не удалось аннотировать (см. try/catch
-      // вокруг err.diagnosticStage= в processTechniqueClip.js).
-      const diagnosticMeta = err?.diagnosticMeta ?? null;
-      setFlowStage('FLOW_ERROR', {
-        stage: 'processing',
-        name: err?.name,
-        message: err?.message,
-        processingStage: err?.diagnosticStage ?? lastInternalStageRef.current?.processingStage ?? null,
-        candidateIndex: diagnosticMeta?.candidateIndex ?? lastInternalStageRef.current?.candidateIndex ?? null,
-        codec: diagnosticMeta?.codec ?? lastInternalStageRef.current?.codec ?? null,
-        hardwareAcceleration: diagnosticMeta?.hardwareAcceleration ?? lastInternalStageRef.current?.hardwareAcceleration ?? null,
-        phase: diagnosticMeta?.phase ?? lastInternalStageRef.current?.phase ?? null,
-        frameNumber: diagnosticMeta?.frameNumber ?? lastInternalStageRef.current?.frameNumber ?? null
-      });
-      setProcessingDiagnostic({
-        stage: err?.diagnosticStage ?? 'unknown',
-        name: err?.name ?? 'Error',
-        message: err?.message ?? String(err)
-      });
 
       setProcessingErrorKey(
         err instanceof VideoProcessingUnsupportedError ? 'videoProcessingUnsupported' : 'videoProcessingFailed'
@@ -435,129 +185,55 @@ export default function MarkTechniqueCompletedModal({ technique, student, writeC
               <span className={`${styles.techniqueName} ltr-isolate`}>{technique?.name}</span>
             </div>
 
-            {/* TEMP DIAGNOSTICS — remnant предыдущего незавершённого
-                прогона (см. FLOW_STAGE_STORAGE_KEY выше): если модалка на
-                физическом устройстве "тихо исчезла" в прошлый раз (в т.ч.
-                из-за возможной перезагрузки страницы), здесь будет видна
-                последняя известная стадия ДО того обрыва. УДАЛИТЬ вместе с
-                остальной TEMP-диагностикой. */}
-            {previousRunRemnant && (
-              <div className={styles.warningText}>
-                ⚠ Обнаружен незавершённый предыдущий запуск ({previousRunRemnant.timestamp}). Последний известный
-                этап: {FLOW_STAGE_LABELS[previousRunRemnant.stage] ?? previousRunRemnant.stage}
-                {previousRunRemnant.details ? ` (${JSON.stringify(previousRunRemnant.details)})` : ''}
-                {renderInternalStageDetails(previousRunRemnant)}
-              </div>
-            )}
-
-            {/* TEMP DIAGNOSTICS — текущий этап ПОЛНОГО completion flow
-                (confirm → processing → upload → DB insert → refresh),
-                человекочитаемый, БЕЗ DevTools. Для FLOW_PROCESSING_INTERNAL
-                дополнительно показывает внутреннюю стадию/candidate — см.
-                renderInternalStageDetails. УДАЛИТЬ вместе с остальной
-                TEMP-диагностикой. */}
-            {isBusy && flowStage && (
-              <div className={styles.warningText}>
-                Текущий этап: {FLOW_STAGE_LABELS[flowStage.stage] ?? flowStage.stage}
-                {renderInternalStageDetails(flowStage)}
-              </div>
-            )}
-
             <div className={styles.videoSection}>
               <div className={styles.videoSectionLabel}>{t('trainerTechniques.uploadVideo')}</div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ALLOWED_VIDEO_MIME_TYPES.join(',')}
-                onChange={handleFileChange}
-                disabled={isBusy}
-                hidden
-              />
+              {!isSupportedDevice ? (
+                <div className={styles.errorText}>{t('trainerTechniques.videoUnsupportedDevice')}</div>
+              ) : (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_VIDEO_MIME_TYPES.join(',')}
+                    onChange={handleFileChange}
+                    disabled={isBusy}
+                    hidden
+                  />
 
-              <button
-                type="button"
-                className={styles.addVideoButton}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isBusy}
-              >
-                {t('trainerTechniques.addVideo')}
-              </button>
+                  <button
+                    type="button"
+                    className={styles.addVideoButton}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isBusy}
+                  >
+                    {t('trainerTechniques.addVideo')}
+                  </button>
 
-              {selectedFile && (
-                <div className={styles.selectedFile}>
-                  <span>{t('trainerTechniques.videoSelected')}</span>
-                  <span className={`${styles.selectedFileName} ltr-isolate`}>{selectedFile.name}</span>
-                </div>
+                  {selectedFile && (
+                    <div className={styles.selectedFile}>
+                      <span>{t('trainerTechniques.videoSelected')}</span>
+                      <span className={`${styles.selectedFileName} ltr-isolate`}>{selectedFile.name}</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
             {/* Clip Editor — только UX выбора эпизода (preview/timeline/
                 duration/fine-adjust/просмотр фрагмента); физическая
                 обрезка+замедление происходит в handleConfirm через
-                processTechniqueClip (Phase 2). */}
-            {selectedFile && (
+                processTechniqueClip (Phase 2). Недоступен на мобильных
+                устройствах — там file input выше вообще не показывается,
+                поэтому selectedFile никогда не появится. */}
+            {isSupportedDevice && selectedFile && (
               <TechniqueClipEditor file={selectedFile} disabled={isBusy} onClipRangeChange={setClipRange} />
             )}
 
             {processingErrorKey && (
               <div className={styles.errorText}>{t(`trainerTechniques.${processingErrorKey}`)}</div>
             )}
-            {/* TEMP DIAGNOSTICS — расследование processing-бага на реальном
-                iPhone Safari (DevTools недоступны на устройстве). Список
-                попыток encoder candidate (preflight+runtime, ACCEPTED/
-                REJECTED) и итоговый выбранный config показываются ВСЕГДА,
-                как только известны (даже при успешной обработке) — чтобы на
-                следующем физическом тесте было видно ВЕСЬ fallback-перебор,
-                а не только финальный выбор. Этап+имя/сообщение ошибки —
-                только при провале, БЕЗ stack trace. УДАЛИТЬ вместе с
-                processingDiagnostic/processingEncoderConfig/
-                processingCandidateAttempts после подтверждённого фикса. */}
-            {processingCandidateAttempts.length > 0 && (
-              <div className={styles.warningText}>
-                Попытки encoder candidate:
-                {processingCandidateAttempts.map((attempt, index) => (
-                  <div key={index}>
-                    {index + 1}. {attempt.fullCodecString} ({attempt.profileName}, {attempt.hardwareAcceleration}) —{' '}
-                    {attempt.stage}: {attempt.result === 'accepted' ? 'ACCEPTED' : 'REJECTED'}
-                    {attempt.error ? ` (${attempt.error})` : ''}
-                  </div>
-                ))}
-              </div>
-            )}
-            {processingEncoderConfig && (
-              <div className={styles.warningText}>
-                Итоговый выбранный AVC codec: {processingEncoderConfig.fullCodecString} (
-                {processingEncoderConfig.profileName})
-                <br />
-                Resolution: {processingEncoderConfig.width}x{processingEncoderConfig.height}
-                <br />
-                Bitrate: {processingEncoderConfig.bitrateBps} bps
-                <br />
-                Hardware acceleration: {processingEncoderConfig.hardwareAcceleration}
-              </div>
-            )}
-            {processingDiagnostic && (
-              <div className={styles.warningText}>
-                Этап: {processingDiagnostic.stage}
-                <br />
-                Ошибка: {processingDiagnostic.name}: {processingDiagnostic.message}
-              </div>
-            )}
             {errorKey && <div className={styles.errorText}>{t(`trainerTechniques.${errorKey}`)}</div>}
-            {/* TEMP DIAGNOSTICS — точная стадия upload/DB insert, на
-                которой реально произошла ошибка (errorKey выше показывает
-                только i18n-текст, без указания upload это было или DB
-                insert) + исходное имя/сообщение, БЕЗ stack trace. УДАЛИТЬ
-                вместе с остальной TEMP-диагностикой. */}
-            {flowStage?.stage === 'FLOW_ERROR' && (
-              <div className={styles.warningText}>
-                Этап: {flowStage.details?.stage}
-                <br />
-                Ошибка: {flowStage.details?.name}: {flowStage.details?.message}
-                {renderInternalStageDetails(flowStage.details)}
-              </div>
-            )}
             {error?.orphanCleanupFailed && (
               <div className={styles.warningText}>{t('trainerTechniques.couldNotDeletePerformanceVideo')}</div>
             )}

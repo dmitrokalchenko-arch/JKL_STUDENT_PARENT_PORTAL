@@ -80,48 +80,11 @@ export default function TechniqueClipEditor({ file, disabled, onClipRangeChange 
     }
   }
 
-  // iOS Safari (подтверждено на реальном iPhone, локальный HEVC/MOV из
-  // Object URL): readyState/duration/seeked-события приходят корректно, но
-  // сам decode+compositing pipeline у <video> активируется только после
-  // первого play() — до этого currentTime-сик молча "принимается", а кадр
-  // не рисуется (чёрный прямоугольник), хотя на desktop Chromium тот же
-  // Object URL красит любой seek без предварительного play(). Один
-  // беззвучный play()→pause() сразу после loadedmetadata активирует
-  // pipeline без реального проигрывания; muted обязателен, т.к. к моменту
-  // loadedmetadata (декод 4K HEVC занимает время) исходный user gesture
-  // выбора файла уже истёк, а WebKit разрешает программный play() без
-  // gesture только для muted-видео.
-  function primeFramePaint(video) {
-    const playAttempt = video.play();
-    if (playAttempt && typeof playAttempt.then === 'function') {
-      playAttempt
-        .then(() => {
-          video.pause();
-          video.currentTime = 0;
-        })
-        .catch(() => {
-          // Если даже muted play() отклонён (редкий edge case) — до кадра
-          // всё равно достанет обычный seek при первом взаимодействии с
-          // timeline; сама duration/UI уже рабочие, деградация мягкая.
-        });
-    }
-  }
-
-  function handleVideoPause() {
-    // Возвращаем беззвучное состояние после любой паузы (auto-stop на
-    // clipEnd, ручная перемотка), чтобы звук слышался только во время
-    // явного "просмотреть фрагмент" (handlePreviewClip), как и раньше.
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-    }
-  }
-
   function handleLoadedMetadata(event) {
     const { duration } = event.target;
     if (Number.isFinite(duration) && duration > 0) {
       setSourceDuration(duration);
       setMetadataError(false);
-      primeFramePaint(event.target);
     } else {
       // Известная особенность некоторых контейнеров (в т.ч. отдельные
       // webm) — duration может прийти как Infinity до первого seek.
@@ -155,11 +118,6 @@ export default function TechniqueClipEditor({ file, disabled, onClipRangeChange 
   function handlePreviewClip() {
     const video = videoRef.current;
     if (!video) return;
-    // Реальный клик — настоящий user gesture, поэтому unmute здесь
-    // безопасен (WebKit не блокирует) — трейнер слышит фрагмент, как и
-    // раньше; handleVideoPause вернёт muted=true, как только просмотр
-    // остановится.
-    video.muted = false;
     video.currentTime = clipStart;
     video.playbackRate = 1;
     video.play();
@@ -183,10 +141,7 @@ export default function TechniqueClipEditor({ file, disabled, onClipRangeChange 
             src={sourceUrl}
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
-            onPause={handleVideoPause}
             playsInline
-            muted
-            preload="auto"
           />
         )}
       </div>

@@ -233,7 +233,8 @@
     "processingVideo": "Processing video…",
     "videoProcessingFailed": "The video could not be processed.",
     "videoProcessingUnsupported": "This video format is not supported for processing on this device. Please choose a different file.",
-    "uploadingVideo": "Uploading video…"
+    "uploadingVideo": "Uploading video…",
+    "videoUnsupportedDevice": "Video processing is only available on a computer. Please open the trainer portal on a computer to add a technique video."
   },
   "trainerDashboard": {
     "title": "Trainer Area",

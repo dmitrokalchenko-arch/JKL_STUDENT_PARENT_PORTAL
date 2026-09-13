@@ -244,7 +244,8 @@
     "processingVideo": "Video wird verarbeitet…",
     "videoProcessingFailed": "Video konnte nicht verarbeitet werden.",
     "videoProcessingUnsupported": "Dieses Videoformat wird auf diesem Gerät nicht unterstützt. Bitte eine andere Datei auswählen.",
-    "uploadingVideo": "Video wird hochgeladen…"
+    "uploadingVideo": "Video wird hochgeladen…",
+    "videoUnsupportedDevice": "Die Videobearbeitung ist nur am Computer verfügbar. Bitte öffnen Sie das Trainer-Portal am Computer, um ein Technik-Video hinzuzufügen."
   },
   "trainerDashboard": {
     "title": "Trainer-Bereich",
