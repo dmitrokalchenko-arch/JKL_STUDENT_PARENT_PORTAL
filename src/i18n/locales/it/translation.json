@@ -30,7 +30,8 @@
     "loggingIn": "Accesso in corso…",
     "genericError": "Accesso non riuscito. Riprova.",
     "trainerTitle": "Accesso allenatore",
-    "trainerLoginLabel": "Nome utente"
+    "trainerLoginLabel": "Nome utente",
+    "familyAccessDeactivated": "L'accesso all'account famiglia è stato disattivato."
   },
   "childSelector": {
     "label": "Seleziona un figlio:"

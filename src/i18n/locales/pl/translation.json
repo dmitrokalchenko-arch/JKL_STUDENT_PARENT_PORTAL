@@ -34,7 +34,8 @@
     "loggingIn": "Logowanie…",
     "genericError": "Logowanie nie powiodło się. Spróbuj ponownie.",
     "trainerTitle": "Logowanie trenera",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Dostęp do konta rodzinnego został dezaktywowany."
   },
   "childSelector": {
     "label": "Wybierz dziecko:"

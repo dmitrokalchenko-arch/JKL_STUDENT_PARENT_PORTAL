@@ -30,7 +30,8 @@
     "loggingIn": "Iniciando sesión…",
     "genericError": "No se pudo iniciar sesión. Inténtalo de nuevo.",
     "trainerTitle": "Acceso de entrenador",
-    "trainerLoginLabel": "Usuario"
+    "trainerLoginLabel": "Usuario",
+    "familyAccessDeactivated": "El acceso a la cuenta familiar ha sido desactivado."
   },
   "childSelector": {
     "label": "Selecciona un hijo/a:"

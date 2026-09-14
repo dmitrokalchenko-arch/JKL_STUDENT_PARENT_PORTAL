@@ -30,7 +30,8 @@
     "loggingIn": "Giriş yapılıyor…",
     "genericError": "Giriş başarısız. Lütfen tekrar deneyin.",
     "trainerTitle": "Antrenör Girişi",
-    "trainerLoginLabel": "Kullanıcı adı"
+    "trainerLoginLabel": "Kullanıcı adı",
+    "familyAccessDeactivated": "Aile hesabına erişim devre dışı bırakıldı."
   },
   "childSelector": {
     "label": "Bir çocuk seçin:"

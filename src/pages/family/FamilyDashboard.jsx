@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import FamilyHeader from '../../components/family/FamilyHeader.jsx';
@@ -6,16 +7,19 @@ import AgeIndicator from '../../components/family/AgeIndicator.jsx';
 import RatingIndicator from '../../components/family/RatingIndicator.jsx';
 
 import { useFamilyData } from '../../hooks/useFamilyData.js';
+import { useFamilySession } from '../../hooks/useFamilySession.js';
 import { useSelectedChild } from '../../hooks/useSelectedChild.js';
 import { useActiveSection } from '../../hooks/useActiveSection.js';
 import { useTechniqueProgress } from '../../hooks/useTechniqueProgress.js';
 
-import { signOutFamily } from '../../services/familyAuthService.js';
+import { signOutFamily, markFamilyAccessDeactivated } from '../../services/familyAuthService.js';
+import { isSupabaseConfigured } from '../../services/supabaseClient.js';
 
 import styles from './FamilyDashboard.module.css';
 
 export default function FamilyDashboard() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useFamilySession();
   const {
     family,
     children,
@@ -39,6 +43,32 @@ export default function FamilyDashboard() {
     signOutFamily().catch(() => {});
   };
 
+  // ENFORCE FAMILY DEACTIVATION ON ACTIVE SESSIONS: get_current_family_children()
+  // теперь фильтрует по families.status='active' (миграция
+  // 20260914110055_enforce_family_status_in_access_checks.sql) — уже
+  // существующий, ещё не истёкший access token суспендированной семьи
+  // больше не получает ни одной строки от этого RPC. С точки зрения
+  // фронтенда это неотличимо от "у семьи правда нет ни одного активного
+  // family_students" (то же намеренное анти-enumeration поведение, что и в
+  // signInFamily — причина не раскрывается) — оба случая сегодня приводят
+  // сюда с children=[]. Реально достижим сегодня только первый: manage-
+  // family-account создаёт семью всегда СРАЗУ с одной активной привязкой,
+  // отдельного действия "отвязать всех детей у активной семьи" в Block 1
+  // не существует. Поэтому: полностью загруженная (не loading, без
+  // familyError) authenticated-сессия с children.length===0 трактуется как
+  // "доступ закрыт" — сессия завершается, а не тихо показывает пустой
+  // Dashboard, в котором остаётся ещё активный (хоть и бесполезный) токен.
+  const deactivationHandledRef = useRef(false);
+  const isEmptyAfterRealLoad =
+    isSupabaseConfigured && isAuthenticated && !isFamilyLoading && !familyError && children.length === 0;
+
+  useEffect(() => {
+    if (!isEmptyAfterRealLoad || deactivationHandledRef.current) return;
+    deactivationHandledRef.current = true;
+    markFamilyAccessDeactivated();
+    signOutFamily().catch(() => {});
+  }, [isEmptyAfterRealLoad]);
+
   if (isFamilyLoading) {
     return <div className={styles.emptyState}>{t('common.loading')}</div>;
   }
@@ -55,7 +85,18 @@ export default function FamilyDashboard() {
   }
 
   if (!selectedChild) {
-    return <div className={styles.emptyState}>{t('errors.noChildrenLinked')}</div>;
+    // Реальный режим (isSupabaseConfigured): sign-out уже запущен эффектом
+    // выше (isEmptyAfterRealLoad) — на миг до переключения App.jsx на
+    // FamilyLogin показываем common.loading, а не errors.noChildrenLinked
+    // (сообщение не про эту ситуацию). Mock-режим (dev без Supabase):
+    // childrenMock всегда непустой, поэтому сюда попасть нельзя — ветка
+    // оставлена только как честный fallback, sign-out в mock-режиме не
+    // запускается вовсе (см. isEmptyAfterRealLoad).
+    return (
+      <div className={styles.emptyState}>
+        {isSupabaseConfigured ? t('common.loading') : t('errors.noChildrenLinked')}
+      </div>
+    );
   }
 
   // REAL FAMILY LOGIN — CONNECT TO SHARED STUDENT PAGE: тот же

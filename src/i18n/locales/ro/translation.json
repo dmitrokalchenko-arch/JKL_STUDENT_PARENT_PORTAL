@@ -32,7 +32,8 @@
     "loggingIn": "Se autentifică…",
     "genericError": "Autentificare eșuată. Încercați din nou.",
     "trainerTitle": "Autentificare antrenor",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Accesul la contul familiei a fost dezactivat."
   },
   "childSelector": {
     "label": "Selectați un copil:"

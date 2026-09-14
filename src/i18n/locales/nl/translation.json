@@ -30,7 +30,8 @@
     "loggingIn": "Bezig met inloggen…",
     "genericError": "Inloggen mislukt. Probeer het opnieuw.",
     "trainerTitle": "Trainer login",
-    "trainerLoginLabel": "Gebruikersnaam"
+    "trainerLoginLabel": "Gebruikersnaam",
+    "familyAccessDeactivated": "Toegang tot het gezinsaccount is gedeactiveerd."
   },
   "childSelector": {
     "label": "Kies een kind:"

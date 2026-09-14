@@ -34,7 +34,8 @@
     "loggingIn": "Выполняется вход…",
     "genericError": "Не удалось войти. Попробуйте ещё раз.",
     "trainerTitle": "Вход для тренеров",
-    "trainerLoginLabel": "Логин"
+    "trainerLoginLabel": "Логин",
+    "familyAccessDeactivated": "Доступ к семейному аккаунту деактивирован."
   },
   "childSelector": {
     "label": "Выберите ребёнка:"

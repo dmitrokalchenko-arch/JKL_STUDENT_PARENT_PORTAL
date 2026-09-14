@@ -30,7 +30,8 @@
     "loggingIn": "Anmeldung läuft…",
     "genericError": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
     "trainerTitle": "Trainer-Anmeldung",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Der Zugang zum Familienkonto wurde deaktiviert."
   },
   "passwordReset": {
     "title": "Neues Passwort festlegen",

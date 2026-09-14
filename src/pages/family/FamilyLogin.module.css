@@ -66,6 +66,15 @@
   padding: 8px 10px;
 }
 
+.notice {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 8px 10px;
+}
+
 .submit {
   margin-top: 6px;
   background: var(--color-gold);

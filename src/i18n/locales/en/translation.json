@@ -30,7 +30,8 @@
     "loggingIn": "Signing in…",
     "genericError": "Sign-in failed. Please try again.",
     "trainerTitle": "Trainer Login",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Access to the family account has been deactivated."
   },
   "childSelector": {
     "label": "Select a child:"

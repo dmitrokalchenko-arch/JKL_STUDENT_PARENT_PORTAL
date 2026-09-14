@@ -38,7 +38,8 @@
     "loggingIn": "جارٍ تسجيل الدخول…",
     "genericError": "فشل تسجيل الدخول. حاول مرة أخرى.",
     "trainerTitle": "تسجيل دخول المدرب",
-    "trainerLoginLabel": "اسم الدخول"
+    "trainerLoginLabel": "اسم الدخول",
+    "familyAccessDeactivated": "تم إلغاء تفعيل الوصول إلى حساب العائلة."
   },
   "childSelector": {
     "label": "اختر الطفل:"
