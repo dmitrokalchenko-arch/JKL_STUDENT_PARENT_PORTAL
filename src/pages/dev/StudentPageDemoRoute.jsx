@@ -7,34 +7,27 @@ import styles from './StudentPageDemoRoute.module.css';
 // production-safe состояние секций без backend — через Netlify Deploy
 // Preview, не ослабляя production CORS get-student-preview ради этого.
 //
-// REAL SUPER ADMIN STUDENT PAGE — STEP 1/2: nav-карточки урезаны до того
-// же набора пропов, что передаёт реальный StudentPreviewPage (нейтральное
-// "подключим позже" вместо mock ContentArea — см. STEP 1).
+// REAL SUPER ADMIN STUDENT PAGE — STEP 1/2/3: nav-карточки урезаны до того
+// же набора пропов, что передаёт реальный StudentPreviewPage.
 //
-// STEP 2 (аудит технического прогресса — см. итоговый отчёт задачи):
-// блок "Прогресс техник" НАРОЧНО показан здесь как MOCK — это единственное
-// место, где ему разрешено быть mock. Причина не показывать его в реальном
-// StudentPreviewPage — не забывчивость, а результат аудита:
-//   - старая семейная схема прогресса (club_belts/
-//     club_technique_progress_settings/club_belt_techniques/
-//     student_technique_progress, миграции 20260720120004-007) НИКОГДА не
-//     была применена к production (подтверждено живым запросом — PGRST205
-//     "table not found" в комментарии миграции 20260908120041) — именно
-//     оттуда взяты понятия bonusRequirement/tachi-waza/ne-waza required;
-//   - реальная (задеплоенная) тренерская система — judo_techniques
-//     (глобальный каталог, 8 IJF-категорий, main_group Nage-waza/
-//     Katame-waza) + student_technique_records (club-scoped, ТОЛЬКО
-//     completed, без belt/required/bonus вообще) — использует другую
-//     таксономию и не содержит bonus/required источника;
-//   - TechniqueProgressSection требует нефиктивный bonusRequirement, чтобы
-//     не показать сломанный/вводящий в заблуждение текст — придумывать
-//     число запрещено заданием, а менять сам компонент — тоже запрещено.
-// Итог: пока club-scoped конфигурация бонуса/требуемых техник не
-// реализована (отдельный будущий этап), реальный StudentPreviewPage не
-// передаёт techniqueProgress вообще — секция отсутствует, а НЕ показывает
-// придуманные цифры. Здесь, в Deploy-Preview-only демонстрации, mock
-// оставлен ТОЛЬКО чтобы визуально показать, как раздел будет выглядеть
-// после появления реального источника.
+// STEP 3 (bonus technique program refinement — см. миграцию
+// 20260914100054 и итоговый отчёт задачи): "Бонусные техники" — НЕ
+// "техники, которые ученик знает", а подтверждённые на соревнованиях
+// техники ИЗ ПРОГРАММЫ УЖЕ ПОЛУЧЕННОГО Kyu, с видео, отмеченные тренером.
+// Пул здесь — 5 РЕАЛЬНЫХ официальных техник дзюдо (O-soto-gari/Uchi-mata/
+// Seoi-nage/O-uchi-gari — Nage-waza; Kesa-gatame — Katame-waza,
+// классификация верна для реального каталога), НЕ "Demo-Technik N" —
+// только status/hasVideo здесь mock (в production это решает тренер через
+// уже существующий video-workflow, не эта страница).
+//
+// Реальный StudentPreviewPage передаёt techniqueProgress ТОЛЬКО если клуб
+// включил club_technique_program_settings.bonus_program_enabled — иначе
+// блок отсутствует ПОЛНОСТЬЮ (не "0/0", не "не настроено"). Здесь это
+// можно проверить визуально через query-параметр (ТОЛЬКО в этом
+// Deploy-Preview-only файле, production-код этот параметр не читает
+// вообще):
+//   /dev/student-page-preview            -> bonus_program_enabled = true
+//   /dev/student-page-preview?bonus=disabled -> блок полностью отсутствует
 //
 // НЕ обращается к Supabase, НЕ использует preview-токен, НЕ использует
 // family/trainer auth. Не влияет ни на один реальный маршрут/поток данных
@@ -67,6 +60,13 @@ function isDeployPreviewOrLocalDev() {
   return true;
 }
 
+// dev-only — читает ?bonus=disabled ТОЛЬКО в этом файле, никогда в
+// production-коде (StudentPreviewPage не читает query-параметры вообще).
+function isBonusDisabledForDemo() {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('bonus') === 'disabled';
+}
+
 // Полностью вымышленные данные — не связаны ни с одним реальным студентом.
 // Форма объекта в точности повторяет то, что реально возвращает
 // get-student-preview (studentId/firstName/lastName/sportName/groupName/
@@ -77,37 +77,53 @@ const MOCK_STUDENT = {
   lastName: 'Mustermann',
   sportName: 'Judo',
   groupName: 'Judo_Mo_19:00_Mi_18:30',
-  beltLabel: 'weiß · 9. Kyu'
+  beltLabel: 'weiß · 5. Kyu'
 };
 
-// MOCK, только здесь. category использует РЕАЛЬНУЮ таксономию
-// public.judo_techniques.main_group ('Nage-waza'/'Katame-waza',
-// см. миграцию 20260908120041) — прежние 'tachi-waza'/'ne-waza' были
-// отдельным искусственным сопоставлением и больше не используются нигде
-// (см. utils/techniqueProgress.js). bonusRequirement = 30 — очевидно
-// тестовое число, реального источника для него в production пока нет.
-const MOCK_BONUS_REQUIREMENT = 30;
-const MOCK_COMPLETED_COUNT = 12;
+// MOCK, только здесь. Пул из 5 реальных техник программы "уже полученного"
+// 5. Kyu (в production пул определяется best-effort сопоставлением
+// club_required_techniques.belt_key с students.kyu_grad — см.
+// get-student-preview/buildTechniqueProgress). category — реальная
+// main_group этих техник в официальной IJF-классификации.
+// bonusRequirement = 4 — очевидно тестовое число (в production —
+// club_technique_program_settings.bonus_requirement, может быть NULL,
+// если клуб его не задал).
+const MOCK_BONUS_REQUIREMENT = 4;
 const MOCK_TECHNIQUE_PROGRESS = {
   featureEnabled: true,
   bonusRequirement: MOCK_BONUS_REQUIREMENT,
   bonusPoints: null,
   belt: null,
   techniques: [
-    ...Array.from({ length: MOCK_COMPLETED_COUNT }, (_, i) => ({
-      id: `demo-completed-${i + 1}`,
-      name: `Demo-Technik ${i + 1}`,
-      category: i % 2 === 0 ? 'Nage-waza' : 'Katame-waza',
+    {
+      id: 'demo-o-soto-gari',
+      name: 'O-soto-gari',
+      category: 'Nage-waza',
+      status: 'completed',
+      imageUrl: null,
+      // false намеренно (не "забыто выставить true") — см. комментарий в
+      // get-student-preview/buildTechniqueProgress: просмотр видео из
+      // Super Admin Preview сознательно НЕ реализуется на этом шаге,
+      // hasVideo=true без рабочего плеера дал бы "зависшую" загрузку.
+      hasVideo: false,
+      videoPath: null,
+      completedAt: '2026-08-01',
+      trainerComment: null
+    },
+    {
+      id: 'demo-seoi-nage',
+      name: 'Seoi-nage',
+      category: 'Nage-waza',
       status: 'completed',
       imageUrl: null,
       hasVideo: false,
       videoPath: null,
-      completedAt: '2026-01-01',
+      completedAt: '2026-08-15',
       trainerComment: null
-    })),
+    },
     {
-      id: 'demo-required-nage-1',
-      name: 'Demo Nage-Waza (erforderlich)',
+      id: 'demo-uchi-mata',
+      name: 'Uchi-mata',
       category: 'Nage-waza',
       status: 'required',
       imageUrl: null,
@@ -117,8 +133,19 @@ const MOCK_TECHNIQUE_PROGRESS = {
       trainerComment: null
     },
     {
-      id: 'demo-required-katame-1',
-      name: 'Demo Katame-Waza (erforderlich)',
+      id: 'demo-o-uchi-gari',
+      name: 'O-uchi-gari',
+      category: 'Nage-waza',
+      status: 'required',
+      imageUrl: null,
+      hasVideo: false,
+      videoPath: null,
+      completedAt: null,
+      trainerComment: null
+    },
+    {
+      id: 'demo-kesa-gatame',
+      name: 'Kesa-gatame',
       category: 'Katame-waza',
       status: 'required',
       imageUrl: null,
@@ -135,11 +162,16 @@ export default function StudentPageDemoRoute() {
     return <div className={styles.notFound}>404 — Not Found</div>;
   }
 
+  const bonusEnabled = !isBonusDisabledForDemo();
+
   return (
     <StudentPageContent
       accessMode="superadmin"
       student={MOCK_STUDENT}
-      techniqueProgress={MOCK_TECHNIQUE_PROGRESS}
+      // undefined, когда bonus_program_enabled=false в demo — та же
+      // семантика, что buildTechniqueProgress возвращает null: секция
+      // полностью отсутствует, не "0/0", не "не настроено".
+      techniqueProgress={bonusEnabled ? MOCK_TECHNIQUE_PROGRESS : undefined}
       isTechniqueProgressLoading={false}
       techniqueProgressError={null}
       showNavigationCards
@@ -149,7 +181,9 @@ export default function StudentPageDemoRoute() {
             <span className={styles.logo}>JKL</span>
             <span className={styles.logoSub}>CLUB</span>
           </span>
-          <span className={styles.devBadge}>DEV PREVIEW — mock data</span>
+          <span className={styles.devBadge}>
+            DEV PREVIEW — mock data ({bonusEnabled ? 'bonus enabled' : 'bonus disabled'})
+          </span>
         </div>
       }
     />

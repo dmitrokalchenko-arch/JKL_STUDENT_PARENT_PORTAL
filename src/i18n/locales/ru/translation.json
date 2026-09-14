@@ -84,8 +84,8 @@
     "contract": "Договор и оплата"
   },
   "techniqueProgress": {
-    "title": "Прогресс техник",
-    "bonusProgress": "{{completed}} из {{required}} техник до бонуса",
+    "title": "Бонусные техники",
+    "bonusProgress": "{{completed}} из {{required}} техник для бонуса",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Все техники этой категории выполнены",

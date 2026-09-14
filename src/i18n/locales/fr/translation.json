@@ -70,7 +70,7 @@
     "contract": "Contrat et paiement"
   },
   "techniqueProgress": {
-    "title": "Progression des techniques",
+    "title": "Techniques bonus",
     "bonusProgress": "{{completed}} sur {{required}} techniques pour le bonus",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",

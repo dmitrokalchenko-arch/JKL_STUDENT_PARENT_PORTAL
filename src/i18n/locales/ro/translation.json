@@ -77,7 +77,7 @@
     "contract": "Contract și plată"
   },
   "techniqueProgress": {
-    "title": "Progresul tehnicilor",
+    "title": "Tehnici bonus",
     "bonusProgress": "{{completed}} din {{required}} tehnici pentru bonus",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",

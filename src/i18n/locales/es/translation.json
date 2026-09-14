@@ -70,7 +70,7 @@
     "contract": "Contrato y pago"
   },
   "techniqueProgress": {
-    "title": "Progreso de técnicas",
+    "title": "Técnicas de bono",
     "bonusProgress": "{{completed}} de {{required}} técnicas para el bono",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",

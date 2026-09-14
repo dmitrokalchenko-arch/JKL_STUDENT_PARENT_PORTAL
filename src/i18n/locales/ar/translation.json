@@ -98,7 +98,7 @@
     "contract": "العقد والدفع"
   },
   "techniqueProgress": {
-    "title": "تقدم التقنيات",
+    "title": "تقنيات المكافأة",
     "bonusProgress": "{{completed}} من {{required}} تقنيات للمكافأة",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",

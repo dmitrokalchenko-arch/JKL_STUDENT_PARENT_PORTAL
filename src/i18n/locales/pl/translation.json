@@ -84,7 +84,7 @@
     "contract": "Umowa i płatność"
   },
   "techniqueProgress": {
-    "title": "Postęp technik",
+    "title": "Techniki bonusowe",
     "bonusProgress": "{{completed}} z {{required}} technik do bonusu",
     "nageWaza": "Nage-waza",
     "katameWaza": "Katame-waza",
