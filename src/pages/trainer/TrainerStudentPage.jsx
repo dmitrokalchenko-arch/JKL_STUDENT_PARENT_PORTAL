@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
-import PlaceholderSection from '../../components/family/PlaceholderSection.jsx';
 import JudoTechniquePicker from '../../components/trainer/JudoTechniquePicker.jsx';
 import JudoTechniqueVideoModal from '../../components/trainer/JudoTechniqueVideoModal.jsx';
 import MarkTechniqueCompletedModal from '../../components/trainer/MarkTechniqueCompletedModal.jsx';
@@ -13,30 +13,47 @@ import { useStudentTechniqueRecords } from '../../hooks/useStudentTechniqueRecor
 import { useUnmarkTechniqueCompleted } from '../../hooks/useUnmarkTechniqueCompleted.js';
 import styles from './TrainerStudentPage.module.css';
 
-// Маршрут /trainer/student/:studentId — существовал только как приёмник
-// маршрута (см. App.jsx), чтобы клик по подсказке поиска имел куда вести.
-// Family Block в режиме Trainer View (карточка ученика, тренировки и т.д.)
-// по-прежнему отдельный, ещё не начатый этап — PlaceholderSection ниже
-// отражает именно эту, всё ещё не спроектированную часть.
+// Маршрут /trainer/student/:studentId — рендерится ВНУТРИ TrainerAuthGuard
+// (см. App.jsx), значит authenticated trainer с активным profile.is_active
+// уже гарантирован выше по дереву — здесь остаётся только per-student
+// access check (см. useTrainerStudentProfile ниже).
+//
+// REAL TRAINER STUDENT PAGE: страница переведена на общий presentation-
+// каркас StudentPageContent (accessMode="trainer") — тот же, что уже
+// использует Super Admin Preview (accessMode="superadmin") и FamilyDashboard
+// (accessMode="family"), вместо собственной отдельной разметки. Bonus-
+// техники (техника progress-блок) сюда намеренно НЕ подключаются на этом
+// шаге — techniqueProgress не передаётся вовсе, секция просто не
+// рендерится (та же семантика, что и везде в StudentPageContent). Ряд
+// навигационных карточек ("Моя семья"/"Договор и оплата"/...) тоже
+// намеренно не показывается тренеру (showNavigationCards не передаётся) —
+// эти карточки принадлежат family-стороне (аккаунт/договор семьи), и для
+// тренера сегодня нет ни одного реального backend-источника под ними;
+// честный "подключим позже" в каждой из них был бы просто лишним шумом на
+// странице, а не полезной функциональностью.
 //
 // Каталог техник дзюдо + реальное сохранение выполненных техник ученика —
-// самостоятельная, уже полностью рабочая часть этой страницы:
+// самостоятельная, УЖЕ полностью рабочая часть этой страницы, переехавшая
+// БЕЗ ИЗМЕНЕНИЙ ЛОГИКИ в children-слот StudentPageContent:
 //   1) useStudentTechniqueRecords(studentId) — читает student_technique_records
 //      JOIN judo_techniques для ЭТОГО ученика (RLS: can_trainer_access_student).
 //   2) useTrainerWriteContext() — узнаёт {trainerRowId, clubId} текущего
 //      тренера через RPC get_current_trainer_write_context.
-//   3) useTrainerStudentProfile(studentId) — узнаёт {vorname, nachname}
-//      ТЕКУЩЕГО ученика (RPC get_trainer_student_by_id, migration 049,
-//      ещё НЕ применена к production) — нужно ТОЛЬКО для заголовка
-//      MarkTechniqueCompletedModal ("Ученик: Фамилия Имя", задание этап 13).
+//   3) useTrainerStudentProfile(studentId) — теперь ЕДИНСТВЕННЫЙ источник
+//      {id, firstName, lastName} для StudentPageContent's student-пропа И
+//      единственный page-level access-check (get_trainer_student_by_id сам
+//      вызывает can_trainer_access_student, 0 строк без ошибки = доступа
+//      нет — см. ветку ниже). Миграция 20260911090049 ещё НЕ применена к
+//      production (см. итоговый отчёт задачи) — до её применения этот путь
+//      в production покажет error-состояние ниже, не данные.
 //   4) pendingTechnique — какая техника прямо сейчас ждёт подтверждения в
 //      модалке; клик "Отметить как выполнено" в JudoTechniquePicker
-//      больше НЕ делает INSERT сразу, только открывает модалку (задание,
-//      этап 1) — сам upload видео + INSERT происходят внутри
-//      MarkTechniqueCompletedModal (useCompleteTechniqueWithVideo).
+//      больше НЕ делает INSERT сразу, только открывает модалку — сам
+//      upload видео + INSERT происходят внутри MarkTechniqueCompletedModal
+//      (useCompleteTechniqueWithVideo).
 //   5) viewingStudentVideoRecord — какая ИЗ ВЫПОЛНЕННЫХ записей сейчас
 //      открыта в StudentVideoPlayerModal (персональное видео ученика,
-//      НЕ YouTube — задание, этап 3/11).
+//      НЕ YouTube).
 // completedTechniqueIds строится из уже загруженных records — Picker не
 // делает отдельный запрос, чтобы узнать, что уже выполнено.
 export default function TrainerStudentPage({ studentId }) {
@@ -51,7 +68,12 @@ export default function TrainerStudentPage({ studentId }) {
     error: writeContextHookError
   } = useTrainerWriteContext();
 
-  const { student } = useTrainerStudentProfile(studentId);
+  const {
+    student,
+    isLoading: isProfileLoading,
+    error: profileError,
+    reload: reloadProfile
+  } = useTrainerStudentProfile(studentId);
 
   const {
     records,
@@ -112,14 +134,39 @@ export default function TrainerStudentPage({ studentId }) {
     return () => clearTimeout(timeoutId);
   }, [videoCleanupWarning, clearVideoCleanupWarning]);
 
+  // Page-level gate — тот же паттерн, что StudentPreviewPage.jsx (Super
+  // Admin Preview): loading/error/denied обрабатываются ЗДЕСЬ, ДО рендера
+  // StudentPageContent, а не пропами внутрь общего каркаса — он получает
+  // student только когда данные реально есть. profileError (RPC-сбой,
+  // включая "функция ещё не задеплоена") — ОТДЕЛЬНОЕ от "student === null
+  // без ошибки" (= can_trainer_access_student вернула false/студента нет) —
+  // первое retry-able, второе — окончательный отказ, не путаем их местами.
+  if (isProfileLoading) {
+    return <div className={styles.state}>{t('common.loading')}</div>;
+  }
+
+  if (profileError) {
+    return (
+      <div className={styles.state}>
+        <div>{t('trainerTechniques.studentLoadError')}</div>
+        <button type="button" className={styles.retryButton} onClick={reloadProfile}>
+          {t('trainerTechniques.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return <div className={styles.state}>{t('trainerTechniques.accessDenied')}</div>;
+  }
+
   return (
-    <div className={styles.page}>
-      <TrainerHeader title={t('trainerDashboard.findStudentTitle')} showBack />
-
+    <StudentPageContent
+      accessMode="trainer"
+      header={<TrainerHeader title={`${student.firstName ?? ''} ${student.lastName ?? ''}`.trim()} showBack />}
+      student={student}
+    >
       <div className={styles.content}>
-        <PlaceholderSection title={t('trainerDashboard.findStudentTitle')} />
-        {studentId && <div className={`${styles.debugId} ltr-isolate`}>{studentId}</div>}
-
         {/* "current trainer cannot be resolved" — баннер на уровне
             страницы, не per-row: если тренер деактивирован, ЛЮБАЯ попытка
             отметить технику заведомо провалится — лучше сказать это один
@@ -168,6 +215,6 @@ export default function TrainerStudentPage({ studentId }) {
         student={student}
         onClose={() => setViewingStudentVideoRecord(null)}
       />
-    </div>
+    </StudentPageContent>
   );
 }

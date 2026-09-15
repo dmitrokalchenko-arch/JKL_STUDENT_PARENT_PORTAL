@@ -30,7 +30,8 @@
     "loggingIn": "Connexion en cours…",
     "genericError": "Échec de la connexion. Veuillez réessayer.",
     "trainerTitle": "Connexion entraîneur",
-    "trainerLoginLabel": "Identifiant"
+    "trainerLoginLabel": "Identifiant",
+    "familyAccessDeactivated": "L'accès au compte familial a été désactivé."
   },
   "childSelector": {
     "label": "Choisissez un enfant :"
@@ -70,10 +71,10 @@
     "contract": "Contrat et paiement"
   },
   "techniqueProgress": {
-    "title": "Progression des techniques",
+    "title": "Techniques bonus",
     "bonusProgress": "{{completed}} sur {{required}} techniques pour le bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Toutes les techniques de cette catégorie sont terminées",
     "loading": "Chargement de la progression des techniques…",
     "loadError": "Impossible de charger la progression des techniques.",
@@ -224,6 +225,7 @@
     "previewClip": "Aperçu de l'extrait sélectionné",
     "clipSourceUnreadable": "Impossible de lire la vidéo source",
     "accessDenied": "Vous n'avez pas accès à cet élève.",
+    "studentLoadError": "Impossible de charger les données de l'élève.",
     "completedBadge": "Acquise",
     "completedListTitle": "Techniques acquises",
     "completedListEmpty": "Aucune technique acquise pour le moment.",
@@ -259,6 +261,7 @@
       "family": "Famille",
       "trainer": "Entraîneur",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Les données de cette section seront connectées à une étape ultérieure."
   }
 }

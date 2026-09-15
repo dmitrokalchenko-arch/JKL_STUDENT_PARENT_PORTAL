@@ -19,6 +19,28 @@ import styles from './StudentPreviewPage.module.css';
 // Student Page, вместо собственной отдельной разметки этой страницы.
 // Loading/error-состояния остаются локальными для этой страницы (общий
 // shell их не знает — он получает student только когда данные уже есть).
+//
+// REAL SUPER ADMIN STUDENT PAGE — STEP 1/2: студент ниже — РЕАЛЬНЫЕ данные
+// из get-student-preview (studentId/firstName/lastName/sportName/
+// groupName/beltLabel). showNavigationCards показывает тот же ряд карточек
+// «Моя семья/Мои тренировки/...», что и демо-стенд, но БЕЗ mock-данных под
+// ними (trainings/familyAccount/contract сюда намеренно не передаются) —
+// StudentPageContent сам покажет нейтральное "подключим позже" вместо
+// ContentArea, см. её комментарий.
+//
+// STEP 2 (club-scoped technique program foundation): techniqueProgress
+// теперь передаётся, ЕСЛИ get-student-preview его вернул — это РЕАЛЬНЫЕ
+// club-scoped данные (club_technique_program_settings/
+// club_required_techniques/student_technique_records, все — строго club_id
+// ЭТОГО студента, определённого сервером). Если у клуба вообще нет ни
+// bonus_requirement, ни required-техник, ни completed-записей —
+// techniqueProgress ВСЁ РАВНО присутствует (featureEnabled:true,
+// bonusRequirement:null, techniques:[]) — TechniqueProgressSection сам
+// корректно покажет "программа ещё не настроена" (её собственная
+// hasNoProgram-ветка), а не спрячет секцию. Проп остаётся undefined ТОЛЬКО
+// если сама миграция ещё не применена/запрос упал (см. buildTechniqueProgress
+// в get-student-preview) — тогда секция не рендерится вовсе, как и раньше.
+// Никаких mock-чисел здесь нет и не может быть.
 export default function StudentPreviewPage({ token }) {
   const { t } = useTranslation();
   const { student, isLoading, error } = useStudentPreview(token);
@@ -51,6 +73,7 @@ export default function StudentPreviewPage({ token }) {
     <StudentPageContent
       accessMode="superadmin"
       header={headerNode}
+      showNavigationCards
       student={{
         id: student.studentId,
         firstName: student.firstName,
@@ -59,6 +82,9 @@ export default function StudentPreviewPage({ token }) {
         groupName: student.groupName,
         beltLabel: student.beltLabel
       }}
+      techniqueProgress={student.techniqueProgress}
+      isTechniqueProgressLoading={false}
+      techniqueProgressError={null}
     />
   );
 }

@@ -32,7 +32,8 @@
     "loggingIn": "Se autentifică…",
     "genericError": "Autentificare eșuată. Încercați din nou.",
     "trainerTitle": "Autentificare antrenor",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Accesul la contul familiei a fost dezactivat."
   },
   "childSelector": {
     "label": "Selectați un copil:"
@@ -77,10 +78,10 @@
     "contract": "Contract și plată"
   },
   "techniqueProgress": {
-    "title": "Progresul tehnicilor",
+    "title": "Tehnici bonus",
     "bonusProgress": "{{completed}} din {{required}} tehnici pentru bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Toate tehnicile din această categorie au fost finalizate",
     "loading": "Se încarcă progresul tehnicilor…",
     "loadError": "Progresul tehnicilor nu a putut fi încărcat.",
@@ -234,6 +235,7 @@
     "previewClip": "Previzualizează fragmentul selectat",
     "clipSourceUnreadable": "Videoclipul sursă nu a putut fi citit",
     "accessDenied": "Nu aveți acces la acest elev.",
+    "studentLoadError": "Datele elevului nu au putut fi încărcate.",
     "completedBadge": "Finalizată",
     "completedListTitle": "Tehnici finalizate",
     "completedListEmpty": "Nicio tehnică finalizată încă.",
@@ -269,6 +271,7 @@
       "family": "Familie",
       "trainer": "Antrenor",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Datele acestei secțiuni vor fi conectate într-un pas ulterior."
   }
 }

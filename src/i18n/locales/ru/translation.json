@@ -34,7 +34,8 @@
     "loggingIn": "Выполняется вход…",
     "genericError": "Не удалось войти. Попробуйте ещё раз.",
     "trainerTitle": "Вход для тренеров",
-    "trainerLoginLabel": "Логин"
+    "trainerLoginLabel": "Логин",
+    "familyAccessDeactivated": "Доступ к семейному аккаунту деактивирован."
   },
   "childSelector": {
     "label": "Выберите ребёнка:"
@@ -84,10 +85,10 @@
     "contract": "Договор и оплата"
   },
   "techniqueProgress": {
-    "title": "Прогресс техник",
-    "bonusProgress": "{{completed}} из {{required}} техник до бонуса",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "title": "Бонусные техники",
+    "bonusProgress": "{{completed}} из {{required}} техник для бонуса",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Все техники этой категории выполнены",
     "loading": "Загрузка прогресса техник…",
     "loadError": "Не удалось загрузить прогресс техник.",
@@ -244,6 +245,7 @@
     "previewClip": "Просмотреть выбранный фрагмент",
     "clipSourceUnreadable": "Не удалось прочитать исходное видео",
     "accessDenied": "У вас нет доступа к этому ученику.",
+    "studentLoadError": "Не удалось загрузить данные ученика.",
     "completedBadge": "Выполнено",
     "completedListTitle": "Выполненные техники",
     "completedListEmpty": "Пока нет выполненных техник.",
@@ -280,6 +282,7 @@
       "family": "Семья",
       "trainer": "Тренер",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Данные этого раздела будут подключены на следующем этапе."
   }
 }

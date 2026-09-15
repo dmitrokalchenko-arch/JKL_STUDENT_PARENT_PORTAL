@@ -17,3 +17,14 @@
   padding: 0 24px;
   flex-wrap: wrap;
 }
+
+.sectionNotConnected {
+  margin: 20px 24px 32px;
+  padding: 40px 20px;
+  background: var(--color-bg-card);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}

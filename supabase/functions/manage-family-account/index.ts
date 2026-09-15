@@ -620,9 +620,15 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'auth_ban_update_failed', details: banError.message }, 500);
     }
 
-    // families.status ist nur informativ (siehe Migration 001-Audit: wird
-    // aktuell nirgends enforced) — die eigentliche Sperre ist der native
-    // Supabase-Auth-Ban oben, unabhängig vom Login-Flow in Block 3.
+    // families.status — ZWEITE, unabhängige Sperrschicht (siehe Migration
+    // 20260914110055_enforce_family_status_in_access_checks.sql, Block 3):
+    // public.can_family_access_student()/get_current_family_children()
+    // prüfen jetzt families.status='active' bei JEDEM Aufruf — ein bereits
+    // ausgestelltes, noch nicht abgelaufenes access token einer
+    // deaktivierten Familie liefert ab dem nächsten Aufruf keine
+    // Student-Daten mehr, unabhängig vom nativen Auth-Ban oben (der nur
+    // neue Logins/Refreshes blockiert). Beide Schichten werden hier
+    // atomar zusammen mit demselben Request geschrieben.
     await supabaseAdmin
       .from('families')
       .update({ status: action === 'activate' ? 'active' : 'suspended' })

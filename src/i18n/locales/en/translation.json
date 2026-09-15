@@ -30,7 +30,8 @@
     "loggingIn": "Signing in…",
     "genericError": "Sign-in failed. Please try again.",
     "trainerTitle": "Trainer Login",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Access to the family account has been deactivated."
   },
   "childSelector": {
     "label": "Select a child:"
@@ -70,10 +71,10 @@
     "contract": "Contract & Payment"
   },
   "techniqueProgress": {
-    "title": "Technique Progress",
+    "title": "Bonus Techniques",
     "bonusProgress": "{{completed}} of {{required}} techniques for the bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "All techniques in this category completed",
     "loading": "Loading technique progress…",
     "loadError": "Couldn't load technique progress.",
@@ -224,6 +225,7 @@
     "previewClip": "Preview selected clip",
     "clipSourceUnreadable": "Could not read source video",
     "accessDenied": "You don't have access to this student.",
+    "studentLoadError": "Student data could not be loaded.",
     "completedBadge": "Completed",
     "completedListTitle": "Completed techniques",
     "completedListEmpty": "No technique completed yet.",
@@ -260,6 +262,7 @@
       "family": "Family",
       "trainer": "Trainer",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Data for this section will be connected in a later step."
   }
 }

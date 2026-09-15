@@ -30,7 +30,8 @@
     "loggingIn": "Bezig met inloggen…",
     "genericError": "Inloggen mislukt. Probeer het opnieuw.",
     "trainerTitle": "Trainer login",
-    "trainerLoginLabel": "Gebruikersnaam"
+    "trainerLoginLabel": "Gebruikersnaam",
+    "familyAccessDeactivated": "Toegang tot het gezinsaccount is gedeactiveerd."
   },
   "childSelector": {
     "label": "Kies een kind:"
@@ -70,10 +71,10 @@
     "contract": "Contract en betaling"
   },
   "techniqueProgress": {
-    "title": "Techniekvoortgang",
+    "title": "Bonustechnieken",
     "bonusProgress": "{{completed}} van {{required}} technieken voor de bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Alle technieken in deze categorie voltooid",
     "loading": "Techniekvoortgang wordt geladen…",
     "loadError": "Techniekvoortgang kon niet worden geladen.",
@@ -224,6 +225,7 @@
     "previewClip": "Geselecteerd fragment bekijken",
     "clipSourceUnreadable": "Bronvideo kon niet worden gelezen",
     "accessDenied": "U heeft geen toegang tot deze leerling.",
+    "studentLoadError": "Leerlinggegevens konden niet worden geladen.",
     "completedBadge": "Voltooid",
     "completedListTitle": "Voltooide technieken",
     "completedListEmpty": "Nog geen techniek voltooid.",
@@ -259,6 +261,7 @@
       "family": "Familie",
       "trainer": "Trainer",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld."
   }
 }

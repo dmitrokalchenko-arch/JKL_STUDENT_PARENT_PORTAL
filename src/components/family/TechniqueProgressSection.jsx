@@ -44,10 +44,17 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
     return null;
   }
 
-  const { completed, requiredTachiWaza, requiredNeWaza } = selectTechniqueGroups(progressData.techniques);
-  const emptySlotCount = getEmptySlotCount(completed.length, progressData.bonusRequirement);
+  const { completed, requiredNageWaza, requiredKatameWaza } = selectTechniqueGroups(progressData.techniques);
+  // bonusRequirement может отсутствовать (club-scoped настройка ещё не
+  // задана этим клубом, см. club_technique_program_settings) — валидное
+  // состояние, не ошибка. getEmptySlotCount(x, null) уже безопасно даёт 0
+  // (null арифметически ведёт себя как 0), но строку "N из null" в
+  // заголовке показывать нельзя — сама bonus-строка скрывается ниже,
+  // completed-карточки и required-группы отображаются как обычно.
+  const hasBonusRequirement = progressData.bonusRequirement != null;
+  const emptySlotCount = hasBonusRequirement ? getEmptySlotCount(completed.length, progressData.bonusRequirement) : 0;
   const hasNoProgram =
-    completed.length === 0 && requiredTachiWaza.length === 0 && requiredNeWaza.length === 0;
+    completed.length === 0 && requiredNageWaza.length === 0 && requiredKatameWaza.length === 0;
 
   if (hasNoProgram) {
     return (
@@ -64,12 +71,14 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
     <div className={styles.section}>
       <div className={styles.headerRow}>
         <h2 className={styles.title}>{t('techniqueProgress.title')}</h2>
-        <div className={styles.bonusProgress}>
-          {t('techniqueProgress.bonusProgress', {
-            completed: completed.length,
-            required: progressData.bonusRequirement
-          })}
-        </div>
+        {hasBonusRequirement && (
+          <div className={styles.bonusProgress}>
+            {t('techniqueProgress.bonusProgress', {
+              completed: completed.length,
+              required: progressData.bonusRequirement
+            })}
+          </div>
+        )}
       </div>
 
       <div className={styles.cardRow}>
@@ -87,12 +96,12 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
       </div>
 
       <div className={styles.requiredGroup}>
-        <div className={styles.rowTitle}>{t('techniqueProgress.tachiWaza')}</div>
+        <div className={styles.rowTitle}>{t('techniqueProgress.nageWaza')}</div>
         <div className={styles.cardRowSmall}>
-          {requiredTachiWaza.length === 0 ? (
+          {requiredNageWaza.length === 0 ? (
             <div className={styles.emptyText}>{t('techniqueProgress.noRequiredTechniques')}</div>
           ) : (
-            requiredTachiWaza.map((technique) => (
+            requiredNageWaza.map((technique) => (
               <TechniqueCard key={technique.id} technique={technique} variant="required" />
             ))
           )}
@@ -100,12 +109,12 @@ export default function TechniqueProgressSection({ progressData, isLoading, erro
       </div>
 
       <div className={styles.requiredGroup}>
-        <div className={styles.rowTitle}>{t('techniqueProgress.neWaza')}</div>
+        <div className={styles.rowTitle}>{t('techniqueProgress.katameWaza')}</div>
         <div className={styles.cardRowSmall}>
-          {requiredNeWaza.length === 0 ? (
+          {requiredKatameWaza.length === 0 ? (
             <div className={styles.emptyText}>{t('techniqueProgress.noRequiredTechniques')}</div>
           ) : (
-            requiredNeWaza.map((technique) => (
+            requiredKatameWaza.map((technique) => (
               <TechniqueCard key={technique.id} technique={technique} variant="required" />
             ))
           )}

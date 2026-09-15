@@ -38,7 +38,8 @@
     "loggingIn": "جارٍ تسجيل الدخول…",
     "genericError": "فشل تسجيل الدخول. حاول مرة أخرى.",
     "trainerTitle": "تسجيل دخول المدرب",
-    "trainerLoginLabel": "اسم الدخول"
+    "trainerLoginLabel": "اسم الدخول",
+    "familyAccessDeactivated": "تم إلغاء تفعيل الوصول إلى حساب العائلة."
   },
   "childSelector": {
     "label": "اختر الطفل:"
@@ -98,10 +99,10 @@
     "contract": "العقد والدفع"
   },
   "techniqueProgress": {
-    "title": "تقدم التقنيات",
+    "title": "تقنيات المكافأة",
     "bonusProgress": "{{completed}} من {{required}} تقنيات للمكافأة",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "تم إتمام جميع التقنيات في هذه الفئة",
     "loading": "جارٍ تحميل تقدم التقنيات…",
     "loadError": "تعذّر تحميل تقدم التقنيات.",
@@ -264,6 +265,7 @@
     "previewClip": "معاينة اللقطة المحددة",
     "clipSourceUnreadable": "تعذّر قراءة الفيديو المصدر",
     "accessDenied": "ليس لديك صلاحية الوصول إلى هذا الطالب.",
+    "studentLoadError": "تعذّر تحميل بيانات الطالب.",
     "completedBadge": "مكتملة",
     "completedListTitle": "التقنيات المكتملة",
     "completedListEmpty": "لا توجد تقنيات مكتملة بعد.",
@@ -299,6 +301,7 @@
       "family": "العائلة",
       "trainer": "المدرب",
       "superadmin": "المشرف العام"
-    }
+    },
+    "sectionNotConnectedYet": "سيتم ربط بيانات هذا القسم في خطوة لاحقة."
   }
 }

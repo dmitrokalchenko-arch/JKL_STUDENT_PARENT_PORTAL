@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { signInFamily } from '../../services/familyAuthService.js';
+import { signInFamily, consumeFamilyAccessDeactivatedNotice } from '../../services/familyAuthService.js';
 import { PORTAL_CLUB_NAME } from '../../config/portalClub.js';
 import styles from './FamilyLogin.module.css';
 
+// Одноразовое (сессионное) сообщение "доступ был закрыт" — выставляется
+// FamilyDashboard'ом перед принудительным sign-out (см.
+// markFamilyAccessDeactivated в familyAuthService.js), читается и сразу
+// стирается здесь при первом монтировании экрана входа. useState-инициализатор
+// (не useEffect) — сообщение должно быть видно уже на первом рендере, не на
+// кадр позже.
 export default function FamilyLogin() {
   const { t } = useTranslation();
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showDeactivatedNotice] = useState(() => consumeFamilyAccessDeactivatedNotice());
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -29,6 +36,10 @@ export default function FamilyLogin() {
       <form className={styles.card} onSubmit={handleSubmit}>
         <h1 className={styles.title}>{t('auth.title')}</h1>
         <p className={styles.subtitle}>{PORTAL_CLUB_NAME}</p>
+
+        {showDeactivatedNotice && (
+          <div className={styles.notice}>{t('auth.familyAccessDeactivated')}</div>
+        )}
 
         <label className={styles.field}>
           <span className={styles.label}>{t('auth.nicknameLabel')}</span>

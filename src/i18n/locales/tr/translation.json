@@ -30,7 +30,8 @@
     "loggingIn": "Giriş yapılıyor…",
     "genericError": "Giriş başarısız. Lütfen tekrar deneyin.",
     "trainerTitle": "Antrenör Girişi",
-    "trainerLoginLabel": "Kullanıcı adı"
+    "trainerLoginLabel": "Kullanıcı adı",
+    "familyAccessDeactivated": "Aile hesabına erişim devre dışı bırakıldı."
   },
   "childSelector": {
     "label": "Bir çocuk seçin:"
@@ -70,10 +71,10 @@
     "contract": "Sözleşme ve Ödeme"
   },
   "techniqueProgress": {
-    "title": "Teknik İlerlemesi",
+    "title": "Bonus Teknikleri",
     "bonusProgress": "Bonus için {{required}} teknikten {{completed}} tamamlandı",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Bu kategorideki tüm teknikler tamamlandı",
     "loading": "Teknik ilerlemesi yükleniyor…",
     "loadError": "Teknik ilerlemesi yüklenemedi.",
@@ -224,6 +225,7 @@
     "previewClip": "Seçili klibi önizle",
     "clipSourceUnreadable": "Kaynak video okunamadı",
     "accessDenied": "Bu öğrenciye erişiminiz yok.",
+    "studentLoadError": "Öğrenci verileri yüklenemedi.",
     "completedBadge": "Tamamlandı",
     "completedListTitle": "Tamamlanan teknikler",
     "completedListEmpty": "Henüz tamamlanan teknik yok.",
@@ -259,6 +261,7 @@
       "family": "Aile",
       "trainer": "Antrenör",
       "superadmin": "Süper Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Bu bölümün verileri ileriki bir adımda bağlanacak."
   }
 }

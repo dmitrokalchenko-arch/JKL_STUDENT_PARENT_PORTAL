@@ -51,6 +51,49 @@ export async function signOutFamily() {
   }
 }
 
+// ENFORCE FAMILY DEACTIVATION ON ACTIVE SESSIONS: одноразовая пометка "эта
+// сессия была закрыта из-за деактивированного/пустого family-доступа" —
+// сама причина закрытия (suspended семья ИЛИ, теоретически, семья без
+// активных детей — RPC намеренно не различает эти случаи, тот же
+// anti-enumeration принцип, что уже применён в signInFamily) НЕ раскрывается
+// нигде дальше сообщения. sessionStorage, не localStorage — переживает
+// редирект на тот же экран логина, но не переживает и не должна переживать
+// закрытие вкладки/новую сессию браузера.
+const FAMILY_ACCESS_DEACTIVATED_KEY = 'jkl_family_access_deactivated_notice';
+
+export function markFamilyAccessDeactivated() {
+  try {
+    sessionStorage.setItem(FAMILY_ACCESS_DEACTIVATED_KEY, '1');
+  } catch {
+    // Заметка — не критичная часть sign-out, тихо игнорируем.
+  }
+}
+
+// Читает и стирает флаг РОВНО ОДИН РАЗ — на уровне модуля, не внутри
+// React-хука. Причина: consumeFamilyAccessDeactivatedNotice() имеет побочный
+// эффект (очищает sessionStorage), а FamilyLogin.jsx читает его через
+// useState(() => …) lazy-инициализатор — React StrictMode (main.jsx) в dev
+// вызывает такие инициализаторы ДВАЖДЫ; второй вызов увидел бы уже
+// очищенное значение и вернул бы false, из-за чего сообщение никогда бы не
+// показалось (проверено локально). Модульный код выполняется ровно один
+// раз при первой загрузке модуля вне зависимости от StrictMode/повторных
+// рендеров — результат кэшируется здесь и просто возвращается ниже сколько
+// угодно раз. try/catch — sessionStorage может бросить в некоторых
+// приватных режимах браузера.
+const familyAccessDeactivatedAtLoad = (() => {
+  try {
+    const wasSet = sessionStorage.getItem(FAMILY_ACCESS_DEACTIVATED_KEY) === '1';
+    if (wasSet) sessionStorage.removeItem(FAMILY_ACCESS_DEACTIVATED_KEY);
+    return wasSet;
+  } catch {
+    return false;
+  }
+})();
+
+export function consumeFamilyAccessDeactivatedNotice() {
+  return familyAccessDeactivatedAtLoad;
+}
+
 export async function getFamilySession() {
   if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase.auth.getSession();

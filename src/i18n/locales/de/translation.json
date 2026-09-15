@@ -30,7 +30,8 @@
     "loggingIn": "Anmeldung läuft…",
     "genericError": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
     "trainerTitle": "Trainer-Anmeldung",
-    "trainerLoginLabel": "Login"
+    "trainerLoginLabel": "Login",
+    "familyAccessDeactivated": "Der Zugang zum Familienkonto wurde deaktiviert."
   },
   "passwordReset": {
     "title": "Neues Passwort festlegen",
@@ -81,10 +82,10 @@
     "contract": "Vertrag und Zahlung"
   },
   "techniqueProgress": {
-    "title": "Technikfortschritt",
+    "title": "Bonus-Techniken",
     "bonusProgress": "{{completed}} von {{required}} Techniken für den Bonus",
-    "tachiWaza": "Tachi-waza",
-    "neWaza": "Ne-waza",
+    "nageWaza": "Nage-waza",
+    "katameWaza": "Katame-waza",
     "noRequiredTechniques": "Alle Techniken dieser Kategorie abgeschlossen",
     "loading": "Technikfortschritt wird geladen…",
     "loadError": "Technikfortschritt konnte nicht geladen werden.",
@@ -235,6 +236,7 @@
     "previewClip": "Ausgewählten Ausschnitt ansehen",
     "clipSourceUnreadable": "Quellvideo konnte nicht gelesen werden",
     "accessDenied": "Sie haben keinen Zugriff auf diesen Schüler.",
+    "studentLoadError": "Die Schülerdaten konnten nicht geladen werden.",
     "completedBadge": "Erledigt",
     "completedListTitle": "Erledigte Techniken",
     "completedListEmpty": "Noch keine Technik erledigt.",
@@ -271,6 +273,7 @@
       "family": "Familie",
       "trainer": "Trainer",
       "superadmin": "Super Admin"
-    }
+    },
+    "sectionNotConnectedYet": "Die Daten dieses Bereichs werden in einem der nächsten Schritte angebunden."
   }
 }
