@@ -244,7 +244,8 @@
     "findStudentDescription": "Search for a student's page by name and open it",
     "settingsTitle": "Customize student page view",
     "settingsDescription": "Choose which sections are visible on the student page",
-    "settingsHubEmpty": "Settings for the structure of the Student Page will appear here — none are ready yet."
+    "settingsPageScopeNote": "Club-wide settings for all student pages",
+    "settingsPageTemplateName": "Student page"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Last name",

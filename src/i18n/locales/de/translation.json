@@ -255,7 +255,8 @@
     "findStudentDescription": "Schülerseite über den Namen suchen und öffnen",
     "settingsTitle": "Ansicht der Schülerseite anpassen",
     "settingsDescription": "Festlegen, welche Bereiche auf der Schülerseite sichtbar sind",
-    "settingsHubEmpty": "Hier erscheinen künftig die Einstellungen für den Aufbau der Schülerseite — aktuell ist noch keine verfügbar."
+    "settingsPageScopeNote": "Allgemeine Einstellungen für die Schülerseiten des Vereins",
+    "settingsPageTemplateName": "Schülerseite"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nachname",

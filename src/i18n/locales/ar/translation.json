@@ -283,7 +283,8 @@
     "findStudentDescription": "ابحث عن صفحة الطالب بالاسم وافتحها",
     "settingsTitle": "تخصيص عرض صفحة الطالب",
     "settingsDescription": "اختر الأقسام التي تظهر في صفحة الطالب",
-    "settingsHubEmpty": "ستظهر هنا إعدادات بنية صفحة الطالب — لا يوجد أي منها جاهز بعد."
+    "settingsPageScopeNote": "إعدادات عامة لصفحات جميع طلاب النادي",
+    "settingsPageTemplateName": "صفحة الطالب"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "اللقب",

@@ -253,7 +253,8 @@
     "findStudentDescription": "Caută pagina unui elev după nume și deschide-o",
     "settingsTitle": "Personalizează vizualizarea paginii elevului",
     "settingsDescription": "Alege ce secțiuni sunt vizibile pe pagina elevului",
-    "settingsHubEmpty": "Aici vor apărea setările structurii paginii elevului — niciuna nu este încă gata."
+    "settingsPageScopeNote": "Setări generale ale paginilor elevilor clubului",
+    "settingsPageTemplateName": "Pagina elevului"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nume",

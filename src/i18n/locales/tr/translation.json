@@ -243,7 +243,8 @@
     "findStudentDescription": "Bir öğrencinin sayfasını isme göre arayın ve açın",
     "settingsTitle": "Öğrenci sayfası görünümünü özelleştir",
     "settingsDescription": "Öğrenci sayfasında hangi bölümlerin görüneceğini seçin",
-    "settingsHubEmpty": "Öğrenci sayfasının yapı ayarları burada görünecek — henüz hiçbiri hazır değil."
+    "settingsPageScopeNote": "Kulübün tüm öğrenci sayfaları için genel ayarlar",
+    "settingsPageTemplateName": "Öğrenci sayfası"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Soyad",

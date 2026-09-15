@@ -263,7 +263,8 @@
     "findStudentDescription": "Wyszukaj stronę ucznia po imieniu i otwórz ją",
     "settingsTitle": "Dostosuj widok strony ucznia",
     "settingsDescription": "Wybierz, które sekcje są widoczne na stronie ucznia",
-    "settingsHubEmpty": "Tutaj pojawią się ustawienia struktury strony ucznia — żadne nie jest jeszcze gotowe."
+    "settingsPageScopeNote": "Ogólne ustawienia stron uczniów klubu",
+    "settingsPageTemplateName": "Strona ucznia"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nazwisko",

@@ -243,7 +243,8 @@
     "findStudentDescription": "Rechercher la page d'un élève par son nom et l'ouvrir",
     "settingsTitle": "Personnaliser l'affichage de la page de l'élève",
     "settingsDescription": "Choisir les sections visibles sur la page de l'élève",
-    "settingsHubEmpty": "Les réglages de la structure de la page de l'élève apparaîtront ici — aucun n'est encore prêt."
+    "settingsPageScopeNote": "Réglages généraux des pages élèves du club",
+    "settingsPageTemplateName": "Page de l'élève"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nom",
