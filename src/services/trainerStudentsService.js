@@ -29,14 +29,23 @@ export async function searchTrainerStudents(query) {
   }));
 }
 
-// get_trainer_student_by_id(p_student_id) (migration 049, ещё НЕ применена
-// к production) — точечный lookup ОДНОГО ученика по id, для страниц вроде
-// TrainerStudentPage, которые получают от роутинга только studentId и
-// нигде рядом уже не загружали Vorname/Nachname (см. App.jsx —
-// window.location.href без переданного state). НЕ переиспользует
+// get_trainer_student_by_id(p_student_id) — точечный lookup ОДНОГО ученика
+// по id, для страниц вроде TrainerStudentPage, которые получают от
+// роутинга только studentId и нигде рядом уже не загружали профиль (см.
+// App.jsx — window.location.href без переданного state). НЕ переиспользует
 // searchTrainerStudents — та ищет по подстроке имени, не по id. Тот же
 // access-gate (can_trainer_access_student), что и у остального RLS этой
 // цепочки — 0 строк, если доступа нет, не ошибка.
+//
+// TRAINER UNIVERSAL STUDENT PAGE (миграция 20260915130056, ещё НЕ применена
+// к production): RPC теперь возвращает тот же набор Block-1 базовых
+// профильных полей, что get_current_family_children() уже отдаёт Family —
+// маппинг здесь НАМЕРЕННО зеркалит getCurrentFamilyChildren()
+// (familyDataService.js), те же имена итоговых полей (sportName/groupName/
+// trainingSchedule/beltLabel/contractStatus/age/birthYear), чтобы
+// StudentProfileCard рендерил их одинаково независимо от accessMode.
+// birthYear берётся из geburtsdatum (YYYY-MM-DD) так же, как там —
+// student_birthdate.slice(0, 4).
 export async function getTrainerStudentById(studentId) {
   if (!isSupabaseConfigured || !studentId) return null;
 
@@ -54,6 +63,13 @@ export async function getTrainerStudentById(studentId) {
   return {
     id: row.id,
     firstName: row.vorname,
-    lastName: row.nachname
+    lastName: row.nachname,
+    age: row.alter ?? null,
+    birthYear: row.geburtsdatum ? row.geburtsdatum.slice(0, 4) : null,
+    sportName: row.sport_name ?? null,
+    groupName: row.group_name ?? null,
+    trainingSchedule: [row.training_day, row.training_time].filter(Boolean).join(' · ') || null,
+    beltLabel: [row.belt_color, row.kyu_grade].filter(Boolean).join(' · ') || null,
+    contractStatus: row.contract_status ?? null
   };
 }
