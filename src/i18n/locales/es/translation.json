@@ -242,7 +242,8 @@
     "findStudentTitle": "Buscar alumno",
     "findStudentDescription": "Buscar la página de un alumno por nombre y abrirla",
     "settingsTitle": "Personalizar la vista de la página del alumno",
-    "settingsDescription": "Elegir qué secciones son visibles en la página del alumno"
+    "settingsDescription": "Elegir qué secciones son visibles en la página del alumno",
+    "settingsHubEmpty": "Aquí aparecerán los ajustes de la estructura de la página del alumno; todavía no hay ninguno disponible."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Apellido",

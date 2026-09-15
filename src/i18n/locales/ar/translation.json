@@ -282,7 +282,8 @@
     "findStudentTitle": "البحث عن طالب",
     "findStudentDescription": "ابحث عن صفحة الطالب بالاسم وافتحها",
     "settingsTitle": "تخصيص عرض صفحة الطالب",
-    "settingsDescription": "اختر الأقسام التي تظهر في صفحة الطالب"
+    "settingsDescription": "اختر الأقسام التي تظهر في صفحة الطالب",
+    "settingsHubEmpty": "ستظهر هنا إعدادات بنية صفحة الطالب — لا يوجد أي منها جاهز بعد."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "اللقب",

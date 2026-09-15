@@ -242,7 +242,8 @@
     "findStudentTitle": "Cerca allievo",
     "findStudentDescription": "Cerca la pagina di un allievo per nome e aprila",
     "settingsTitle": "Personalizza la visualizzazione della pagina dell'allievo",
-    "settingsDescription": "Scegli quali sezioni sono visibili nella pagina dell'allievo"
+    "settingsDescription": "Scegli quali sezioni sono visibili nella pagina dell'allievo",
+    "settingsHubEmpty": "Qui appariranno le impostazioni della struttura della pagina dell'allievo — nessuna è ancora pronta."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Cognome",

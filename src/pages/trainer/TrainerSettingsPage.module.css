@@ -8,8 +8,33 @@
   padding: 20px 16px 40px;
 }
 
+/* Та же сетка, что TrainerDashboard.module.css — карточки настроек этого
+   хаба визуально идентичны карточкам главной Trainer Dashboard. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.emptyState {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
 @media (min-width: 768px) {
   .content {
+    padding: 32px 24px 48px;
+  }
+
+  .grid {
     padding: 32px 24px 48px;
   }
 }

@@ -263,7 +263,8 @@
     "findStudentTitle": "Найти ученика",
     "findStudentDescription": "Найти страницу ученика по имени и открыть её",
     "settingsTitle": "Настроить вид страницы ученика",
-    "settingsDescription": "Выбрать, какие разделы отображаются на странице ученика"
+    "settingsDescription": "Выбрать, какие разделы отображаются на странице ученика",
+    "settingsHubEmpty": "Здесь появятся настройки структуры страницы ученика — пока ни одна ещё не готова."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Фамилия",

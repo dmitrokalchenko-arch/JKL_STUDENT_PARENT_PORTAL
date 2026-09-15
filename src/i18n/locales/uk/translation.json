@@ -262,7 +262,8 @@
     "findStudentTitle": "Знайти учня",
     "findStudentDescription": "Знайти сторінку учня за ім'ям і відкрити її",
     "settingsTitle": "Налаштувати вигляд сторінки учня",
-    "settingsDescription": "Вибрати, які розділи відображаються на сторінці учня"
+    "settingsDescription": "Вибрати, які розділи відображаються на сторінці учня",
+    "settingsHubEmpty": "Тут з'являться налаштування структури сторінки учня — поки жодне ще не готове."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Прізвище",

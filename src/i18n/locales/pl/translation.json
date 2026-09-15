@@ -262,7 +262,8 @@
     "findStudentTitle": "Znajdź ucznia",
     "findStudentDescription": "Wyszukaj stronę ucznia po imieniu i otwórz ją",
     "settingsTitle": "Dostosuj widok strony ucznia",
-    "settingsDescription": "Wybierz, które sekcje są widoczne na stronie ucznia"
+    "settingsDescription": "Wybierz, które sekcje są widoczne na stronie ucznia",
+    "settingsHubEmpty": "Tutaj pojawią się ustawienia struktury strony ucznia — żadne nie jest jeszcze gotowe."
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nazwisko",
