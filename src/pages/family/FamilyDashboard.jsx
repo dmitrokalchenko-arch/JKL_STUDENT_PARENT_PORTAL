@@ -43,7 +43,7 @@ export default function FamilyDashboard() {
   };
 
   // ENFORCE FAMILY DEACTIVATION ON ACTIVE SESSIONS: get_current_family_children()
-  // теперь фильтрует по families.status='active' (миграция
+  // фильтрует по families.status='active' (миграция
   // 20260914110055_enforce_family_status_in_access_checks.sql) — уже
   // существующий, ещё не истёкший access token суспендированной семьи
   // больше не получает ни одной строки от этого RPC. С точки зрения
@@ -58,26 +58,30 @@ export default function FamilyDashboard() {
   // "доступ закрыт" — сессия завершается, а не тихо показывает пустой
   // Dashboard, в котором остаётся ещё активный (хоть и бесполезный) токен.
   //
-  // ⚠️ PRODUCTION BUG FIX (2026-09-15, реальный инцидент): isAuthenticated
-  // ЗДЕСЬ ОБЯЗАН приходить из ТОГО ЖЕ вызова useFamilyData()/useFamilySession()
-  // выше, что и family/children/loading — НЕ из отдельного собственного
-  // useFamilySession() в этом компоненте. Первая версия этой правки
-  // вызывала useFamilySession() здесь ЕЩЁ РАЗ отдельно — это два независимых
-  // экземпляра хука с независимыми промисами getSession()/подписками
-  // onAuthStateChange, которые резолвятся не синхронно друг с другом.
-  // Экземпляр здесь, в FamilyDashboard, стабильно резолвился НА РЕНДЕР
-  // РАНЬШЕ, чем внутренний экземпляр внутри useFamilyData (эффекты
-  // запускаются в порядке объявления хуков) — из-за этого на промежуточном
-  // рендере isAuthenticated здесь уже true, а useFamilyData ещё не успел
-  // выставить shouldLoad=true/loading=true и всё ещё отдавал children=[]
-  // из самого первого (домонтажного) состояния. Результат — isEmptyAfterRealLoad
-  // ложно становился true СРАЗУ после успешного входа, ДО того как реальный
-  // запрос данных семьи вообще начинался, и Family Dashboard мгновенно
-  // разлогинивал только что успешно вошедшую АКТИВНУЮ семью — внешне это
-  // выглядело как "нажал Войти — ничего не произошло" (реальный production-
-  // репорт). Один общий источник isAuthenticated ниже устраняет гонку
-  // полностью — оба сигнала теперь гарантированно из одного и того же
-  // рендер-цикла.
+  // ⚠️ ДВА ПОСЛЕДОВАТЕЛЬНЫХ PRODUCTION-ИНЦИДЕНТА (2026-09-15) на этой самой
+  // строке — читать оба, чтобы не наступить на них снова:
+  //
+  // 1) isAuthenticated ниже ОБЯЗАН приходить из ТОГО ЖЕ useFamilyData()
+  //    выше, что и family/children/loading — НЕ из отдельного собственного
+  //    useFamilySession() в этом компоненте (первая версия делала именно
+  //    так — два независимых экземпляра хука резолвились не синхронно,
+  //    isAuthenticated мог стать true раньше, чем useFamilyData успевал
+  //    выставить loading=true, и isEmptyAfterRealLoad ложно срабатывал
+  //    сразу после успешного входа).
+  //
+  // 2) Даже с ОДНИМ общим источником isAuthenticated этого оказалось
+  //    НЕДОСТАТОЧНО: сам useFamilyData(), как ЛЮБОЙ свежесмонтированный
+  //    экземпляр useFamilySession(), тоже проходит через промежуточное
+  //    состояние "сессия ещё не выяснена" при каждом монтировании
+  //    FamilyDashboard — и раньше useFamilyData вычислял ПЕРВОНАЧАЛЬНОЕ
+  //    значение loading ОДИН РАЗ из ещё не резолвившегося isAuthenticated,
+  //    поэтому loading стартовал как false ДО того, как реальный запрос
+  //    вообще успевал начаться. Исправлено ВНУТРИ useFamilyData.js —
+  //    loading теперь производное значение (сессия не выяснена ИЛИ fetch
+  //    ещё в процессе), не может ложно стать false раньше срока. См.
+  //    подробный комментарий там же. Здесь, в FamilyDashboard, менять
+  //    ничего не потребовалось — isEmptyAfterRealLoad ниже автоматически
+  //    стал надёжным, как только loading из useFamilyData стал надёжным.
   const deactivationHandledRef = useRef(false);
   const isEmptyAfterRealLoad =
     isSupabaseConfigured && isAuthenticated && !isFamilyLoading && !familyError && children.length === 0;
