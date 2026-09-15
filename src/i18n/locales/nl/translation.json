@@ -242,7 +242,9 @@
     "findStudentTitle": "Leerling zoeken",
     "findStudentDescription": "Zoek de pagina van een leerling op naam en open deze",
     "settingsTitle": "Weergave van de leerlingpagina aanpassen",
-    "settingsDescription": "Kies welke onderdelen zichtbaar zijn op de leerlingpagina"
+    "settingsDescription": "Kies welke onderdelen zichtbaar zijn op de leerlingpagina",
+    "settingsPageScopeNote": "Algemene instellingen voor de leerlingpagina's van de club",
+    "settingsPageTemplateName": "Leerlingpagina"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Achternaam",

@@ -254,7 +254,9 @@
     "findStudentTitle": "Schüler suchen",
     "findStudentDescription": "Schülerseite über den Namen suchen und öffnen",
     "settingsTitle": "Ansicht der Schülerseite anpassen",
-    "settingsDescription": "Festlegen, welche Bereiche auf der Schülerseite sichtbar sind"
+    "settingsDescription": "Festlegen, welche Bereiche auf der Schülerseite sichtbar sind",
+    "settingsPageScopeNote": "Allgemeine Einstellungen für die Schülerseiten des Vereins",
+    "settingsPageTemplateName": "Schülerseite"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nachname",
