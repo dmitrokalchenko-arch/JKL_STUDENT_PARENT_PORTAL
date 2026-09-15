@@ -33,7 +33,12 @@
     "genericError": "Autentificare eșuată. Încercați din nou.",
     "trainerTitle": "Autentificare antrenor",
     "trainerLoginLabel": "Login",
-    "familyAccessDeactivated": "Accesul la contul familiei a fost dezactivat."
+    "familyAccessDeactivated": "Accesul la contul familiei a fost dezactivat.",
+    "loginLabel": "Login",
+    "chooseAccountTitle": "Conectare ca",
+    "chooseAccountTrainer": "Antrenor",
+    "chooseAccountFamily": "Familie / Elev",
+    "invalidLoginOrPassword": "Login sau parolă incorecte."
   },
   "childSelector": {
     "label": "Selectați un copil:"

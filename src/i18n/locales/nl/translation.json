@@ -31,7 +31,12 @@
     "genericError": "Inloggen mislukt. Probeer het opnieuw.",
     "trainerTitle": "Trainer login",
     "trainerLoginLabel": "Gebruikersnaam",
-    "familyAccessDeactivated": "Toegang tot het gezinsaccount is gedeactiveerd."
+    "familyAccessDeactivated": "Toegang tot het gezinsaccount is gedeactiveerd.",
+    "loginLabel": "Gebruikersnaam",
+    "chooseAccountTitle": "Inloggen als",
+    "chooseAccountTrainer": "Trainer",
+    "chooseAccountFamily": "Familie / Leerling",
+    "invalidLoginOrPassword": "Ongeldige gebruikersnaam of wachtwoord."
   },
   "childSelector": {
     "label": "Kies een kind:"

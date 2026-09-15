@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FamilyDashboard from './pages/family/FamilyDashboard.jsx';
-import FamilyLogin from './pages/family/FamilyLogin.jsx';
 import FamilyResetPassword from './pages/family/FamilyResetPassword.jsx';
+import UnifiedLogin from './pages/auth/UnifiedLogin.jsx';
+import AccountRoleChoice from './pages/auth/AccountRoleChoice.jsx';
 import TrainerDashboard from './pages/trainer/TrainerDashboard.jsx';
 import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
@@ -10,8 +12,34 @@ import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
 import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
 import StudentPageDemoRoute from './pages/dev/StudentPageDemoRoute.jsx';
 import { useFamilySession } from './hooks/useFamilySession.js';
+import { useTrainerSession } from './hooks/useTrainerSession.js';
 import { isSupabaseConfigured } from './services/supabaseClient.js';
 import styles from './App.module.css';
+
+// UNIFIED LOGIN (см. итоговый отчёт задачи): корневой '/' раньше
+// монтировал только FamilyLogin.jsx напрямую — теперь этот файл больше не
+// импортируется из App.jsx (сам файл НЕ удалён, задание явно запрещает
+// удалять существующие рабочие экраны без необходимости; его JSX/CSS
+// просто больше ни откуда не рендерится, а его auth-логика — signInFamily —
+// переиспользуется БЕЗ ИЗМЕНЕНИЙ внутри services/unifiedAuthService.js).
+// TrainerLogin.jsx НЕ трогается вовсе — /trainer без сессии по-прежнему
+// показывает его напрямую через TrainerAuthGuard (задание, п.15: явный
+// safety fallback на этом этапе, отдельный будущий шаг решит его судьбу).
+//
+// Сессия при отсутствии Trainer — тот же паттерн, что уже был для family
+// (isLoading -> loading text, только после — решение показывать
+// Login/redirect). Разница здесь: ДВА независимых источника
+// (useFamilySession/useTrainerSession), и до завершения ОБОИХ
+// (isFamilyLoading || isTrainerLoading) решение не принимается вообще —
+// именно так закрывается класс race condition, который уже дважды находили
+// и исправляли для одиночного family-случая в этой же сессии (PR #4/#5).
+function TrainerSessionRedirect() {
+  const { t } = useTranslation();
+  useEffect(() => {
+    window.location.href = '/trainer';
+  }, []);
+  return <div className={styles.sessionLoading}>{t('common.loading')}</div>;
+}
 
 // Точный '/trainer' ИЛИ '/trainer/' + что угодно дальше — так будущие
 // подстраницы (/trainer/groups и т.п.) тоже попадут в тренерскую область.
@@ -44,7 +72,11 @@ function parseTrainerView(pathname) {
 
 export default function App() {
   const { t } = useTranslation();
-  const { isLoading, isAuthenticated } = useFamilySession();
+  const { isLoading: isFamilyLoading, isAuthenticated: isFamilyAuthenticated } = useFamilySession();
+  const { isLoading: isTrainerLoading, isAuthenticated: isTrainerAuthenticated } = useTrainerSession();
+  // Ставится ТОЛЬКО UnifiedLogin'ом через onBothSucceeded, когда
+  // signInUnified() реально вернул BOTH — см. комментарий у AccountRoleChoice.
+  const [pendingRoleChoice, setPendingRoleChoice] = useState(false);
 
   // /trainer(/*) защищён Trainer Auth (TrainerAuthGuard) — отдельная
   // Supabase-сессия (trainerSupabaseClient.js, свой storageKey), не
@@ -112,15 +144,42 @@ export default function App() {
     return <FamilyDashboard />;
   }
 
-  // Не показывать ни логин, ни Dashboard, пока не завершена проверка сессии —
-  // иначе на миг мог бы мелькнуть экран входа для уже авторизованной семьи.
-  if (isLoading) {
+  // Не показывать ни один из вариантов ниже, пока не завершены ОБЕ
+  // независимые проверки сессии (family И trainer) — иначе на миг мог бы
+  // мелькнуть Unified Login для уже авторизованного пользователя, либо
+  // решение принялось бы по тому, какой из двух хуков успел резолвиться
+  // первым (тот самый класс race condition, что уже дважды находили и
+  // исправляли для одиночного family-случая, PR #4/#5 — здесь источников
+  // два, ждём оба явно).
+  if (isFamilyLoading || isTrainerLoading) {
     return <div className={styles.sessionLoading}>{t('common.loading')}</div>;
   }
 
-  if (!isAuthenticated) {
-    return <FamilyLogin />;
+  // Редкий edge case (см. аудит Unified Login): signInUnified() реально
+  // вернул BOTH — обе сессии уже валидны прямо сейчас. Проверяется ДО
+  // веток isFamilyAuthenticated/isTrainerAuthenticated ниже: раз обе уже
+  // true, без этой проверки страница молча провалилась бы в
+  // FamilyDashboard, ни разу не спросив пользователя, что запрещено
+  // заданием (п.9) — это НЕ обычный предварительный role selector, он
+  // может появиться только после реально успешного входа в оба аккаунта.
+  if (pendingRoleChoice) {
+    return <AccountRoleChoice onChooseFamily={() => setPendingRoleChoice(false)} />;
   }
 
-  return <FamilyDashboard />;
+  // Family — приоритет при восстановлении УЖЕ существующих сессий (задание,
+  // п.14): `/` исторически family route. Детерминированно и без гонки —
+  // оба isLoading уже false на этой строке.
+  if (isFamilyAuthenticated) {
+    return <FamilyDashboard />;
+  }
+
+  // Только Trainer — не заставляем вводить credentials повторно, тихо
+  // переходим на /trainer (задание, п.13). TrainerLogin.jsx/TrainerAuthGuard
+  // не менялись — сама тренерская сессия уже валидна к этому моменту,
+  // TrainerAuthGuard сразу пропустит на TrainerDashboard.
+  if (isTrainerAuthenticated) {
+    return <TrainerSessionRedirect />;
+  }
+
+  return <UnifiedLogin onBothSucceeded={() => setPendingRoleChoice(true)} />;
 }

@@ -1,0 +1,15 @@
+.choiceButton {
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 12px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.choiceButton:hover {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
