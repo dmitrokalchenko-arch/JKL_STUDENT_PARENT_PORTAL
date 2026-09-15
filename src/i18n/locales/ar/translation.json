@@ -265,6 +265,7 @@
     "previewClip": "معاينة اللقطة المحددة",
     "clipSourceUnreadable": "تعذّر قراءة الفيديو المصدر",
     "accessDenied": "ليس لديك صلاحية الوصول إلى هذا الطالب.",
+    "studentLoadError": "تعذّر تحميل بيانات الطالب.",
     "completedBadge": "مكتملة",
     "completedListTitle": "التقنيات المكتملة",
     "completedListEmpty": "لا توجد تقنيات مكتملة بعد.",

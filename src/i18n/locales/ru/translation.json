@@ -245,6 +245,7 @@
     "previewClip": "Просмотреть выбранный фрагмент",
     "clipSourceUnreadable": "Не удалось прочитать исходное видео",
     "accessDenied": "У вас нет доступа к этому ученику.",
+    "studentLoadError": "Не удалось загрузить данные ученика.",
     "completedBadge": "Выполнено",
     "completedListTitle": "Выполненные техники",
     "completedListEmpty": "Пока нет выполненных техник.",

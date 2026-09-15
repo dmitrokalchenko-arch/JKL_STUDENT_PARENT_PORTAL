@@ -235,6 +235,7 @@
     "previewClip": "Previzualizează fragmentul selectat",
     "clipSourceUnreadable": "Videoclipul sursă nu a putut fi citit",
     "accessDenied": "Nu aveți acces la acest elev.",
+    "studentLoadError": "Datele elevului nu au putut fi încărcate.",
     "completedBadge": "Finalizată",
     "completedListTitle": "Tehnici finalizate",
     "completedListEmpty": "Nicio tehnică finalizată încă.",

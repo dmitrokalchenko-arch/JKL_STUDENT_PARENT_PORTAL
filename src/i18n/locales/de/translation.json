@@ -236,6 +236,7 @@
     "previewClip": "Ausgewählten Ausschnitt ansehen",
     "clipSourceUnreadable": "Quellvideo konnte nicht gelesen werden",
     "accessDenied": "Sie haben keinen Zugriff auf diesen Schüler.",
+    "studentLoadError": "Die Schülerdaten konnten nicht geladen werden.",
     "completedBadge": "Erledigt",
     "completedListTitle": "Erledigte Techniken",
     "completedListEmpty": "Noch keine Technik erledigt.",

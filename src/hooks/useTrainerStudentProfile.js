@@ -3,9 +3,15 @@ import { getTrainerStudentById } from '../services/trainerStudentsService.js';
 
 // Мирроит useTrainerWriteContext.js/useJudoTechniques.js — request-id
 // отмена устаревших ответов, загружается один раз на смену studentId.
-// Нужен ТОЛЬКО для отображения "Ученик: Фамилия Имя" в модалке
-// подтверждения выполнения техники (задание, этап 13) — больше нигде на
-// TrainerStudentPage имя/фамилия ученика сегодня не загружены.
+// Изначально нужен был ТОЛЬКО для "Ученик: Фамилия Имя" в модалке
+// подтверждения выполнения техники — с переводом TrainerStudentPage на
+// shared StudentPageContent (accessMode="trainer") это ЕДИНСТВЕННЫЙ
+// источник student-пропа страницы (id/firstName/lastName), и
+// одновременно единственный реальный access-check gate верхнего уровня:
+// get_trainer_student_by_id сам вызывает can_trainer_access_student
+// (миграция 20260911090049) и возвращает 0 строк для чужого/недоступного
+// ученика — student===null (без error) здесь и означает "доступа нет",
+// а не "данных ещё нет".
 export function useTrainerStudentProfile(studentId) {
   const [student, setStudent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,5 +46,5 @@ export function useTrainerStudentProfile(studentId) {
     load();
   }, [load]);
 
-  return { student, isLoading, error };
+  return { student, isLoading, error, reload: load };
 }

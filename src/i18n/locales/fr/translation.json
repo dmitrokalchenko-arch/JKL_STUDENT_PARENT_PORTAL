@@ -225,6 +225,7 @@
     "previewClip": "Aperçu de l'extrait sélectionné",
     "clipSourceUnreadable": "Impossible de lire la vidéo source",
     "accessDenied": "Vous n'avez pas accès à cet élève.",
+    "studentLoadError": "Impossible de charger les données de l'élève.",
     "completedBadge": "Acquise",
     "completedListTitle": "Techniques acquises",
     "completedListEmpty": "Aucune technique acquise pour le moment.",

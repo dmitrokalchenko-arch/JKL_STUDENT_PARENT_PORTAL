@@ -245,6 +245,7 @@
     "previewClip": "Obejrzyj wybrany fragment",
     "clipSourceUnreadable": "Nie udało się odczytać filmu źródłowego",
     "accessDenied": "Nie masz dostępu do tego ucznia.",
+    "studentLoadError": "Nie udało się załadować danych ucznia.",
     "completedBadge": "Wykonano",
     "completedListTitle": "Wykonane techniki",
     "completedListEmpty": "Żadna technika nie została jeszcze wykonana.",

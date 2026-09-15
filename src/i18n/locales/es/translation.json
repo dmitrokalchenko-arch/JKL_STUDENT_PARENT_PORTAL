@@ -225,6 +225,7 @@
     "previewClip": "Ver el clip seleccionado",
     "clipSourceUnreadable": "No se pudo leer el vídeo original",
     "accessDenied": "No tienes acceso a este alumno.",
+    "studentLoadError": "No se pudieron cargar los datos del alumno.",
     "completedBadge": "Completada",
     "completedListTitle": "Técnicas completadas",
     "completedListEmpty": "Todavía no hay técnicas completadas.",

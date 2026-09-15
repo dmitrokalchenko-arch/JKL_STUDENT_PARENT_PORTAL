@@ -225,6 +225,7 @@
     "previewClip": "Geselecteerd fragment bekijken",
     "clipSourceUnreadable": "Bronvideo kon niet worden gelezen",
     "accessDenied": "U heeft geen toegang tot deze leerling.",
+    "studentLoadError": "Leerlinggegevens konden niet worden geladen.",
     "completedBadge": "Voltooid",
     "completedListTitle": "Voltooide technieken",
     "completedListEmpty": "Nog geen techniek voltooid.",

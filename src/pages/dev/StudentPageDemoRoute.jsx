@@ -29,6 +29,21 @@ import styles from './StudentPageDemoRoute.module.css';
 //   /dev/student-page-preview            -> bonus_program_enabled = true
 //   /dev/student-page-preview?bonus=disabled -> блок полностью отсутствует
 //
+// SHARED TRAINER STUDENT PAGE: тот же приём для accessMode — ?mode=trainer
+// показывает ровно то, что видит Trainer после useTrainerStudentProfile
+// (accessMode="trainer", БЕЗ nav-карточек — их сегодня нет ни у одного
+// реального trainer backend-источника — и БЕЗ Бонусных техник — этот блок
+// для Trainer сознательно НЕ подключён на этом шаге, см. итоговый отчёт
+// задачи). Реальные CompletedTechniquesList/JudoTechniquePicker сюда НЕ
+// подключаются — им нужна настоящая trainer-сессия (trainerSupabaseClient,
+// get_current_trainer_write_context), которой в анонимном demo нет и не
+// будет; они уже проверяются на реальном /trainer/student/:id под
+// TrainerAuthGuard. Демо показывает только сам shared presentation-каркас
+// (header/badge/StudentProfileCard), не trainer-only виджеты.
+//   /dev/student-page-preview?mode=trainer    -> accessMode="trainer"
+//   /dev/student-page-preview?mode=family     -> accessMode="family"
+//   /dev/student-page-preview (без mode)      -> accessMode="superadmin" (как раньше)
+//
 // НЕ обращается к Supabase, НЕ использует preview-токен, НЕ использует
 // family/trainer auth. Не влияет ни на один реальный маршрут/поток данных
 // (StudentPreviewPage/get-student-preview/FamilyDashboard/
@@ -65,6 +80,15 @@ function isDeployPreviewOrLocalDev() {
 function isBonusDisabledForDemo() {
   if (typeof window === 'undefined') return false;
   return new URLSearchParams(window.location.search).get('bonus') === 'disabled';
+}
+
+// dev-only — читает ?mode=family|trainer|superadmin ТОЛЬКО в этом файле.
+// Неизвестное/отсутствующее значение -> 'superadmin' (прежнее поведение
+// без параметра не меняется).
+function getDemoAccessMode() {
+  if (typeof window === 'undefined') return 'superadmin';
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  return mode === 'family' || mode === 'trainer' ? mode : 'superadmin';
 }
 
 // Полностью вымышленные данные — не связаны ни с одним реальным студентом.
@@ -162,19 +186,26 @@ export default function StudentPageDemoRoute() {
     return <div className={styles.notFound}>404 — Not Found</div>;
   }
 
+  const accessMode = getDemoAccessMode();
   const bonusEnabled = !isBonusDisabledForDemo();
+  // Trainer: Бонусные техники сегодня для этого accessMode сознательно не
+  // подключены (см. комментарий в шапке файла) — techniqueProgress здесь
+  // всегда undefined независимо от ?bonus=, ровно как у реального
+  // TrainerStudentPage.jsx. nav-карточки по той же причине тоже скрыты.
+  const showBonusSection = accessMode !== 'trainer';
 
   return (
     <StudentPageContent
-      accessMode="superadmin"
+      accessMode={accessMode}
       student={MOCK_STUDENT}
-      // undefined, когда bonus_program_enabled=false в demo — та же
-      // семантика, что buildTechniqueProgress возвращает null: секция
-      // полностью отсутствует, не "0/0", не "не настроено".
-      techniqueProgress={bonusEnabled ? MOCK_TECHNIQUE_PROGRESS : undefined}
+      // undefined, когда bonus_program_enabled=false в demo (или accessMode
+      // не поддерживает бонус пока) — та же семантика, что
+      // buildTechniqueProgress возвращает null: секция полностью
+      // отсутствует, не "0/0", не "не настроено".
+      techniqueProgress={showBonusSection && bonusEnabled ? MOCK_TECHNIQUE_PROGRESS : undefined}
       isTechniqueProgressLoading={false}
       techniqueProgressError={null}
-      showNavigationCards
+      showNavigationCards={accessMode !== 'trainer'}
       header={
         <div className={styles.devHeader}>
           <span className={`${styles.brand} ltr-isolate`}>
@@ -182,7 +213,8 @@ export default function StudentPageDemoRoute() {
             <span className={styles.logoSub}>CLUB</span>
           </span>
           <span className={styles.devBadge}>
-            DEV PREVIEW — mock data ({bonusEnabled ? 'bonus enabled' : 'bonus disabled'})
+            DEV PREVIEW — mock data ({accessMode}
+            {showBonusSection ? `, ${bonusEnabled ? 'bonus enabled' : 'bonus disabled'}` : ''})
           </span>
         </div>
       }

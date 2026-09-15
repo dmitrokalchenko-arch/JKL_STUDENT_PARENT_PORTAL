@@ -225,6 +225,7 @@
     "previewClip": "Seçili klibi önizle",
     "clipSourceUnreadable": "Kaynak video okunamadı",
     "accessDenied": "Bu öğrenciye erişiminiz yok.",
+    "studentLoadError": "Öğrenci verileri yüklenemedi.",
     "completedBadge": "Tamamlandı",
     "completedListTitle": "Tamamlanan teknikler",
     "completedListEmpty": "Henüz tamamlanan teknik yok.",

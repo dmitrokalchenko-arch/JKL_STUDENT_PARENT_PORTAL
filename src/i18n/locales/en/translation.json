@@ -225,6 +225,7 @@
     "previewClip": "Preview selected clip",
     "clipSourceUnreadable": "Could not read source video",
     "accessDenied": "You don't have access to this student.",
+    "studentLoadError": "Student data could not be loaded.",
     "completedBadge": "Completed",
     "completedListTitle": "Completed techniques",
     "completedListEmpty": "No technique completed yet.",
