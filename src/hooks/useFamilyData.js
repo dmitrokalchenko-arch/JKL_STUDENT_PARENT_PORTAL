@@ -12,6 +12,13 @@ export function useFamilyData() {
   // подтверждённая authenticated-сессия (иначе RPC не вызывается вовсе).
   const shouldLoad = !isSupabaseConfigured || isAuthenticated;
 
+  // isAuthenticated возвращается наружу (см. return ниже) СПЕЦИАЛЬНО для
+  // того, чтобы у вызывающего кода (FamilyDashboard) был РОВНО ОДИН
+  // источник правды об auth-статусе, синхронизированный с loading/children
+  // здесь же — НЕ вызывать useFamilySession() ещё раз отдельно в
+  // FamilyDashboard (см. PRODUCTION BUG FIX ниже, найденный при реальном
+  // production-инциденте).
+
   const [family, setFamily] = useState(EMPTY_FAMILY);
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(shouldLoad);
@@ -64,5 +71,5 @@ export function useFamilyData() {
     return cleanup;
   }, [load]);
 
-  return { family, children, loading, error, reload: load };
+  return { family, children, loading, error, reload: load, isAuthenticated };
 }
