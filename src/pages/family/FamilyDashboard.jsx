@@ -7,7 +7,6 @@ import AgeIndicator from '../../components/family/AgeIndicator.jsx';
 import RatingIndicator from '../../components/family/RatingIndicator.jsx';
 
 import { useFamilyData } from '../../hooks/useFamilyData.js';
-import { useFamilySession } from '../../hooks/useFamilySession.js';
 import { useSelectedChild } from '../../hooks/useSelectedChild.js';
 import { useActiveSection } from '../../hooks/useActiveSection.js';
 import { useTechniqueProgress } from '../../hooks/useTechniqueProgress.js';
@@ -19,13 +18,13 @@ import styles from './FamilyDashboard.module.css';
 
 export default function FamilyDashboard() {
   const { t } = useTranslation();
-  const { isAuthenticated } = useFamilySession();
   const {
     family,
     children,
     loading: isFamilyLoading,
     error: familyError,
-    reload: reloadFamily
+    reload: reloadFamily,
+    isAuthenticated
   } = useFamilyData();
   const { selectedChild, selectedId, selectChild } = useSelectedChild(children);
   const { activeSection, selectSection } = useActiveSection();
@@ -58,6 +57,27 @@ export default function FamilyDashboard() {
   // familyError) authenticated-сессия с children.length===0 трактуется как
   // "доступ закрыт" — сессия завершается, а не тихо показывает пустой
   // Dashboard, в котором остаётся ещё активный (хоть и бесполезный) токен.
+  //
+  // ⚠️ PRODUCTION BUG FIX (2026-09-15, реальный инцидент): isAuthenticated
+  // ЗДЕСЬ ОБЯЗАН приходить из ТОГО ЖЕ вызова useFamilyData()/useFamilySession()
+  // выше, что и family/children/loading — НЕ из отдельного собственного
+  // useFamilySession() в этом компоненте. Первая версия этой правки
+  // вызывала useFamilySession() здесь ЕЩЁ РАЗ отдельно — это два независимых
+  // экземпляра хука с независимыми промисами getSession()/подписками
+  // onAuthStateChange, которые резолвятся не синхронно друг с другом.
+  // Экземпляр здесь, в FamilyDashboard, стабильно резолвился НА РЕНДЕР
+  // РАНЬШЕ, чем внутренний экземпляр внутри useFamilyData (эффекты
+  // запускаются в порядке объявления хуков) — из-за этого на промежуточном
+  // рендере isAuthenticated здесь уже true, а useFamilyData ещё не успел
+  // выставить shouldLoad=true/loading=true и всё ещё отдавал children=[]
+  // из самого первого (домонтажного) состояния. Результат — isEmptyAfterRealLoad
+  // ложно становился true СРАЗУ после успешного входа, ДО того как реальный
+  // запрос данных семьи вообще начинался, и Family Dashboard мгновенно
+  // разлогинивал только что успешно вошедшую АКТИВНУЮ семью — внешне это
+  // выглядело как "нажал Войти — ничего не произошло" (реальный production-
+  // репорт). Один общий источник isAuthenticated ниже устраняет гонку
+  // полностью — оба сигнала теперь гарантированно из одного и того же
+  // рендер-цикла.
   const deactivationHandledRef = useRef(false);
   const isEmptyAfterRealLoad =
     isSupabaseConfigured && isAuthenticated && !isFamilyLoading && !familyError && children.length === 0;
