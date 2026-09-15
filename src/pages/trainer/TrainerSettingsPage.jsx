@@ -29,6 +29,28 @@ import styles from './TrainerSettingsPage.module.css';
 // а не на реальный production-экран, который видит каждый тренер.
 const TEMPLATE_STUDENT_KEY = 'trainerDashboard.settingsPageTemplateName';
 
+// TEMPLATE-состояние блока "Бонусные техники" — ЧИСТО статический объект,
+// без единого RPC/fetch. TechniqueProgressSection.jsx (импортируется
+// изнутри StudentPageContent, здесь напрямую не используется) — уже
+// полностью presentational-компонент: получает progressData/isLoading/
+// error/onRetry пропами и сам ничего не загружает. Family Student Page
+// использует этот же компонент через тот же прямой проп техника
+// StudentPageContent — та же самая связка, никакой отдельной копии.
+// featureEnabled:true + techniques:[] + bonusRequirement:null ->
+// selectTechniqueGroups даёт completed=[]/requiredNageWaza=[]/
+// requiredKatameWaza=[] -> компонент сам заходит в свою штатную
+// hasNoProgram-ветку (см. TechniqueProgressSection.jsx) и показывает тот
+// же честный "для этого пояса ещё не создана программа техник", что и для
+// реального ученика без настроенной программы — ни фейковых техник, ни
+// ошибки загрузки, ни малейшего намёка на student_id=78/Matviei.
+const TEMPLATE_TECHNIQUE_PROGRESS = {
+  featureEnabled: true,
+  bonusRequirement: null,
+  bonusPoints: null,
+  belt: null,
+  techniques: []
+};
+
 export default function TrainerSettingsPage() {
   const { t } = useTranslation();
 
@@ -42,6 +64,9 @@ export default function TrainerSettingsPage() {
         </div>
       }
       student={{ id: 'template', firstName: t(TEMPLATE_STUDENT_KEY), lastName: '' }}
+      techniqueProgress={TEMPLATE_TECHNIQUE_PROGRESS}
+      isTechniqueProgressLoading={false}
+      techniqueProgressError={null}
       showNavigationCards
     />
   );
