@@ -18,34 +18,55 @@ import styles from './TrainerStudentPage.module.css';
 // уже гарантирован выше по дереву — здесь остаётся только per-student
 // access check (см. useTrainerStudentProfile ниже).
 //
-// REAL TRAINER STUDENT PAGE: страница переведена на общий presentation-
+// TRAINER UNIVERSAL STUDENT PAGE: страница использует общий presentation-
 // каркас StudentPageContent (accessMode="trainer") — тот же, что уже
 // использует Super Admin Preview (accessMode="superadmin") и FamilyDashboard
-// (accessMode="family"), вместо собственной отдельной разметки. Bonus-
-// техники (техника progress-блок) сюда намеренно НЕ подключаются на этом
-// шаге — techniqueProgress не передаётся вовсе, секция просто не
-// рендерится (та же семантика, что и везде в StudentPageContent). Ряд
-// навигационных карточек ("Моя семья"/"Договор и оплата"/...) тоже
-// намеренно не показывается тренеру (showNavigationCards не передаётся) —
-// эти карточки принадлежат family-стороне (аккаунт/договор семьи), и для
-// тренера сегодня нет ни одного реального backend-источника под ними;
-// честный "подключим позже" в каждой из них был бы просто лишним шумом на
-// странице, а не полезной функциональностью.
+// (accessMode="family"). С миграции 20260915130056 (ещё НЕ применена к
+// production) get_trainer_student_by_id возвращает тот же набор
+// Block-1-профильных полей, что get_current_family_children() уже отдаёт
+// Family (sport/group/пояс/статус договора) — StudentProfileCard теперь
+// рендерит их одинаково независимо от accessMode, БЕЗ mock-данных. До
+// применения этой миграции production по-прежнему вернёт только
+// {id, vorname, nachname} (см. итоговый отчёт задачи) — остальные поля
+// просто не будут показаны, StudentProfileCard уже устойчив к их
+// отсутствию (см. её собственный комментарий).
 //
-// Каталог техник дзюдо + реальное сохранение выполненных техник ученика —
-// самостоятельная, УЖЕ полностью рабочая часть этой страницы, переехавшая
-// БЕЗ ИЗМЕНЕНИЙ ЛОГИКИ в children-слот StudentPageContent:
+// Bonus-техники (прогресс-блок) сюда НЕ подключаются на этом шаге —
+// techniqueProgress не передаётся вовсе, секция просто не рендерится (та
+// же семантика, что и везде в StudentPageContent) — отдельная задача, не
+// затронута здесь. Ряд навигационных карточек ("Моя семья"/"Договор и
+// оплата"/...) тоже намеренно не показывается тренеру (showNavigationCards
+// не передаётся) — эти карточки принадлежат family-стороне (аккаунт/
+// договор семьи), и для тренера сегодня нет ни одного реального
+// backend-источника под ними; честный "подключим позже" в каждой из них
+// был бы просто лишним шумом на странице, а не полезной функциональностью.
+//
+// ⚠️ LEGACY SECTION (см. children-слот ниже): "Выполненные техники" +
+// полный "Каталог техник" (все 100 judo_techniques) — старая, дошедшая с
+// прежнего этапа модель, где тренер мог отметить ЛЮБУЮ из 100 техник
+// каталога выполненной ученику. Это НЕ соответствует финальной продуктовой
+// модели Bonus Techniques (техника считается "выполненной" только если она
+// входит в bonus-пул ЭТОГО ученика — программу его уже полученного Kyu) —
+// но замена на bonus-пул СОЗНАТЕЛЬНО НЕ делается в этой задаче (задание:
+// "не переделывать их в Bonus Techniques… не трогать Kyu"). Секция
+// оставлена КАК ЕСТЬ, без изменений логики, временно, до отдельного
+// следующего этапа Bonus Techniques, который её заменит/встроит в общий
+// блок "Бонусные техники".
+//
+// Сама техническая часть — самостоятельная, УЖЕ полностью рабочая часть
+// этой страницы, переехавшая БЕЗ ИЗМЕНЕНИЙ ЛОГИКИ в children-слот
+// StudentPageContent:
 //   1) useStudentTechniqueRecords(studentId) — читает student_technique_records
 //      JOIN judo_techniques для ЭТОГО ученика (RLS: can_trainer_access_student).
 //   2) useTrainerWriteContext() — узнаёт {trainerRowId, clubId} текущего
 //      тренера через RPC get_current_trainer_write_context.
-//   3) useTrainerStudentProfile(studentId) — теперь ЕДИНСТВЕННЫЙ источник
-//      {id, firstName, lastName} для StudentPageContent's student-пропа И
-//      единственный page-level access-check (get_trainer_student_by_id сам
-//      вызывает can_trainer_access_student, 0 строк без ошибки = доступа
-//      нет — см. ветку ниже). Миграция 20260911090049 ещё НЕ применена к
-//      production (см. итоговый отчёт задачи) — до её применения этот путь
-//      в production покажет error-состояние ниже, не данные.
+//   3) useTrainerStudentProfile(studentId) — ЕДИНСТВЕННЫЙ источник профиля
+//      для StudentPageContent's student-пропа И единственный page-level
+//      access-check (get_trainer_student_by_id сам вызывает
+//      can_trainer_access_student, 0 строк без ошибки = доступа нет — см.
+//      ветку ниже). Familienzugang/families.status/family_students.status
+//      здесь НИГДЕ не участвуют — Trainer-доступ к Student Page не зависит
+//      от семейного доступа (см. итоговый отчёт задачи).
 //   4) pendingTechnique — какая техника прямо сейчас ждёт подтверждения в
 //      модалке; клик "Отметить как выполнено" в JudoTechniquePicker
 //      больше НЕ делает INSERT сразу, только открывает модалку — сам
@@ -179,6 +200,9 @@ export default function TrainerStudentPage({ studentId }) {
           <div className={styles.warningBanner}>{t('trainerTechniques.couldNotDeletePerformanceVideo')}</div>
         )}
 
+        {/* LEGACY — см. комментарий в шапке файла: полный каталог 100
+            techniques, будет заменён bonus-пулом в отдельной следующей
+            задаче. Логика ниже не менялась. */}
         <h2 className={styles.sectionTitle}>{t('trainerTechniques.completedListTitle')}</h2>
         <CompletedTechniquesList
           records={records}
