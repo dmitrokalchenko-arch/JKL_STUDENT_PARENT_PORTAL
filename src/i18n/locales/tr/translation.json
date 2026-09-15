@@ -31,7 +31,12 @@
     "genericError": "Giriş başarısız. Lütfen tekrar deneyin.",
     "trainerTitle": "Antrenör Girişi",
     "trainerLoginLabel": "Kullanıcı adı",
-    "familyAccessDeactivated": "Aile hesabına erişim devre dışı bırakıldı."
+    "familyAccessDeactivated": "Aile hesabına erişim devre dışı bırakıldı.",
+    "loginLabel": "Kullanıcı adı",
+    "chooseAccountTitle": "Şu olarak giriş yap",
+    "chooseAccountTrainer": "Antrenör",
+    "chooseAccountFamily": "Aile / Öğrenci",
+    "invalidLoginOrPassword": "Geçersiz kullanıcı adı veya şifre."
   },
   "childSelector": {
     "label": "Bir çocuk seçin:"

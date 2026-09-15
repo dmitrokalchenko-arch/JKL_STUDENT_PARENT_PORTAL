@@ -31,7 +31,12 @@
     "genericError": "No se pudo iniciar sesión. Inténtalo de nuevo.",
     "trainerTitle": "Acceso de entrenador",
     "trainerLoginLabel": "Usuario",
-    "familyAccessDeactivated": "El acceso a la cuenta familiar ha sido desactivado."
+    "familyAccessDeactivated": "El acceso a la cuenta familiar ha sido desactivado.",
+    "loginLabel": "Usuario",
+    "chooseAccountTitle": "Iniciar sesión como",
+    "chooseAccountTrainer": "Entrenador",
+    "chooseAccountFamily": "Familia / Alumno",
+    "invalidLoginOrPassword": "Usuario o contraseña incorrectos."
   },
   "childSelector": {
     "label": "Selecciona un hijo/a:"

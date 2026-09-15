@@ -39,7 +39,12 @@
     "genericError": "فشل تسجيل الدخول. حاول مرة أخرى.",
     "trainerTitle": "تسجيل دخول المدرب",
     "trainerLoginLabel": "اسم الدخول",
-    "familyAccessDeactivated": "تم إلغاء تفعيل الوصول إلى حساب العائلة."
+    "familyAccessDeactivated": "تم إلغاء تفعيل الوصول إلى حساب العائلة.",
+    "loginLabel": "اسم الدخول",
+    "chooseAccountTitle": "تسجيل الدخول باسم",
+    "chooseAccountTrainer": "المدرب",
+    "chooseAccountFamily": "العائلة / الطالب",
+    "invalidLoginOrPassword": "اسم الدخول أو كلمة المرور غير صحيحة."
   },
   "childSelector": {
     "label": "اختر الطفل:"

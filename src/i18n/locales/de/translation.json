@@ -31,7 +31,12 @@
     "genericError": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
     "trainerTitle": "Trainer-Anmeldung",
     "trainerLoginLabel": "Login",
-    "familyAccessDeactivated": "Der Zugang zum Familienkonto wurde deaktiviert."
+    "familyAccessDeactivated": "Der Zugang zum Familienkonto wurde deaktiviert.",
+    "loginLabel": "Login",
+    "chooseAccountTitle": "Anmelden als",
+    "chooseAccountTrainer": "Trainer",
+    "chooseAccountFamily": "Familie / Schüler",
+    "invalidLoginOrPassword": "Ungültiger Login oder Passwort."
   },
   "passwordReset": {
     "title": "Neues Passwort festlegen",

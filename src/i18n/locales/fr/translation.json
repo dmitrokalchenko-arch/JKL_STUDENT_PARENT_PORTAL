@@ -31,7 +31,12 @@
     "genericError": "Échec de la connexion. Veuillez réessayer.",
     "trainerTitle": "Connexion entraîneur",
     "trainerLoginLabel": "Identifiant",
-    "familyAccessDeactivated": "L'accès au compte familial a été désactivé."
+    "familyAccessDeactivated": "L'accès au compte familial a été désactivé.",
+    "loginLabel": "Identifiant",
+    "chooseAccountTitle": "Se connecter en tant que",
+    "chooseAccountTrainer": "Entraîneur",
+    "chooseAccountFamily": "Famille / Élève",
+    "invalidLoginOrPassword": "Identifiant ou mot de passe incorrect."
   },
   "childSelector": {
     "label": "Choisissez un enfant :"
