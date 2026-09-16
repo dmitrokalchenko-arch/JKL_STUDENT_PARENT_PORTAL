@@ -42,11 +42,29 @@ export const STUDENT_PAGE_ACCESS_MODES = ['family', 'trainer', 'superadmin'];
 // header/selector — pass-through в DashboardLayout: у каждой роли своя
 // шапка (Family: приветствие+выход, Trainer: back-кнопка, Super Admin
 // Preview: бренд+бейдж) — этот компонент не диктует, как она выглядит.
+//
+// profileMode/fieldVisibility/onFieldToggle — чистый pass-through в
+// StudentProfileCard (см. её собственный комментарий про normal/settings
+// режимы). Все три не заданы почти везде (Family/Trainer Student Page/
+// Super Admin Preview) — StudentProfileCard в этом случае ведёт себя
+// ТОЧНО как до PR "student-profile-visual-configurator". Единственный
+// вызывающий код, который их передаёт — TrainerSettingsPage
+// (mode="settings", club-wide конструктор /trainer/settings).
+//
+// futureRatingPlaceholder — необязательный узел между профилем и
+// TechniqueProgressSection. undefined везде, кроме /trainer/settings —
+// зарезервированное место будущего блока "Рейтинг и допуск к следующему
+// Kyu" (см. TrainerSettingsPage), никакой реальной rating-логики здесь и
+// там нет.
 export default function StudentPageContent({
   student,
   accessMode,
   header,
   selector,
+  profileMode,
+  fieldVisibility,
+  onFieldToggle,
+  futureRatingPlaceholder,
   techniqueProgress,
   isTechniqueProgressLoading,
   techniqueProgressError,
@@ -84,8 +102,15 @@ export default function StudentPageContent({
       <span className={styles.modeBadge}>{t(`studentPage.accessMode.${mode}`)}</span>
 
       <div className={styles.overviewRow}>
-        <StudentProfileCard child={student} />
+        <StudentProfileCard
+          child={student}
+          mode={profileMode}
+          fieldVisibility={fieldVisibility}
+          onFieldToggle={onFieldToggle}
+        />
       </div>
+
+      {futureRatingPlaceholder}
 
       {techniqueProgress !== undefined && (
         <TechniqueProgressSection

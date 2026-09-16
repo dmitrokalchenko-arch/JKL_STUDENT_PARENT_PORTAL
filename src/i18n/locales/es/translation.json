@@ -46,7 +46,21 @@
     "nextBelt": "Siguiente cinturón",
     "sport": "Deporte",
     "group": "Grupo",
-    "contractStatus": "Estado del contrato"
+    "contractStatus": "Estado del contrato",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "gender": "Sexo",
+    "birthDate": "Fecha de nacimiento",
+    "age": "Edad",
+    "weight": "Peso",
+    "trainingSchedule": "Horario de entrenamiento",
+    "trainer": "Entrenador",
+    "kyuGrade": "Grado Kyu",
+    "beltColor": "Color del cinturón",
+    "phone": "Teléfono",
+    "email": "Correo electrónico",
+    "contractDate": "Fecha del contrato",
+    "photo": "Foto"
   },
   "exam": {
     "title": "Edad mínima para el examen",
@@ -269,6 +283,14 @@
       "trainer": "Entrenador",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Los datos de esta sección se conectarán en un paso posterior."
+    "sectionNotConnectedYet": "Los datos de esta sección se conectarán en un paso posterior.",
+    "settingsMode": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "futureRatingBlock": {
+      "title": "Puntuación y elegibilidad para el siguiente Kyu",
+      "description": "Sección futura: progreso de puntuación y requisito de edad"
+    }
   }
 }

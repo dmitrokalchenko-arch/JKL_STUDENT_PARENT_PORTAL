@@ -50,7 +50,21 @@
     "nextBelt": "Наступний пояс",
     "sport": "Вид спорту",
     "group": "Група",
-    "contractStatus": "Статус договору"
+    "contractStatus": "Статус договору",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
+    "gender": "Стать",
+    "birthDate": "Дата народження",
+    "age": "Вік",
+    "weight": "Вага",
+    "trainingSchedule": "Розклад тренувань",
+    "trainer": "Тренер",
+    "kyuGrade": "Kyu",
+    "beltColor": "Колір пояса",
+    "phone": "Телефон",
+    "email": "E-Mail",
+    "contractDate": "Дата договору",
+    "photo": "Фото"
   },
   "exam": {
     "title": "Вік допуску до іспиту",
@@ -289,6 +303,14 @@
       "trainer": "Тренер",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Дані цього розділу буде підключено на наступному етапі."
+    "sectionNotConnectedYet": "Дані цього розділу буде підключено на наступному етапі.",
+    "settingsMode": {
+      "active": "Активно",
+      "inactive": "Вимкнено"
+    },
+    "futureRatingBlock": {
+      "title": "Рейтинг і допуск до наступного Kyu",
+      "description": "Майбутній блок: прогрес рейтингу та вікового нормативу"
+    }
   }
 }

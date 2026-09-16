@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
@@ -6,29 +7,46 @@ import styles from './TrainerSettingsPage.module.css';
 
 // CLUB-WIDE STUDENT PAGE SETTINGS MODE — открывается карточкой «Настроить
 // вид страницы ученика» с Trainer Dashboard (/trainer/settings, маршрут не
-// менялся). ПЕРЕСМОТРЕНО (см. отчёт задачи): это НЕ отдельный Settings
-// Hub со своим дизайном (предыдущая версия — grid из TrainerDashboardCard —
-// заменена, TrainerDashboardCard/конфиг-массив здесь больше не
-// используются) — это тот же самый StudentPageContent (accessMode=
-// "trainer"), что и на /trainer/student/:id, но БЕЗ данных конкретного
-// ученика. Trainer должен видеть ЗДЕСЬ ту же страницу, что он видит для
-// Matviei Sukonko — потому что здесь позже, отдельной задачей, появятся
-// органы управления, влияющие на ОБЩИЙ шаблон Student Page ВСЕХ учеников
-// клуба (club-wide scope), а не только на этого одного ученика
-// (student-specific scope у /trainer/student/:id остаётся отдельным и не
-// затронут). Разделение ролей и scope НЕ через новый accessMode
-// ("trainer" — это по-прежнему просто роль, кто смотрит) — сама разница
-// "student vs club-settings" выражается ЗДЕСЬ, в том, что этой странице
-// сознательно НЕ передаётся ничей реальный student.
+// менялся). Это тот же самый StudentPageContent (accessMode="trainer"),
+// что и на /trainer/student/:id, но верхняя карточка (StudentProfileCard)
+// здесь работает в mode="settings" — WYSIWYG-конструктор видимости полей
+// (см. итоговый отчёт задачи "student-profile-visual-configurator").
 //
-// TEMPLATE_STUDENT ниже — НЕ mock ученика (никаких Vorname/Nachname,
-// похожих на настоящее имя, никакого вида спорта/группы/пояса/статуса
-// договора — только один нейтральный ярлык в поле "имени" карточки).
-// Сознательно НЕ переиспользует MOCK_STUDENT из StudentPageDemoRoute.jsx —
-// тот выглядит как настоящий ученик (Max Mustermann + реалистичные
-// вид спорта/группа/пояс) и рассчитан на dev/Deploy-Preview демонстрацию,
-// а не на реальный production-экран, который видит каждый тренер.
-const TEMPLATE_STUDENT_KEY = 'trainerDashboard.settingsPageTemplateName';
+// fieldVisibility — ЧИСТО frontend-only React state этой страницы. Нигде
+// не сохраняется (ни localStorage, ни БД) — намеренно, согласно заданию:
+// "НЕ сохранять настройки в БД... сейчас делаем только визуальную
+// архитектуру и интерактивный prototype/state внутри frontend". После
+// reload страницы состояние сбрасывается к DEFAULT_PROFILE_FIELD_VISIBILITY
+// — это ожидаемо для этого этапа, а не баг.
+//
+// DEFAULT_PROFILE_FIELD_VISIBILITY подобран по РЕАЛЬНОМУ сегодняшнему
+// production-виду StudentProfileCard (см. аудит задачи "Club-Wide
+// настройка полей StudentProfileCard"): true — для полей, которые
+// Family/Trainer уже видят сегодня (firstName/lastName/age/sport/group/
+// trainingSchedule/kyuGrade+beltColor/contractStatus); false — для полей,
+// которых сегодня на карточке нет вообще (gender/birthDate/weight/
+// trainer/phone/email/contractDate) — ни один из них НЕ подключён к
+// реальным данным в этом PR (RPC/RLS/Block 1 не менялись), toggle здесь
+// влияет ТОЛЬКО на вид этого конструктора, не на реальные Student Pages.
+const DEFAULT_PROFILE_FIELD_VISIBILITY = {
+  photo: true,
+  firstName: true,
+  lastName: true,
+  gender: false,
+  birthDate: false,
+  age: true,
+  weight: false,
+  sport: true,
+  group: true,
+  trainingSchedule: true,
+  trainer: false,
+  kyuGrade: true,
+  beltColor: true,
+  phone: false,
+  email: false,
+  contractStatus: true,
+  contractDate: false
+};
 
 // TEMPLATE-состояние блока "Бонусные техники" — ЧИСТО статический объект,
 // без единого RPC/fetch. TechniqueProgressSection.jsx (импортируется
@@ -54,10 +72,15 @@ const TEMPLATE_TECHNIQUE_PROGRESS = {
 
 export default function TrainerSettingsPage() {
   const { t } = useTranslation();
+  const [fieldVisibility, setFieldVisibility] = useState(DEFAULT_PROFILE_FIELD_VISIBILITY);
 
   const handleLogout = async () => {
     await signOutTrainer();
     window.location.href = '/';
+  };
+
+  const handleFieldToggle = (key) => {
+    setFieldVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -69,7 +92,23 @@ export default function TrainerSettingsPage() {
           <div className={styles.scopeNote}>{t('trainerDashboard.settingsPageScopeNote')}</div>
         </div>
       }
-      student={{ id: 'template', firstName: t(TEMPLATE_STUDENT_KEY), lastName: '' }}
+      profileMode="settings"
+      fieldVisibility={fieldVisibility}
+      onFieldToggle={handleFieldToggle}
+      futureRatingPlaceholder={
+        // Зарезервированное место будущего блока "Рейтинг и допуск к
+        // следующему Kyu" (задание, раздел 12-13) — ТОЛЬКО нейтральный
+        // текстовый placeholder, без единой цифры/прогресс-бара/формулы.
+        // Показывается ИСКЛЮЧИТЕЛЬНО здесь (Settings Mode) — реальные
+        // Family/Trainer Student Page его не получают вовсе (проп не
+        // передаётся), см. StudentPageContent.
+        <div className={styles.ratingPlaceholder}>
+          <div className={styles.ratingPlaceholderTitle}>{t('studentPage.futureRatingBlock.title')}</div>
+          <div className={styles.ratingPlaceholderDescription}>
+            {t('studentPage.futureRatingBlock.description')}
+          </div>
+        </div>
+      }
       techniqueProgress={TEMPLATE_TECHNIQUE_PROGRESS}
       isTechniqueProgressLoading={false}
       techniqueProgressError={null}

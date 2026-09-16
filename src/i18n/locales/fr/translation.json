@@ -46,7 +46,21 @@
     "nextBelt": "Ceinture suivante",
     "sport": "Sport",
     "group": "Groupe",
-    "contractStatus": "Statut du contrat"
+    "contractStatus": "Statut du contrat",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "gender": "Sexe",
+    "birthDate": "Date de naissance",
+    "age": "Âge",
+    "weight": "Poids",
+    "trainingSchedule": "Horaire d'entraînement",
+    "trainer": "Entraîneur",
+    "kyuGrade": "Grade Kyu",
+    "beltColor": "Couleur de ceinture",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "contractDate": "Date du contrat",
+    "photo": "Photo"
   },
   "exam": {
     "title": "Âge d'admission à l'examen",
@@ -269,6 +283,14 @@
       "trainer": "Entraîneur",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Les données de cette section seront connectées à une étape ultérieure."
+    "sectionNotConnectedYet": "Les données de cette section seront connectées à une étape ultérieure.",
+    "settingsMode": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "futureRatingBlock": {
+      "title": "Classement et éligibilité au Kyu suivant",
+      "description": "Section future : progression du classement et de la condition d'âge"
+    }
   }
 }

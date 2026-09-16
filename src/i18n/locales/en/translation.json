@@ -46,7 +46,21 @@
     "nextBelt": "Next belt",
     "sport": "Sport",
     "group": "Group",
-    "contractStatus": "Contract status"
+    "contractStatus": "Contract status",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "gender": "Gender",
+    "birthDate": "Date of birth",
+    "age": "Age",
+    "weight": "Weight",
+    "trainingSchedule": "Training schedule",
+    "trainer": "Trainer",
+    "kyuGrade": "Kyu grade",
+    "beltColor": "Belt color",
+    "phone": "Phone",
+    "email": "Email",
+    "contractDate": "Contract date",
+    "photo": "Photo"
   },
   "exam": {
     "title": "Minimum age for the exam",
@@ -270,6 +284,14 @@
       "trainer": "Trainer",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Data for this section will be connected in a later step."
+    "sectionNotConnectedYet": "Data for this section will be connected in a later step.",
+    "settingsMode": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "futureRatingBlock": {
+      "title": "Rating and next Kyu eligibility",
+      "description": "Future block: rating and age requirement progress"
+    }
   }
 }

@@ -71,3 +71,53 @@
   border-radius: 50%;
   display: inline-block;
 }
+
+/* Settings Mode (WYSIWYG-конструктор /trainer/settings) — та же .card/
+   .avatar/.info геометрия, что и normal mode, просто вместо реальных
+   строк .beltRow рендерится фиксированный список .settingsRow на каждый
+   из 17 display slots (см. StudentProfileCard.jsx). */
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.15s ease;
+}
+
+.settingsRow:last-child {
+  border-bottom: none;
+}
+
+.settingsRowInactive {
+  opacity: 0.45;
+}
+
+.settingsFieldLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.fieldToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fieldToggle:hover {
+  border-color: var(--color-gold);
+}
+
+.fieldToggleActive {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}

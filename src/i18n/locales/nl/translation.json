@@ -46,7 +46,21 @@
     "nextBelt": "Volgende band",
     "sport": "Sport",
     "group": "Groep",
-    "contractStatus": "Contractstatus"
+    "contractStatus": "Contractstatus",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "gender": "Geslacht",
+    "birthDate": "Geboortedatum",
+    "age": "Leeftijd",
+    "weight": "Gewicht",
+    "trainingSchedule": "Trainingsschema",
+    "trainer": "Trainer",
+    "kyuGrade": "Kyu-graad",
+    "beltColor": "Bandkleur",
+    "phone": "Telefoon",
+    "email": "E-mail",
+    "contractDate": "Contractdatum",
+    "photo": "Foto"
   },
   "exam": {
     "title": "Minimumleeftijd voor het examen",
@@ -269,6 +283,14 @@
       "trainer": "Trainer",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld."
+    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld.",
+    "settingsMode": {
+      "active": "Actief",
+      "inactive": "Inactief"
+    },
+    "futureRatingBlock": {
+      "title": "Ranking en toelating tot volgende Kyu",
+      "description": "Toekomstig onderdeel: voortgang ranking en leeftijdseis"
+    }
   }
 }

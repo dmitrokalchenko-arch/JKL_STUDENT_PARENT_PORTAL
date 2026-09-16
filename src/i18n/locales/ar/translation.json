@@ -54,7 +54,21 @@
     "nextBelt": "الحزام التالي",
     "sport": "الرياضة",
     "group": "المجموعة",
-    "contractStatus": "حالة العقد"
+    "contractStatus": "حالة العقد",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "gender": "الجنس",
+    "birthDate": "تاريخ الميلاد",
+    "age": "العمر",
+    "weight": "الوزن",
+    "trainingSchedule": "جدول التدريب",
+    "trainer": "المدرب",
+    "kyuGrade": "درجة كيو",
+    "beltColor": "لون الحزام",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "contractDate": "تاريخ العقد",
+    "photo": "الصورة"
   },
   "exam": {
     "title": "الحد الأدنى لسن الاختبار",
@@ -309,6 +323,14 @@
       "trainer": "المدرب",
       "superadmin": "المشرف العام"
     },
-    "sectionNotConnectedYet": "سيتم ربط بيانات هذا القسم في خطوة لاحقة."
+    "sectionNotConnectedYet": "سيتم ربط بيانات هذا القسم في خطوة لاحقة.",
+    "settingsMode": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "futureRatingBlock": {
+      "title": "التصنيف والأهلية للكيو التالي",
+      "description": "قسم مستقبلي: تقدم التصنيف ومتطلبات العمر"
+    }
   }
 }
