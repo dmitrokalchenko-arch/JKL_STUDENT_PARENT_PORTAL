@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { familyMock } from '../mocks/familyMock.js';
 import { childrenMock } from '../mocks/childrenMock.js';
+import { calculateAge, formatBirthDate } from '../utils/studentProfileFormatting.js';
 
 function getMockFamilyChildren() {
   return {
@@ -49,23 +50,43 @@ export async function getCurrentFamilyChildren() {
       id: firstRow?.family_id ?? null,
       displayName: firstRow?.family_display_name ?? ''
     },
-    // age/birthYear/sportName/groupName/trainingSchedule/beltLabel/
-    // contractStatus — Block-1-Basisdaten (migration 20260901100040), NUR
-    // wenn in students/groups/sports tatsächlich gepflegt (LEFT JOIN kann
-    // NULL liefern, z. B. Schüler ohne zugewiesene Gruppe) — Komponenten
-    // (StudentProfileCard/ChildSelector) rendern jedes Feld schon heute nur
-    // bei Vorhandensein, siehe dortige Kommentare.
+    // age/birthYear/sportName/groupName/trainingSchedule/contractStatus —
+    // Block-1-Basisdaten (migration 20260901100040), NUR wenn in students/
+    // groups/sports tatsächlich gepflegt (LEFT JOIN kann NULL liefern, z. B.
+    // Schüler ohne zugewiesene Gruppe) — Komponenten (StudentProfileCard/
+    // ChildSelector) rendern jedes Feld schon heute nur bei Vorhandensein.
+    //
+    // STUDENT PROFILE DATA PIPELINE AUDIT (задача "student-profile-data-
+    // pipeline-audit"): age теперь ВСЕГДА вычисляется из student_birthdate
+    // через calculateAge() — НЕ из row.student_age (та же ненадёжная
+    // хранимая колонка students.alter, что и в trainerStudentsService.js,
+    // см. её комментарий). birthDate — отформатированная строка для прямого
+    // отображения (DD.MM.YYYY). gender/weight/phone/email/photoUrl/
+    // trainerName — новые поля, требуют миграции 20260916160059
+    // (⚠️ ПРЕДЛОЖЕНИЕ, ещё НЕ применена к production на этом шаге) — до её
+    // применения соответствующие row.* будут undefined, поля просто не
+    // отрендерятся. kyuGrade/beltColorName — раздельные поля вместо
+    // единого beltLabel (toggle'ы Kyu/Цвет пояса независимы) — beltLabel
+    // здесь больше не устанавливается для реальных данных.
     children: rows.map((row) => ({
       id: row.student_id,
       firstName: row.student_first_name,
       lastName: row.student_last_name,
       clubId: row.club_id,
-      age: row.student_age ?? null,
+      gender: row.student_gender ?? null,
+      birthDate: formatBirthDate(row.student_birthdate),
+      age: calculateAge(row.student_birthdate),
       birthYear: row.student_birthdate ? row.student_birthdate.slice(0, 4) : null,
+      weight: row.aktuelles_gewicht ?? null,
       sportName: row.sport_name ?? null,
       groupName: row.group_name ?? null,
       trainingSchedule: [row.training_day, row.training_time].filter(Boolean).join(' · ') || null,
-      beltLabel: [row.belt_color, row.kyu_grade].filter(Boolean).join(' · ') || null,
+      trainerName: row.trainer_names ?? null,
+      kyuGrade: row.kyu_grade ?? null,
+      beltColorName: row.belt_color ?? null,
+      phone: row.telefon ?? null,
+      email: row.email ?? null,
+      photoUrl: row.foto_url || null,
       contractStatus: row.contract_status ?? null
     }))
   };

@@ -88,15 +88,20 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
   const visible = (key) => isFieldVisible(fieldVisibility, key);
 
   // age/birthYear/currentBelt/nextBelt (Mock-Form: {color,key}) пока
-  // приходят только из mock-данных. sportName/groupName/beltLabel
-  // (готовые строки, не i18n-key) приходят из реального RPC. Каждая
-  // строка рендерится только если есть — карточка не падает на реальных
-  // данных, просто показывает меньше блоков.
-  //
-  // gender/birthDate/weight/trainerName/kyuGrade/beltColorName/phone/
-  // email — НОВЫЕ display slots. Ни один текущий сервис их не заполняет —
-  // эти блоки СЕГОДНЯ не рендерятся никогда ни для одного accessMode, это
-  // подготовка на будущее (RPC/RLS/Block 1 в этом PR не менялись).
+  // приходят только из mock-данных. Реальные данные (Family/Trainer/Super
+  // Admin Preview) заполняют firstName/lastName/gender/birthDate/age/
+  // weight/sportName/groupName/trainerName/kyuGrade/beltColorName/phone/
+  // email/photoUrl — см. familyDataService.js/trainerStudentsService.js/
+  // get-student-preview (задача "student-profile-data-pipeline-audit").
+  // age ВСЕГДА вычисляется из даты рождения через calculateAge() на
+  // уровне сервиса, не хранится статично. weight/phone/email/photoUrl/
+  // trainerName у Family/Trainer пайплайнов требуют миграции
+  // 20260916160059 (⚠️ ПРЕДЛОЖЕНИЕ, ещё НЕ применена к production на этом
+  // шаге) — до её применения соответствующие значения будут undefined,
+  // строка просто не рендерится (тот же safe-fallback, что и всегда).
+  // Каждая строка рендерится только если поле ACTIVE И значение реально
+  // есть у ученика — ACTIVE-но-пустое значение НЕ показывает бессмысленную
+  // строку (задание, раздел 8).
   //
   // trainingSchedule/contractStatus/contractDate ПОЛНОСТЬЮ убраны из этого
   // компонента (задание "student-profile-club-wide-config", раздел 4) —
@@ -162,20 +167,29 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
           </div>
         )}
 
-        {visible('kyuGrade') && child.kyuGrade && (
+        {/* Kyu/Цвет пояса — ОДНА объединённая строка, а не два независимых
+            .beltRow, потому что toggle'ы управляют ЧАСТЯМИ одного и того же
+            смыслового значения "пояс" (задание "student-profile-data-
+            pipeline-audit", раздел 10): kyuGrade+beltColor оба ACTIVE ->
+            "gelb · 7. Kyu"; только один ACTIVE -> показывается только он;
+            оба INACTIVE -> строка отсутствует целиком. Порядок — цвет,
+            затем Kyu (тот же порядок, что уже был у комбинированного
+            beltLabel: "gelb · 7. Kyu"). */}
+        {((visible('beltColor') && child.beltColorName) || (visible('kyuGrade') && child.kyuGrade)) && (
           <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.kyuGrade')}</span>
-            <span className={styles.beltValue}>{child.kyuGrade}</span>
+            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
+            <span className={styles.beltValue}>
+              {[visible('beltColor') && child.beltColorName, visible('kyuGrade') && child.kyuGrade]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
           </div>
         )}
 
-        {visible('beltColor') && child.beltColorName && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.beltColor')}</span>
-            <span className={styles.beltValue}>{child.beltColorName}</span>
-          </div>
-        )}
-
+        {/* currentBelt/nextBelt — ТОЛЬКО mock-данные (childrenMock.js,
+            {color,key}-форма), реальные RPC этот shape никогда не задают —
+            не конфликтует с блоком выше (реальные данные используют
+            kyuGrade/beltColorName, mock их не устанавливает). */}
         {(visible('kyuGrade') || visible('beltColor')) && child.currentBelt && (
           <div className={styles.beltRow}>
             <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
@@ -193,13 +207,6 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
               <span className={styles.beltDot} style={{ background: child.nextBelt.color }} />
               {t(child.nextBelt.key)}
             </span>
-          </div>
-        )}
-
-        {(visible('kyuGrade') || visible('beltColor')) && child.beltLabel && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
-            <span className={styles.beltValue}>{child.beltLabel}</span>
           </div>
         )}
 
