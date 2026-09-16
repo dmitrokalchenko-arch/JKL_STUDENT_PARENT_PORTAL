@@ -11,6 +11,7 @@ import { useTrainerWriteContext } from '../../hooks/useTrainerWriteContext.js';
 import { useTrainerStudentProfile } from '../../hooks/useTrainerStudentProfile.js';
 import { useStudentTechniqueRecords } from '../../hooks/useStudentTechniqueRecords.js';
 import { useUnmarkTechniqueCompleted } from '../../hooks/useUnmarkTechniqueCompleted.js';
+import { signOutTrainer } from '../../services/trainerAuthService.js';
 import styles from './TrainerStudentPage.module.css';
 
 // Маршрут /trainer/student/:studentId — рендерится ВНУТРИ TrainerAuthGuard
@@ -143,6 +144,11 @@ export default function TrainerStudentPage({ studentId }) {
 
   const completedTechniqueIds = useMemo(() => new Set((records ?? []).map((r) => r.techniqueId)), [records]);
 
+  const handleLogout = async () => {
+    await signOutTrainer();
+    window.location.href = '/';
+  };
+
   // Авто-скрытие предупреждения об неудачном video cleanup — не нужен
   // отдельный "закрыть" контрол/i18n-ключ (не входит в явный список
   // задания), но и оставлять его висеть навсегда до следующей отмены было
@@ -184,7 +190,13 @@ export default function TrainerStudentPage({ studentId }) {
   return (
     <StudentPageContent
       accessMode="trainer"
-      header={<TrainerHeader title={`${student.firstName ?? ''} ${student.lastName ?? ''}`.trim()} showBack />}
+      header={
+        <TrainerHeader
+          title={`${student.firstName ?? ''} ${student.lastName ?? ''}`.trim()}
+          showBack
+          onLogout={handleLogout}
+        />
+      }
       student={student}
     >
       <div className={styles.content}>

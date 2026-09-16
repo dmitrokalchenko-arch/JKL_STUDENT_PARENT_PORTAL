@@ -3,6 +3,7 @@ import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
 import TrainerStudentSearch from '../../components/trainer/TrainerStudentSearch.jsx';
 import TrainerGroupsSection from '../../components/trainer/TrainerGroupsSection.jsx';
 import { useTrainerGroups } from '../../hooks/useTrainerGroups.js';
+import { signOutTrainer } from '../../services/trainerAuthService.js';
 import styles from './TrainerStudentsScreen.module.css';
 
 // Открывается карточкой «Schüler suchen» с Dashboard (/trainer/students).
@@ -11,13 +12,21 @@ import styles from './TrainerStudentsScreen.module.css';
 // теряется. Поиск ученика (TrainerStudentSearch, search_trainer_students,
 // migration 018) размещён в верхней части экрана, над списком групп —
 // после выбора подсказки переходит на /trainer/student/:studentId.
+//
+// handleLogout — см. подробный комментарий в TrainerDashboard.jsx (тот же
+// паттерн: signOutTrainer() без изменений + явный переход на `/`).
 export default function TrainerStudentsScreen() {
   const { t } = useTranslation();
   const { groups, isLoading, error, refetch } = useTrainerGroups();
 
+  const handleLogout = async () => {
+    await signOutTrainer();
+    window.location.href = '/';
+  };
+
   return (
     <div className={styles.page}>
-      <TrainerHeader title={t('trainerDashboard.findStudentTitle')} showBack />
+      <TrainerHeader title={t('trainerDashboard.findStudentTitle')} showBack onLogout={handleLogout} />
 
       <div className={styles.content}>
         <TrainerStudentSearch />
