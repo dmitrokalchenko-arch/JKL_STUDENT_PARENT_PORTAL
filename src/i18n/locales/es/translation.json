@@ -292,5 +292,28 @@
       "title": "Puntuación y elegibilidad para el siguiente Kyu",
       "description": "Sección futura: progreso de puntuación y requisito de edad"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Página del alumno",
+    "cardSubtitle": "Elige qué campos de información se muestran en la página del alumno.",
+    "columns": {
+      "basic": "Información básica",
+      "personal": "Datos personales",
+      "sport": "Información deportiva",
+      "qualification": "Calificación",
+      "contact": "Datos de contacto"
+    },
+    "trainingScheduleNote": "El horario de entrenamiento está disponible en la sección «Mis entrenamientos»",
+    "futureBadge": "Sección futura",
+    "showOnStudentPage": "Mostrar esta sección en la página del alumno",
+    "navigationTitle": "Secciones de navegación",
+    "navigationSubtitle": "Elige qué secciones se muestran en la parte inferior de la página del alumno.",
+    "saveButton": "Guardar configuración",
+    "discardButton": "Descartar cambios",
+    "savedMessage": "Configuración guardada",
+    "saveError": "Error al guardar",
+    "unsavedChanges": "Hay cambios sin guardar",
+    "saving": "Guardando…",
+    "bonusDescription": "Progreso en el aprendizaje de las técnicas bonus para el cinturón actual."
   }
 }

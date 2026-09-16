@@ -293,5 +293,28 @@
       "title": "Rating and next Kyu eligibility",
       "description": "Future block: rating and age requirement progress"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Student page",
+    "cardSubtitle": "Choose which information fields are shown on the student page.",
+    "columns": {
+      "basic": "Basic information",
+      "personal": "Personal data",
+      "sport": "Sport information",
+      "qualification": "Qualification",
+      "contact": "Contact details"
+    },
+    "trainingScheduleNote": "Training schedule is available in the \"My trainings\" section",
+    "futureBadge": "Future block",
+    "showOnStudentPage": "Show this block on the student page",
+    "navigationTitle": "Navigation sections",
+    "navigationSubtitle": "Choose which sections are shown at the bottom of the student page.",
+    "saveButton": "Save settings",
+    "discardButton": "Discard changes",
+    "savedMessage": "Settings saved",
+    "saveError": "Failed to save",
+    "unsavedChanges": "You have unsaved changes",
+    "saving": "Saving…",
+    "bonusDescription": "Progress of learning bonus techniques for the current belt."
   }
 }

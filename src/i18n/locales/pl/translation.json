@@ -312,5 +312,28 @@
       "title": "Ranking i dopuszczenie do kolejnego Kyu",
       "description": "Przyszła sekcja: postęp rankingu i wymogu wiekowego"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Strona ucznia",
+    "cardSubtitle": "Wybierz, które pola informacji będą wyświetlane na stronie ucznia.",
+    "columns": {
+      "basic": "Informacje podstawowe",
+      "personal": "Dane osobowe",
+      "sport": "Informacje sportowe",
+      "qualification": "Kwalifikacja",
+      "contact": "Dane kontaktowe"
+    },
+    "trainingScheduleNote": "Harmonogram treningów jest dostępny w sekcji „Moje treningi”",
+    "futureBadge": "Przyszła sekcja",
+    "showOnStudentPage": "Pokaż tę sekcję na stronie ucznia",
+    "navigationTitle": "Sekcje nawigacyjne",
+    "navigationSubtitle": "Wybierz, które sekcje będą wyświetlane u dołu strony ucznia.",
+    "saveButton": "Zapisz ustawienia",
+    "discardButton": "Odrzuć zmiany",
+    "savedMessage": "Ustawienia zapisane",
+    "saveError": "Błąd zapisu",
+    "unsavedChanges": "Masz niezapisane zmiany",
+    "saving": "Zapisywanie…",
+    "bonusDescription": "Postęp w nauce technik bonusowych dla aktualnego pasa."
   }
 }

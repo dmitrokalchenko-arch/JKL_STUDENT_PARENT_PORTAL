@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Icon from '../common/Icon.jsx';
+import ToggleSwitch from '../common/ToggleSwitch.jsx';
+import { PROFILE_FIELD_COLUMNS } from '../../config/studentPageConfig.js';
 import styles from './StudentProfileCard.module.css';
 
 function ChildAvatar({ child, showPhoto }) {
@@ -13,99 +15,83 @@ function ChildAvatar({ child, showPhoto }) {
 }
 
 // fieldVisibility отсутствует (undefined) у ВСЕХ сегодняшних реальных
-// вызывающих сторон (Family/Trainer Student Page/Super Admin Preview) —
-// поэтому isFieldVisible(...) для них всегда возвращает true, и normal
-// mode ниже рендерит РОВНО то же самое, что и до этого PR. fieldVisibility
-// начинает что-то скрывать только тогда, когда его явно передают — сейчас
-// это делает единственный вызывающий код: TrainerSettingsPage (settings
-// mode), временное frontend-only состояние, нигде не сохраняется.
+// вызывающих сторон normal mode (Family/Trainer Student Page/Super Admin
+// Preview на этом шаге получают его из StudentPageContent, см. её
+// комментарий) — isFieldVisible(...) тогда всегда true.
 function isFieldVisible(fieldVisibility, key) {
   return fieldVisibility ? fieldVisibility[key] !== false : true;
 }
 
-// Единственная кнопка-тумблер Settings Mode — переиспользуется для всех 17
-// полей, а не копируется в каждую строку.
-function FieldToggle({ active, onToggle, ariaLabel }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={active}
-      aria-label={ariaLabel}
-      className={`${styles.fieldToggle} ${active ? styles.fieldToggleActive : ''}`}
-      onClick={onToggle}
-    >
-      {active && <Icon name="check" size={13} color="#17171b" />}
-    </button>
-  );
-}
-
-// Порядок = будущий порядок полей на реальной StudentProfileCard (WYSIWYG,
-// см. задание). "photo" — единственный slot, который управляет НЕ строкой,
-// а avatar-областью (см. normal mode ниже), но в Settings Mode он всё
-// равно отображается как обычная строка в списке — Trainer переключает
-// его тем же способом, что и остальные поля.
-const SETTINGS_FIELD_KEYS = [
-  'photo',
-  'firstName',
-  'lastName',
-  'gender',
-  'birthDate',
-  'age',
-  'weight',
-  'sport',
-  'group',
-  'trainingSchedule',
-  'trainer',
-  'kyuGrade',
-  'beltColor',
-  'phone',
-  'email',
-  'contractStatus',
-  'contractDate'
-];
-
-// ОДИН StudentProfileCard, ДВА режима — никакой второй копии карточки
-// (см. итоговый отчёт задачи "student-profile-visual-configurator").
+// ОДИН StudentProfileCard, ДВА режима — никакой второй копии карточки.
 //
-// mode="normal" (по умолчанию) — реальная карточка ученика, ведёт себя
-// ТОЧНО как до этого PR, если fieldVisibility не передан.
+// mode="normal" (по умолчанию) — реальная карточка ученика.
 //
-// mode="settings" — используется ТОЛЬКО из /trainer/settings
-// (TrainerSettingsPage, club-wide режим настройки). Показывает ВСЕ 17
-// display slots в фиксированном порядке (тот же порядок, что займут
-// реальные поля в normal mode), каждый — с ACTIVE/INACTIVE тумблером.
-// Ничего не исчезает при выключении — только визуально приглушается
-// (см. .settingsRowInactive). child в этом режиме не используется вовсе:
-// показываются только нейтральные i18n-лейблы, без единого реального
-// значения ученика.
+// mode="settings" — используется ТОЛЬКО из /trainer/settings. 14 полей
+// сгруппированы в 5 колонок (PROFILE_FIELD_COLUMNS,
+// src/config/studentPageConfig.js) — согласованный вид задания
+// "student-profile-club-wide-config" (раздел 3), НЕ позиционное
+// повторение normal-mode layout (это сознательный отход от строгого
+// WYSIWYG PR #10 в пользу читаемости — категории вместо одной длинной
+// колонки). trainingSchedule/contractStatus/contractDate сюда не входят —
+// они больше не являются полями профиля (раздел 4 задания): расписание
+// принадлежит разделу "Мои тренировки", статус/дата договора — разделу
+// "Договор и оплата", у обоих есть collственные nav-toggles
+// (StudentPageSettingsPanels). Для колонки "Спортивная информация"
+// показывается отдельная non-toggleable info-строка "Расписание
+// тренировок" — объясняет trainer'у, куда оно переехало, не позволяя его
+// включить/выключить здесь.
 export default function StudentProfileCard({ child, mode = 'normal', fieldVisibility, onFieldToggle }) {
   const { t } = useTranslation();
 
   if (mode === 'settings') {
     return (
-      <div className={styles.card}>
-        <ChildAvatar child={{ firstName: '', lastName: '' }} showPhoto={false} />
+      <div className={styles.settingsCard}>
+        <div className={styles.settingsHeaderRow}>
+          <ChildAvatar child={{ firstName: '', lastName: '' }} showPhoto={false} />
+          <div>
+            <div className={styles.settingsHeaderTitle}>{t('studentPageConfig.cardTitle')}</div>
+            <div className={styles.settingsHeaderSubtitle}>{t('studentPageConfig.cardSubtitle')}</div>
+          </div>
+        </div>
 
-        <div className={styles.info}>
-          {SETTINGS_FIELD_KEYS.map((key) => {
-            const active = isFieldVisible(fieldVisibility, key);
-            const label = t(`student.${key}`);
-            const stateLabel = t(`studentPage.settingsMode.${active ? 'active' : 'inactive'}`);
-            return (
-              <div
-                key={key}
-                className={`${styles.settingsRow} ${active ? '' : styles.settingsRowInactive}`}
-              >
-                <span className={styles.settingsFieldLabel}>{label}</span>
-                <FieldToggle
-                  active={active}
-                  onToggle={() => onFieldToggle?.(key)}
-                  ariaLabel={`${label} — ${stateLabel}`}
-                />
-              </div>
-            );
-          })}
+        <div className={styles.columnsGrid}>
+          {PROFILE_FIELD_COLUMNS.map((column) => (
+            <div key={column.id} className={styles.column}>
+              <div className={styles.columnTitle}>{t(column.titleKey)}</div>
+
+              {column.fields.map((key) => {
+                const active = isFieldVisible(fieldVisibility, key);
+                const label = t(`student.${key}`);
+                const stateLabel = t(`studentPage.settingsMode.${active ? 'active' : 'inactive'}`);
+                return (
+                  <div
+                    key={key}
+                    className={`${styles.settingsRow} ${active ? '' : styles.settingsRowInactive}`}
+                  >
+                    <span className={styles.settingsFieldLabel}>{label}</span>
+                    <ToggleSwitch
+                      active={active}
+                      onToggle={() => onFieldToggle?.(key)}
+                      ariaLabel={`${label} — ${stateLabel}`}
+                    />
+                  </div>
+                );
+              })}
+
+              {column.id === 'sport' && (
+                <div className={styles.columnNote}>
+                  <div className={styles.columnNoteRow}>
+                    <span className={styles.columnNoteLabel}>{t('student.trainingSchedule')}</span>
+                    <span className={styles.columnNoteDash}>—</span>
+                    <Icon name="info" size={14} className={styles.columnNoteIcon} />
+                  </div>
+                  <div className={styles.columnNoteDescription}>
+                    {t('studentPageConfig.trainingScheduleNote')}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -116,20 +102,21 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
   const visible = (key) => isFieldVisible(fieldVisibility, key);
 
   // age/birthYear/currentBelt/nextBelt (Mock-Form: {color,key}) пока
-  // приходят только из mock-данных. sportName/groupName/trainingSchedule/
-  // beltLabel/contractStatus (готовые строки, не i18n-key) приходят из
-  // реального RPC (migration 20260901100040) — отдельный простой блок
-  // строк, чтобы не трогать существующую mock-форму currentBelt/nextBelt.
-  // Каждая строка рендерится только если есть — карточка не падает на
-  // реальных данных, просто показывает меньше блоков.
+  // приходят только из mock-данных. sportName/groupName/beltLabel
+  // (готовые строки, не i18n-key) приходят из реального RPC. Каждая
+  // строка рендерится только если есть — карточка не падает на реальных
+  // данных, просто показывает меньше блоков.
   //
   // gender/birthDate/weight/trainerName/kyuGrade/beltColorName/phone/
-  // email/contractDate — НОВЫЕ display slots (задание "Club-Wide
-  // настройка полей StudentProfileCard"). Ни один текущий сервис
-  // (familyDataService.js/trainerStudentsService.js/get-student-preview)
-  // их не заполняет — эти блоки СЕГОДНЯ не рендерятся никогда ни для
-  // одного accessMode, это подготовка на будущее, а не подключение
-  // реальных данных (RPC/RLS/Block 1 в этом PR не менялись).
+  // email — НОВЫЕ display slots. Ни один текущий сервис их не заполняет —
+  // эти блоки СЕГОДНЯ не рендерятся никогда ни для одного accessMode, это
+  // подготовка на будущее (RPC/RLS/Block 1 в этом PR не менялись).
+  //
+  // trainingSchedule/contractStatus/contractDate ПОЛНОСТЬЮ убраны из этого
+  // компонента (задание "student-profile-club-wide-config", раздел 4) —
+  // это больше не поля профиля, а поля разделов "Мои тренировки"/"Договор
+  // и оплата" под навигационными карточками (не подключены к этим
+  // разделам на этом шаге — только визуально убраны отсюда).
   return (
     <div className={styles.card}>
       <ChildAvatar child={child} showPhoto={visible('photo')} />
@@ -178,10 +165,7 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
         {visible('group') && child.groupName && (
           <div className={styles.beltRow}>
             <span className={styles.beltLabel}>{t('student.group')}</span>
-            <span className={styles.beltValue}>
-              {child.groupName}
-              {visible('trainingSchedule') && child.trainingSchedule ? ` (${child.trainingSchedule})` : ''}
-            </span>
+            <span className={styles.beltValue}>{child.groupName}</span>
           </div>
         )}
 
@@ -244,20 +228,6 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
           <div className={styles.beltRow}>
             <span className={styles.beltLabel}>{t('student.email')}</span>
             <span className={styles.beltValue}>{child.email}</span>
-          </div>
-        )}
-
-        {visible('contractStatus') && child.contractStatus && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.contractStatus')}</span>
-            <span className={styles.beltValue}>{child.contractStatus}</span>
-          </div>
-        )}
-
-        {visible('contractDate') && child.contractDate && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.contractDate')}</span>
-            <span className={styles.beltValue}>{child.contractDate}</span>
           </div>
         )}
       </div>

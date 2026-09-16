@@ -292,5 +292,28 @@
       "title": "Punteggio e idoneità al prossimo Kyu",
       "description": "Sezione futura: avanzamento del punteggio e requisito di età"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Pagina dell'allievo",
+    "cardSubtitle": "Scegli quali campi informativi vengono mostrati nella pagina dell'allievo.",
+    "columns": {
+      "basic": "Informazioni di base",
+      "personal": "Dati personali",
+      "sport": "Informazioni sportive",
+      "qualification": "Qualifica",
+      "contact": "Dati di contatto"
+    },
+    "trainingScheduleNote": "L'orario di allenamento è disponibile nella sezione \"I miei allenamenti\"",
+    "futureBadge": "Sezione futura",
+    "showOnStudentPage": "Mostra questa sezione nella pagina dell'allievo",
+    "navigationTitle": "Sezioni di navigazione",
+    "navigationSubtitle": "Scegli quali sezioni vengono mostrate in fondo alla pagina dell'allievo.",
+    "saveButton": "Salva impostazioni",
+    "discardButton": "Annulla modifiche",
+    "savedMessage": "Impostazioni salvate",
+    "saveError": "Salvataggio non riuscito",
+    "unsavedChanges": "Ci sono modifiche non salvate",
+    "saving": "Salvataggio…",
+    "bonusDescription": "Progresso nell'apprendimento delle tecniche bonus per la cintura attuale."
   }
 }

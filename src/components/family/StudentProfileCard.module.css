@@ -72,16 +72,79 @@
   display: inline-block;
 }
 
-/* Settings Mode (WYSIWYG-конструктор /trainer/settings) — та же .card/
-   .avatar/.info геометрия, что и normal mode, просто вместо реальных
-   строк .beltRow рендерится фиксированный список .settingsRow на каждый
-   из 17 display slots (см. StudentProfileCard.jsx). */
+/* Settings Mode (club-wide конструктор /trainer/settings) — согласованный
+   вид задания "student-profile-club-wide-config": отдельный контейнер
+   .settingsCard (то же background/border/radius, что .card, но
+   display:block — вертикальный header + grid колонок, а не flex-row
+   normal mode). */
+.settingsCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+
+.settingsHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.settingsHeaderTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settingsHeaderSubtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.columnsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .columnsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .columnsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .columnsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  min-width: 0;
+}
+
+.columnTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
 .settingsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 5px 0;
+  gap: 10px;
+  padding: 6px 0;
   border-bottom: 1px solid var(--color-border);
   transition: opacity 0.15s ease;
 }
@@ -99,25 +162,34 @@
   color: var(--color-text-secondary);
 }
 
-.fieldToggle {
+.columnNote {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.columnNoteRow {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border-strong);
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
+  gap: 8px;
+  opacity: 0.5;
 }
 
-.fieldToggle:hover {
-  border-color: var(--color-gold);
+.columnNoteLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }
 
-.fieldToggleActive {
-  background: var(--color-gold);
-  border-color: var(--color-gold);
+.columnNoteDash {
+  color: var(--color-text-muted);
+}
+
+.columnNoteIcon {
+  color: var(--color-text-muted);
+}
+
+.columnNoteDescription {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
 }

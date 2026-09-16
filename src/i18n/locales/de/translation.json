@@ -304,5 +304,28 @@
       "title": "Bewertung und Zulassung zum nächsten Kyu",
       "description": "Zukünftiger Bereich: Fortschritt bei Bewertung und Altersanforderung"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Schülerseite",
+    "cardSubtitle": "Wählen Sie, welche Informationsfelder auf der Schülerseite angezeigt werden.",
+    "columns": {
+      "basic": "Grundinformationen",
+      "personal": "Persönliche Daten",
+      "sport": "Sportliche Informationen",
+      "qualification": "Qualifikation",
+      "contact": "Kontaktdaten"
+    },
+    "trainingScheduleNote": "Die Trainingszeiten sind im Bereich „Meine Trainings“ verfügbar",
+    "futureBadge": "Zukünftiger Bereich",
+    "showOnStudentPage": "Diesen Bereich auf der Schülerseite anzeigen",
+    "navigationTitle": "Navigationsbereiche",
+    "navigationSubtitle": "Wählen Sie, welche Bereiche unten auf der Schülerseite angezeigt werden.",
+    "saveButton": "Einstellungen speichern",
+    "discardButton": "Änderungen verwerfen",
+    "savedMessage": "Einstellungen gespeichert",
+    "saveError": "Speichern fehlgeschlagen",
+    "unsavedChanges": "Es gibt ungespeicherte Änderungen",
+    "saving": "Wird gespeichert…",
+    "bonusDescription": "Fortschritt beim Erlernen der Bonus-Techniken für den aktuellen Gurt."
   }
 }

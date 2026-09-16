@@ -292,5 +292,28 @@
       "title": "Classement et éligibilité au Kyu suivant",
       "description": "Section future : progression du classement et de la condition d'âge"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Page de l'élève",
+    "cardSubtitle": "Choisissez les champs d'information affichés sur la page de l'élève.",
+    "columns": {
+      "basic": "Informations de base",
+      "personal": "Données personnelles",
+      "sport": "Informations sportives",
+      "qualification": "Qualification",
+      "contact": "Coordonnées"
+    },
+    "trainingScheduleNote": "L'horaire d'entraînement est disponible dans la section « Mes entraînements »",
+    "futureBadge": "Section future",
+    "showOnStudentPage": "Afficher cette section sur la page de l'élève",
+    "navigationTitle": "Sections de navigation",
+    "navigationSubtitle": "Choisissez les sections affichées en bas de la page de l'élève.",
+    "saveButton": "Enregistrer les paramètres",
+    "discardButton": "Annuler les modifications",
+    "savedMessage": "Paramètres enregistrés",
+    "saveError": "Échec de l'enregistrement",
+    "unsavedChanges": "Des modifications non enregistrées existent",
+    "saving": "Enregistrement…",
+    "bonusDescription": "Progression de l'apprentissage des techniques bonus pour la ceinture actuelle."
   }
 }

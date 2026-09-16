@@ -5,6 +5,7 @@ import StudentProfileCard from '../family/StudentProfileCard.jsx';
 import TechniqueProgressSection from '../family/TechniqueProgressSection.jsx';
 import DashboardButtons from '../family/DashboardButtons.jsx';
 import ContentArea from '../family/ContentArea.jsx';
+import { mergeStudentPageConfig } from '../../config/studentPageConfig.js';
 import styles from './StudentPageContent.module.css';
 
 export const STUDENT_PAGE_ACCESS_MODES = ['family', 'trainer', 'superadmin'];
@@ -20,51 +21,51 @@ export const STUDENT_PAGE_ACCESS_MODES = ['family', 'trainer', 'superadmin'];
 // которые сами разворачивают TrainingsSection/FamilySection/ContractSection/
 // PlaceholderSection) — не второй похожий UI, тот же самый.
 //
+// studentPageConfig — ЕДИНАЯ club-wide конфигурация (см.
+// src/config/studentPageConfig.js) — источник истины для видимости полей
+// StudentProfileCard, блока Bonus Techniques и nav-карточек. Не задан ->
+// mergeStudentPageConfig(undefined) откатывается на DEFAULT_STUDENT_PAGE_CONFIG,
+// который воспроизводит ТЕКУЩЕЕ production-поведение (backward-compat
+// default, см. итоговый отчёт задачи "student-profile-club-wide-config").
+//
 // Обе технические/навигационные секции — ОПЦИОНАЛЬНЫЕ и не рендерятся,
 // пока вызывающая страница явно не передаст соответствующие пропы:
 //   - techniqueProgress === undefined -> секция прогресса вообще не
-//     рендерится (а не "вечная загрузка" — TechniqueProgressSection сама по
-//     себе не умеет отличить "данных ещё нет от этого потребителя" от
-//     "идёт реальная загрузка", поэтому это разруливается здесь).
+//     рендерится (а не "вечная загрузка"). Если проп передан — секция ещё
+//     дополнительно гейтится config.sections.bonusTechniques (club-wide
+//     "показывать ли весь блок целиком" — задание, раздел 8).
 //   - showNavigationCards (по умолчанию false) — ряд карточек «Моя семья/
-//     Мои тренировки/...» показывается, если вызывающая страница попросила
-//     (реальный Super Admin Preview — StudentPreviewPage — и Deploy-Preview
-//     demo route оба это делают, см. REAL SUPER ADMIN STUDENT PAGE — STEP 1).
+//     Мои тренировки/...» показывается, если вызывающая страница попросила.
+//     Каждая отдельная карточка внутри дополнительно фильтруется
+//     config.navigation (задание, раздел 9-10) — DashboardButtons сам
+//     решает, какие id показать.
 //   - Содержимое под карточками: если ни trainings, ни familyAccount, ни
-//     contract не переданы (все undefined) — вместо ContentArea (которая
-//     сама разворачивает TrainingsSection/FamilySection/ContractSection и
-//     упала бы на FamilySection без familyAccount) показывается нейтральная
-//     заглушка "данные подключим позже" — НЕ mock-данные вместо реальных.
-//     Как только вызывающая страница передаст хотя бы одно из этих трёх —
-//     используется настоящий ContentArea с этими данными (ровно так уже
-//     делает demo route).
+//     contract не переданы (все undefined) — вместо ContentArea показывается
+//     нейтральная заглушка "данные подключим позже".
 //
-// header/selector — pass-through в DashboardLayout: у каждой роли своя
-// шапка (Family: приветствие+выход, Trainer: back-кнопка, Super Admin
-// Preview: бренд+бейдж) — этот компонент не диктует, как она выглядит.
+// header/selector — pass-through в DashboardLayout.
 //
-// profileMode/fieldVisibility/onFieldToggle — чистый pass-through в
-// StudentProfileCard (см. её собственный комментарий про normal/settings
-// режимы). Все три не заданы почти везде (Family/Trainer Student Page/
-// Super Admin Preview) — StudentProfileCard в этом случае ведёт себя
-// ТОЧНО как до PR "student-profile-visual-configurator". Единственный
-// вызывающий код, который их передаёт — TrainerSettingsPage
-// (mode="settings", club-wide конструктор /trainer/settings).
+// profileMode/fieldVisibility/onFieldToggle — используются ТОЛЬКО в
+// settings mode (TrainerSettingsPage передаёt profileMode="settings" +
+// локальный черновик конфигурации + onFieldToggle). Во всех остальных
+// случаях profileMode не задан -> StudentProfileCard рендерится в normal
+// mode с config.profileFields из studentPageConfig (реальная, уже
+// сохранённая club-wide конфигурация, а не черновик).
 //
-// futureRatingPlaceholder — необязательный узел между профилем и
-// TechniqueProgressSection. undefined везде, кроме /trainer/settings —
-// зарезервированное место будущего блока "Рейтинг и допуск к следующему
-// Kyu" (см. TrainerSettingsPage), никакой реальной rating-логики здесь и
-// там нет.
+// settingsPanels — необязательный узел, рендерится один раз сразу под
+// профилем. undefined везде, кроме /trainer/settings — там TrainerSettingsPage
+// composes туда карточки Rating/Bonus Techniques/Navigation-toggles (см.
+// StudentPageSettingsPanels.jsx). Реальные Student Pages его не получают.
 export default function StudentPageContent({
   student,
   accessMode,
   header,
   selector,
+  studentPageConfig,
   profileMode,
   fieldVisibility,
   onFieldToggle,
-  futureRatingPlaceholder,
+  settingsPanels,
   techniqueProgress,
   isTechniqueProgressLoading,
   techniqueProgressError,
@@ -80,12 +81,14 @@ export default function StudentPageContent({
 }) {
   const { t } = useTranslation();
   const mode = STUDENT_PAGE_ACCESS_MODES.includes(accessMode) ? accessMode : 'family';
+  const config = mergeStudentPageConfig(studentPageConfig);
+
+  const isSettingsMode = profileMode === 'settings';
+  const resolvedFieldVisibility = isSettingsMode ? fieldVisibility : config.profileFields;
+  const resolvedOnFieldToggle = isSettingsMode ? onFieldToggle : undefined;
 
   // Локальное состояние активной навигационной карточки — только когда
   // вызывающая страница не управляет им сама (activeSection не передан).
-  // Ровно тот же паттерн, что useActiveSection.js у FamilyDashboard, но не
-  // завязан на её конкретный хук — держим это внутри shell, раз никто
-  // снаружи пока не обязан этим управлять.
   const [internalActiveSection, setInternalActiveSection] = useState(null);
   const activeSection = activeSectionProp !== undefined ? activeSectionProp : internalActiveSection;
   const handleSelectSection = onSelectSection ?? setInternalActiveSection;
@@ -105,14 +108,14 @@ export default function StudentPageContent({
         <StudentProfileCard
           child={student}
           mode={profileMode}
-          fieldVisibility={fieldVisibility}
-          onFieldToggle={onFieldToggle}
+          fieldVisibility={resolvedFieldVisibility}
+          onFieldToggle={resolvedOnFieldToggle}
         />
       </div>
 
-      {futureRatingPlaceholder}
+      {settingsPanels}
 
-      {techniqueProgress !== undefined && (
+      {techniqueProgress !== undefined && config.sections.bonusTechniques !== false && (
         <TechniqueProgressSection
           progressData={techniqueProgress}
           isLoading={isTechniqueProgressLoading}
@@ -123,7 +126,11 @@ export default function StudentPageContent({
 
       {showNavigationCards && (
         <>
-          <DashboardButtons activeSection={activeSection} onSelectSection={handleSelectSection} />
+          <DashboardButtons
+            activeSection={activeSection}
+            onSelectSection={handleSelectSection}
+            navigation={config.navigation}
+          />
           {activeSection && !hasRealSectionData && (
             <div className={styles.sectionNotConnected}>{t('studentPage.sectionNotConnectedYet')}</div>
           )}

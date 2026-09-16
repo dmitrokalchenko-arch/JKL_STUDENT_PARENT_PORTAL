@@ -183,6 +183,27 @@ Deno.serve(async (req: Request) => {
     studentRow.kyu_grad
   );
 
+  // CLUB-WIDE STUDENT PAGE CONFIG (миграция 20260916140057, ⚠️ ПРЕДЛОЖЕНИЕ,
+  // ЕЩЁ НЕ ПРИМЕНЕНА К PRODUCTION на этом шаге) — best-effort, тот же
+  // принцип, что buildTechniqueProgress: любая ошибка (в первую очередь
+  // "таблицы ещё нет", 42P01, до применения миграции) -> null, ответ
+  // вообще не включает studentPageConfig, StudentPreviewPage/
+  // StudentPageContent откатываются на DEFAULT_STUDENT_PAGE_CONFIG.
+  // service_role уже обошёл RLS для students/sports/groups выше — тот же
+  // принцип для club_student_page_settings, читаем НАПРЯМУЮ по уже
+  // провалидированному claimed.club_id (никогда не от клиента).
+  let studentPageConfig = null;
+  try {
+    const { data: configRow } = await supabaseAdmin
+      .from('club_student_page_settings')
+      .select('config')
+      .eq('club_id', claimed.club_id)
+      .maybeSingle();
+    studentPageConfig = configRow?.config ?? null;
+  } catch {
+    studentPageConfig = null;
+  }
+
   return jsonResponse(
     {
       studentId: String(studentRow.id),
@@ -191,7 +212,8 @@ Deno.serve(async (req: Request) => {
       sportName: sportRow?.name ?? null,
       groupName: groupRow?.gruppenname ?? null,
       beltLabel,
-      ...(techniqueProgress ? { techniqueProgress } : {})
+      ...(techniqueProgress ? { techniqueProgress } : {}),
+      ...(studentPageConfig ? { studentPageConfig } : {})
     },
     200
   );

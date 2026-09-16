@@ -302,5 +302,28 @@
       "title": "Punctaj și eligibilitate pentru următorul Kyu",
       "description": "Secțiune viitoare: progresul punctajului și cerința de vârstă"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Pagina elevului",
+    "cardSubtitle": "Alegeți ce câmpuri de informații sunt afișate pe pagina elevului.",
+    "columns": {
+      "basic": "Informații de bază",
+      "personal": "Date personale",
+      "sport": "Informații sportive",
+      "qualification": "Calificare",
+      "contact": "Date de contact"
+    },
+    "trainingScheduleNote": "Programul de antrenament este disponibil în secțiunea „Antrenamentele mele”",
+    "futureBadge": "Secțiune viitoare",
+    "showOnStudentPage": "Afișează această secțiune pe pagina elevului",
+    "navigationTitle": "Secțiuni de navigare",
+    "navigationSubtitle": "Alegeți ce secțiuni sunt afișate în partea de jos a paginii elevului.",
+    "saveButton": "Salvează setările",
+    "discardButton": "Anulează modificările",
+    "savedMessage": "Setări salvate",
+    "saveError": "Salvarea a eșuat",
+    "unsavedChanges": "Există modificări nesalvate",
+    "saving": "Se salvează…",
+    "bonusDescription": "Progresul învățării tehnicilor bonus pentru centura curentă."
   }
 }

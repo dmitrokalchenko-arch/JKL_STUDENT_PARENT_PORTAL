@@ -12,6 +12,7 @@ import { useTrainerStudentProfile } from '../../hooks/useTrainerStudentProfile.j
 import { useStudentTechniqueRecords } from '../../hooks/useStudentTechniqueRecords.js';
 import { useUnmarkTechniqueCompleted } from '../../hooks/useUnmarkTechniqueCompleted.js';
 import { signOutTrainer } from '../../services/trainerAuthService.js';
+import { getTrainerStudentPageConfig } from '../../services/studentPageConfigService.js';
 import styles from './TrainerStudentPage.module.css';
 
 // Маршрут /trainer/student/:studentId — рендерится ВНУТРИ TrainerAuthGuard
@@ -83,6 +84,21 @@ export default function TrainerStudentPage({ studentId }) {
   const [videoTechnique, setVideoTechnique] = useState(null);
   const [pendingTechnique, setPendingTechnique] = useState(null);
   const [viewingStudentVideoRecord, setViewingStudentVideoRecord] = useState(null);
+
+  // Club-wide конфигурация видимости (см. FamilyDashboard.jsx — тот же
+  // паттерн: один запрос при монтировании, честный null-fallback ->
+  // StudentPageContent откатывается на DEFAULT_STUDENT_PAGE_CONFIG, если
+  // RPC/миграция ещё не задеплоены.
+  const [studentPageConfig, setStudentPageConfig] = useState(null);
+  useEffect(() => {
+    let isCancelled = false;
+    getTrainerStudentPageConfig().then((config) => {
+      if (!isCancelled) setStudentPageConfig(config);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const {
     context: writeContext,
@@ -198,6 +214,7 @@ export default function TrainerStudentPage({ studentId }) {
         />
       }
       student={student}
+      studentPageConfig={studentPageConfig}
     >
       <div className={styles.content}>
         {/* "current trainer cannot be resolved" — баннер на уровне

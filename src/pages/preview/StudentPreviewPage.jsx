@@ -82,6 +82,7 @@ export default function StudentPreviewPage({ token }) {
         groupName: student.groupName,
         beltLabel: student.beltLabel
       }}
+      studentPageConfig={student.studentPageConfig}
       techniqueProgress={student.techniqueProgress}
       isTechniqueProgressLoading={false}
       techniqueProgressError={null}

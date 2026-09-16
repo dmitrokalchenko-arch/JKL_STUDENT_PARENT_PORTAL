@@ -292,5 +292,28 @@
       "title": "Puanlama ve bir sonraki Kyu için uygunluk",
       "description": "Gelecek bölüm: puanlama ve yaş şartı ilerlemesi"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Öğrenci sayfası",
+    "cardSubtitle": "Öğrenci sayfasında hangi bilgi alanlarının gösterileceğini seçin.",
+    "columns": {
+      "basic": "Temel bilgiler",
+      "personal": "Kişisel bilgiler",
+      "sport": "Spor bilgileri",
+      "qualification": "Yeterlilik",
+      "contact": "İletişim bilgileri"
+    },
+    "trainingScheduleNote": "Antrenman programı \"Antrenmanlarım\" bölümünde mevcuttur",
+    "futureBadge": "Gelecek bölüm",
+    "showOnStudentPage": "Bu bölümü öğrenci sayfasında göster",
+    "navigationTitle": "Gezinme bölümleri",
+    "navigationSubtitle": "Öğrenci sayfasının altında hangi bölümlerin gösterileceğini seçin.",
+    "saveButton": "Ayarları kaydet",
+    "discardButton": "Değişiklikleri geri al",
+    "savedMessage": "Ayarlar kaydedildi",
+    "saveError": "Kaydetme başarısız oldu",
+    "unsavedChanges": "Kaydedilmemiş değişiklikler var",
+    "saving": "Kaydediliyor…",
+    "bonusDescription": "Mevcut kuşak için bonus tekniklerin öğrenilme ilerlemesi."
   }
 }

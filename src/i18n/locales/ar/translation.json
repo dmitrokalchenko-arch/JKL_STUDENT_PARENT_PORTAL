@@ -332,5 +332,28 @@
       "title": "التصنيف والأهلية للكيو التالي",
       "description": "قسم مستقبلي: تقدم التصنيف ومتطلبات العمر"
     }
+  },
+  "studentPageConfig": {
+    "cardTitle": "صفحة الطالب",
+    "cardSubtitle": "اختر حقول المعلومات التي تظهر في صفحة الطالب.",
+    "columns": {
+      "basic": "المعلومات الأساسية",
+      "personal": "البيانات الشخصية",
+      "sport": "المعلومات الرياضية",
+      "qualification": "التأهيل",
+      "contact": "بيانات الاتصال"
+    },
+    "trainingScheduleNote": "جدول التدريب متاح في قسم «تدريباتي»",
+    "futureBadge": "قسم مستقبلي",
+    "showOnStudentPage": "إظهار هذا القسم في صفحة الطالب",
+    "navigationTitle": "أقسام التنقل",
+    "navigationSubtitle": "اختر الأقسام التي تظهر أسفل صفحة الطالب.",
+    "saveButton": "حفظ الإعدادات",
+    "discardButton": "تجاهل التغييرات",
+    "savedMessage": "تم حفظ الإعدادات",
+    "saveError": "فشل الحفظ",
+    "unsavedChanges": "توجد تغييرات غير محفوظة",
+    "saving": "جارٍ الحفظ…",
+    "bonusDescription": "تقدم تعلم التقنيات الإضافية للحزام الحالي."
   }
 }
