@@ -35,7 +35,12 @@
     "genericError": "Не удалось войти. Попробуйте ещё раз.",
     "trainerTitle": "Вход для тренеров",
     "trainerLoginLabel": "Логин",
-    "familyAccessDeactivated": "Доступ к семейному аккаунту деактивирован."
+    "familyAccessDeactivated": "Доступ к семейному аккаунту деактивирован.",
+    "loginLabel": "Логин",
+    "chooseAccountTitle": "Войти как",
+    "chooseAccountTrainer": "Тренер",
+    "chooseAccountFamily": "Семья / ученик",
+    "invalidLoginOrPassword": "Неверный логин или пароль."
   },
   "childSelector": {
     "label": "Выберите ребёнка:"

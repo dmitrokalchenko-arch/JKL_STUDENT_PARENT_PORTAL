@@ -31,7 +31,12 @@
     "genericError": "Sign-in failed. Please try again.",
     "trainerTitle": "Trainer Login",
     "trainerLoginLabel": "Login",
-    "familyAccessDeactivated": "Access to the family account has been deactivated."
+    "familyAccessDeactivated": "Access to the family account has been deactivated.",
+    "loginLabel": "Login",
+    "chooseAccountTitle": "Sign in as",
+    "chooseAccountTrainer": "Trainer",
+    "chooseAccountFamily": "Family / Student",
+    "invalidLoginOrPassword": "Invalid login or password."
   },
   "childSelector": {
     "label": "Select a child:"

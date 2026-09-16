@@ -31,7 +31,12 @@
     "genericError": "Accesso non riuscito. Riprova.",
     "trainerTitle": "Accesso allenatore",
     "trainerLoginLabel": "Nome utente",
-    "familyAccessDeactivated": "L'accesso all'account famiglia è stato disattivato."
+    "familyAccessDeactivated": "L'accesso all'account famiglia è stato disattivato.",
+    "loginLabel": "Nome utente",
+    "chooseAccountTitle": "Accedi come",
+    "chooseAccountTrainer": "Allenatore",
+    "chooseAccountFamily": "Famiglia / Allievo",
+    "invalidLoginOrPassword": "Nome utente o password non validi."
   },
   "childSelector": {
     "label": "Seleziona un figlio:"
