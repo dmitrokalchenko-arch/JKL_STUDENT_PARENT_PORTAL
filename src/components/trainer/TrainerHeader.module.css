@@ -64,6 +64,29 @@
 .actions {
   display: flex;
   align-items: center;
+  gap: 18px;
+}
+
+/* Та же пара классов/токенов, что .actionButton/.actionLabel в
+   FamilyHeader.module.css — визуальная симметрия без копирования всего
+   файла (задание, раздел 13). */
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.logoutButton:hover {
+  color: var(--color-text-primary);
+}
+
+.logoutButton:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 @media (max-width: 640px) {
@@ -73,5 +96,15 @@
 
   .title {
     font-size: 15px;
+  }
+
+  .actions {
+    gap: 10px;
+  }
+
+  /* Иконка остаётся, текст скрывается — то же решение overflow/touch-area
+     на мобильном, что уже применено в FamilyHeader.module.css. */
+  .logoutLabel {
+    display: none;
   }
 }

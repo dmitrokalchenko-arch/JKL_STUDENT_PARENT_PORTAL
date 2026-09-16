@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
+import { signOutTrainer } from '../../services/trainerAuthService.js';
 import styles from './TrainerSettingsPage.module.css';
 
 // CLUB-WIDE STUDENT PAGE SETTINGS MODE — открывается карточкой «Настроить
@@ -54,12 +55,17 @@ const TEMPLATE_TECHNIQUE_PROGRESS = {
 export default function TrainerSettingsPage() {
   const { t } = useTranslation();
 
+  const handleLogout = async () => {
+    await signOutTrainer();
+    window.location.href = '/';
+  };
+
   return (
     <StudentPageContent
       accessMode="trainer"
       header={
         <div className={styles.header}>
-          <TrainerHeader title={t('trainerDashboard.settingsTitle')} showBack />
+          <TrainerHeader title={t('trainerDashboard.settingsTitle')} showBack onLogout={handleLogout} />
           <div className={styles.scopeNote}>{t('trainerDashboard.settingsPageScopeNote')}</div>
         </div>
       }
