@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import Icon from '../common/Icon.jsx';
 import ToggleSwitch from '../common/ToggleSwitch.jsx';
 import { PROFILE_FIELD_COLUMNS } from '../../config/studentPageConfig.js';
 import styles from './StudentProfileCard.module.css';
@@ -32,14 +31,14 @@ function isFieldVisible(fieldVisibility, key) {
 // "student-profile-club-wide-config" (раздел 3), НЕ позиционное
 // повторение normal-mode layout (это сознательный отход от строгого
 // WYSIWYG PR #10 в пользу читаемости — категории вместо одной длинной
-// колонки). trainingSchedule/contractStatus/contractDate сюда не входят —
-// они больше не являются полями профиля (раздел 4 задания): расписание
-// принадлежит разделу "Мои тренировки", статус/дата договора — разделу
-// "Договор и оплата", у обоих есть collственные nav-toggles
-// (StudentPageSettingsPanels). Для колонки "Спортивная информация"
-// показывается отдельная non-toggleable info-строка "Расписание
-// тренировок" — объясняет trainer'у, куда оно переехало, не позволяя его
-// включить/выключить здесь.
+// колонки). trainingSchedule/contractStatus/contractDate сюда НЕ входят и
+// НЕ показываются здесь вообще НИ В КАКОМ виде (ни как toggleable поле,
+// ни как informational/disabled строка) — они больше не являются полями
+// профиля (раздел 4 задания): расписание принадлежит разделу "Мои
+// тренировки", статус/дата договора — разделу "Договор и оплата", у обоих
+// есть собственные nav-toggles (StudentPageSettingsPanels), колонка
+// "Спортивная информация" заканчивается на "Тренер" и ничего после него
+// не показывает.
 export default function StudentProfileCard({ child, mode = 'normal', fieldVisibility, onFieldToggle }) {
   const { t } = useTranslation();
 
@@ -77,19 +76,6 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
                   </div>
                 );
               })}
-
-              {column.id === 'sport' && (
-                <div className={styles.columnNote}>
-                  <div className={styles.columnNoteRow}>
-                    <span className={styles.columnNoteLabel}>{t('student.trainingSchedule')}</span>
-                    <span className={styles.columnNoteDash}>—</span>
-                    <Icon name="info" size={14} className={styles.columnNoteIcon} />
-                  </div>
-                  <div className={styles.columnNoteDescription}>
-                    {t('studentPageConfig.trainingScheduleNote')}
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>

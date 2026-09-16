@@ -161,35 +161,3 @@
   font-size: 13px;
   color: var(--color-text-secondary);
 }
-
-.columnNote {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--color-border);
-}
-
-.columnNoteRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.5;
-}
-
-.columnNoteLabel {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.columnNoteDash {
-  color: var(--color-text-muted);
-}
-
-.columnNoteIcon {
-  color: var(--color-text-muted);
-}
-
-.columnNoteDescription {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
