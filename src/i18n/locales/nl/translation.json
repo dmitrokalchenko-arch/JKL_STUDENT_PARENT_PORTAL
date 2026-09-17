@@ -291,6 +291,9 @@
     "futureRatingBlock": {
       "title": "Ranking en toelating tot volgende Kyu",
       "description": "Toekomstig onderdeel: voortgang ranking en leeftijdseis"
+    },
+    "bonusPlaceholder": {
+      "description": "Gegevens zijn beschikbaar zodra het bonustechniekenprogramma is ingesteld."
     }
   },
   "studentPageConfig": {

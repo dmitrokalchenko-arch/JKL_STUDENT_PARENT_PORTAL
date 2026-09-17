@@ -291,6 +291,9 @@
     "futureRatingBlock": {
       "title": "Punteggio e idoneità al prossimo Kyu",
       "description": "Sezione futura: avanzamento del punteggio e requisito di età"
+    },
+    "bonusPlaceholder": {
+      "description": "I dati saranno disponibili dopo la configurazione del programma delle tecniche bonus."
     }
   },
   "studentPageConfig": {

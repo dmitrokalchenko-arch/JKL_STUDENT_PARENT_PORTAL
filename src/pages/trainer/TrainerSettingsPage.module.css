@@ -21,20 +21,18 @@
 }
 
 /* Стопка settings-only панелей (Rating/Bonus Techniques/Navigation
-   toggles/Save-bar) — settingsPanels проп StudentPageContent, тот же
-   горизонтальный отступ (24px), что у .overviewRow в
-   StudentPageContent.module.css, визуально продолжает ту же колонку. */
+   toggles/Save-bar) — settingsPanels проп StudentPageContent. Сам
+   горизонтальный отступ (24px/16px mobile) теперь живёт на каждой
+   отдельной карточке (.sectionCard/.navCard в
+   StudentPageSettingsPanels.module.css, .saveBar ниже) — не на этом
+   контейнере: SectionToggleCard переиспользуется StudentPageContent
+   ВНЕ settingsPanels (реальные Rating/Bonus placeholder на настоящих
+   Student Pages, задача "student-profile-universal-page-sections"), и
+   там своего margin-контейнера нет. */
 .panelsStack {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin: 0 24px;
-}
-
-@media (max-width: 640px) {
-  .panelsStack {
-    margin: 0 16px;
-  }
 }
 
 .saveBar {
@@ -44,9 +42,16 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 12px 16px;
+  margin: 0 24px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
+}
+
+@media (max-width: 640px) {
+  .saveBar {
+    margin: 0 16px;
+  }
 }
 
 .saveBarStatus {

@@ -331,6 +331,9 @@
     "futureRatingBlock": {
       "title": "التصنيف والأهلية للكيو التالي",
       "description": "قسم مستقبلي: تقدم التصنيف ومتطلبات العمر"
+    },
+    "bonusPlaceholder": {
+      "description": "ستكون البيانات متاحة بعد إعداد برنامج التقنيات الإضافية."
     }
   },
   "studentPageConfig": {

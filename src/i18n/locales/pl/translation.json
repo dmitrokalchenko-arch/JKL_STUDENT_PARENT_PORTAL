@@ -311,6 +311,9 @@
     "futureRatingBlock": {
       "title": "Ranking i dopuszczenie do kolejnego Kyu",
       "description": "Przyszła sekcja: postęp rankingu i wymogu wiekowego"
+    },
+    "bonusPlaceholder": {
+      "description": "Dane będą dostępne po skonfigurowaniu programu technik bonusowych."
     }
   },
   "studentPageConfig": {

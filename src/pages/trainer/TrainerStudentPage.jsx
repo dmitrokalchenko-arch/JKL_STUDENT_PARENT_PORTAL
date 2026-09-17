@@ -41,6 +41,17 @@ import styles from './TrainerStudentPage.module.css';
 // подключатся позже к отдельному разделу Student Page ("Необходимые
 // техники" или будущий Bonus Techniques UI) — отдельной следующей задачей,
 // не здесь.
+//
+// showNavigationCards (задача "student-profile-universal-page-sections"):
+// раньше здесь сознательно не передавался ("для тренера сегодня нет ни
+// одного реального backend-источника под nav-карточками") — но сами
+// карточки уже умеют показываться БЕЗ реального содержимого (клик ->
+// нейтральное "данные этого раздела будут подключены на следующем этапе",
+// тот же существующий паттерн StudentPageContent) и уже фильтруются
+// club-wide config.navigation. Club-wide видимость (Rating/Bonus/Navigation)
+// должна работать одинаково для Family и Trainer — исключать Trainer из
+// showNavigationCards больше не обосновано, раз navigation card ≠
+// content implementation.
 export default function TrainerStudentPage({ studentId }) {
   const { t } = useTranslation();
 
@@ -109,6 +120,7 @@ export default function TrainerStudentPage({ studentId }) {
       }
       student={student}
       studentPageConfig={studentPageConfig}
+      showNavigationCards
     />
   );
 }

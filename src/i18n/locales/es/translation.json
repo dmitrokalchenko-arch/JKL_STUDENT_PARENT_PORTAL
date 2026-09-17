@@ -291,6 +291,9 @@
     "futureRatingBlock": {
       "title": "Puntuación y elegibilidad para el siguiente Kyu",
       "description": "Sección futura: progreso de puntuación y requisito de edad"
+    },
+    "bonusPlaceholder": {
+      "description": "Los datos estarán disponibles una vez configurado el programa de técnicas bonus."
     }
   },
   "studentPageConfig": {

@@ -10,15 +10,24 @@ import styles from './StudentPageSettingsPanels.module.css';
 // геометрия, не 5-колоночный grid полей карточки), поэтому вынесены сюда,
 // а не встроены туда.
 //
-// SectionToggleCard — ОДНА реализация на Rating и Bonus Techniques
-// (раздел 7-8 задания) — те же icon/title/description/toggle, разные
-// пропы, а не два похожих компонента.
+// SectionToggleCard — ОДНА реализация на Rating и Bonus Techniques,
+// переиспользуется В ДВУХ местах:
+//   1) /trainer/settings (TrainerSettingsPage, через settingsPanels) —
+//      onToggle передан -> полный вид с ToggleSwitch, ACTIVE/INACTIVE.
+//   2) реальные Student Pages (StudentPageContent, задача
+//      "student-profile-universal-page-sections") — onToggle НЕ передан
+//      -> read-only вид (только icon/title/badge/description, без
+//      тумблера и без "Показывать этот блок..." подписи) — сюда компонент
+//      попадает уже ПОСЛЕ того, как StudentPageContent решил, что секция
+//      вообще должна быть видна (config.sections.* !== false), поэтому
+//      никакого ACTIVE/INACTIVE-приглушения здесь не нужно вовсе.
 export function SectionToggleCard({ icon, title, badge, description, active, onToggle }) {
   const { t } = useTranslation();
+  const isReadOnly = !onToggle;
   const stateLabel = t(`studentPage.settingsMode.${active ? 'active' : 'inactive'}`);
 
   return (
-    <div className={`${styles.sectionCard} ${active ? '' : styles.sectionCardInactive}`}>
+    <div className={`${styles.sectionCard} ${!isReadOnly && !active ? styles.sectionCardInactive : ''}`}>
       <div className={styles.sectionCardIcon}>
         <Icon name={icon} size={20} />
       </div>
@@ -31,10 +40,12 @@ export function SectionToggleCard({ icon, title, badge, description, active, onT
         <div className={styles.sectionCardDescription}>{description}</div>
       </div>
 
-      <div className={styles.sectionCardToggleWrap}>
-        <ToggleSwitch active={active} onToggle={onToggle} ariaLabel={`${title} — ${stateLabel}`} />
-        <span className={styles.sectionCardToggleLabel}>{t('studentPageConfig.showOnStudentPage')}</span>
-      </div>
+      {!isReadOnly && (
+        <div className={styles.sectionCardToggleWrap}>
+          <ToggleSwitch active={active} onToggle={onToggle} ariaLabel={`${title} — ${stateLabel}`} />
+          <span className={styles.sectionCardToggleLabel}>{t('studentPageConfig.showOnStudentPage')}</span>
+        </div>
+      )}
     </div>
   );
 }

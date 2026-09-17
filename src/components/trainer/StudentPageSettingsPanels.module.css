@@ -1,3 +1,8 @@
+/* margin (не padding) — та же горизонтальная "рамка" 24px/16px mobile,
+   что у .section в TechniqueProgressSection.module.css — здесь на
+   карточке, а не на родительском контейнере, потому что этот компонент
+   переиспользуется StudentPageContent НАПРЯМУЮ (Rating/Bonus placeholder
+   на реальных Student Pages), вне .panelsStack (Settings Mode). */
 .sectionCard {
   display: flex;
   align-items: center;
@@ -6,6 +11,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 16px;
+  margin: 0 24px;
   transition: opacity 0.15s ease;
 }
 
@@ -73,6 +79,7 @@
 @media (max-width: 640px) {
   .sectionCard {
     flex-wrap: wrap;
+    margin: 0 16px;
   }
 
   .sectionCardToggleWrap {
@@ -86,6 +93,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 16px;
+  margin: 0 24px;
+}
+
+@media (max-width: 640px) {
+  .navCard {
+    margin: 0 16px;
+  }
 }
 
 .navCardTitle {

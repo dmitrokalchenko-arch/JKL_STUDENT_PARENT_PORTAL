@@ -292,6 +292,9 @@
     "futureRatingBlock": {
       "title": "Rating and next Kyu eligibility",
       "description": "Future block: rating and age requirement progress"
+    },
+    "bonusPlaceholder": {
+      "description": "Data will be available once the bonus techniques program is set up."
     }
   },
   "studentPageConfig": {

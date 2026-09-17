@@ -303,6 +303,9 @@
     "futureRatingBlock": {
       "title": "Bewertung und Zulassung zum nächsten Kyu",
       "description": "Zukünftiger Bereich: Fortschritt bei Bewertung und Altersanforderung"
+    },
+    "bonusPlaceholder": {
+      "description": "Die Daten sind verfügbar, sobald das Bonus-Techniken-Programm eingerichtet ist."
     }
   },
   "studentPageConfig": {

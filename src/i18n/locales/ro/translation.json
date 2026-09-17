@@ -301,6 +301,9 @@
     "futureRatingBlock": {
       "title": "Punctaj și eligibilitate pentru următorul Kyu",
       "description": "Secțiune viitoare: progresul punctajului și cerința de vârstă"
+    },
+    "bonusPlaceholder": {
+      "description": "Datele vor fi disponibile după configurarea programului de tehnici bonus."
     }
   },
   "studentPageConfig": {

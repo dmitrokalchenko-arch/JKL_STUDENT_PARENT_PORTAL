@@ -291,6 +291,9 @@
     "futureRatingBlock": {
       "title": "Puanlama ve bir sonraki Kyu için uygunluk",
       "description": "Gelecek bölüm: puanlama ve yaş şartı ilerlemesi"
+    },
+    "bonusPlaceholder": {
+      "description": "Bonus teknikler programı ayarlandıktan sonra veriler kullanılabilir olacaktır."
     }
   },
   "studentPageConfig": {

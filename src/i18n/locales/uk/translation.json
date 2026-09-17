@@ -311,6 +311,9 @@
     "futureRatingBlock": {
       "title": "Рейтинг і допуск до наступного Kyu",
       "description": "Майбутній блок: прогрес рейтингу та вікового нормативу"
+    },
+    "bonusPlaceholder": {
+      "description": "Дані стануть доступні після налаштування програми бонусних технік."
     }
   },
   "studentPageConfig": {
