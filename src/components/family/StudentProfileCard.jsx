@@ -21,26 +21,147 @@ function isFieldVisible(fieldVisibility, key) {
   return fieldVisibility ? fieldVisibility[key] !== false : true;
 }
 
+// Простая строка "лейбл + значение" — общий примитив для большинства полей
+// normal mode (используется внутри renderColumnBody ниже). null, если
+// значения реально нет — ACTIVE, но пустое поле не показывает бессмысленную
+// строку (задание, раздел про empty value behavior).
+function ValueRow({ label, value }) {
+  // !value (не === null/''): value сюда часто приходит как
+  // `visible('x') && child.x` — если поле выключено, это выражение
+  // коротко замыкается на `false`, не на null/'' — falsy-проверка целиком
+  // ловит все "нет смысла показывать строку" случаи одним условием.
+  if (!value) return null;
+  return (
+    <div className={styles.beltRow}>
+      <span className={styles.beltLabel}>{label}</span>
+      <span className={styles.beltValue}>{value}</span>
+    </div>
+  );
+}
+
+// ЕДИНАЯ структура колонок для ОБОИХ режимов (задача "student-profile-
+// shared-layout"): normal mode и settings mode читают один и тот же
+// PROFILE_FIELD_COLUMNS (src/config/studentPageConfig.js) и рендерят поля
+// В ТОМ ЖЕ порядке, сгруппированные в те же 5 колонок — устраняет ранее
+// найденное расхождение (Settings Mode показывал 5 колонок через
+// .columnsGrid/CSS Grid, а normal mode — одну вертикальную .info-колонку
+// через flex). Каждая колонка рендерится ОДНИМ и тем же .columnsGrid/
+// .column контейнером в обоих режимах — при добавлении/перестановке поля
+// в PROFILE_FIELD_COLUMNS обе карточки меняются синхронно, без риска
+// разъехаться снова.
+//
+// normal mode НЕ показывает заголовки колонок ("ОСНОВНАЯ ИНФОРМАЦИЯ" и
+// т.д.) — это UI-подсказка, нужная только в конструкторе Settings Mode,
+// реальная карточка ученика их никогда не показывала.
+function renderColumnBody(columnId, child, visible, t) {
+  if (columnId === 'basic') {
+    // photo/firstName/lastName — не типовые label+value строки: avatar
+    // всегда структурен (см. ChildAvatar выше, toggle 'photo' управляет
+    // только photo-vs-инициалы), firstName/lastName — отдельные строки
+    // текста, каждая по своей visibility, в том же порядке, что в
+    // PROFILE_FIELD_COLUMNS.basic.fields (photo, firstName, lastName).
+    return (
+      <>
+        <ChildAvatar child={child} showPhoto={visible('photo')} />
+        {visible('firstName') && child.firstName && <div className={styles.name}>{child.firstName}</div>}
+        {visible('lastName') && child.lastName && <div className={styles.name}>{child.lastName}</div>}
+      </>
+    );
+  }
+
+  if (columnId === 'personal') {
+    return (
+      <>
+        <ValueRow label={t('student.gender')} value={visible('gender') && child.gender} />
+        <ValueRow label={t('student.birthDate')} value={visible('birthDate') && child.birthDate} />
+        {visible('age') && child.age != null && (
+          <div className={styles.age}>
+            {t('common.years', { count: child.age })}{child.birthYear ? ` (${child.birthYear})` : ''}
+          </div>
+        )}
+        <ValueRow label={t('student.weight')} value={visible('weight') && child.weight} />
+      </>
+    );
+  }
+
+  if (columnId === 'sport') {
+    return (
+      <>
+        <ValueRow label={t('student.sport')} value={visible('sport') && child.sportName} />
+        <ValueRow label={t('student.group')} value={visible('group') && child.groupName} />
+        <ValueRow label={t('student.trainer')} value={visible('trainer') && child.trainerName} />
+      </>
+    );
+  }
+
+  if (columnId === 'qualification') {
+    // Kyu/Цвет пояса — ОДНА объединённая строка, а не два независимых
+    // ValueRow, потому что toggle'ы управляют ЧАСТЯМИ одного и того же
+    // смыслового значения "пояс" (задание "student-profile-data-pipeline-
+    // audit", раздел 10): kyuGrade+beltColor оба ACTIVE -> "gelb · 7. Kyu";
+    // только один ACTIVE -> показывается только он; оба INACTIVE -> строка
+    // отсутствует целиком. Порядок — цвет, затем Kyu.
+    const combined = [visible('beltColor') && child.beltColorName, visible('kyuGrade') && child.kyuGrade]
+      .filter(Boolean)
+      .join(' · ');
+    return (
+      <>
+        <ValueRow label={t('student.currentBelt')} value={combined} />
+        {/* currentBelt/nextBelt — ТОЛЬКО mock-данные (childrenMock.js,
+            {color,key}-форма), реальные RPC этот shape никогда не задают —
+            не конфликтует с блоком выше. */}
+        {(visible('kyuGrade') || visible('beltColor')) && child.currentBelt && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
+            <span className={styles.beltValue}>
+              <span className={styles.beltDot} style={{ background: child.currentBelt.color }} />
+              {t(child.currentBelt.key)}
+            </span>
+          </div>
+        )}
+        {(visible('kyuGrade') || visible('beltColor')) && child.nextBelt && (
+          <div className={styles.beltRow}>
+            <span className={styles.beltLabel}>{t('student.nextBelt')}</span>
+            <span className={styles.beltValue}>
+              <span className={styles.beltDot} style={{ background: child.nextBelt.color }} />
+              {t(child.nextBelt.key)}
+            </span>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (columnId === 'contact') {
+    return (
+      <>
+        <ValueRow label={t('student.phone')} value={visible('phone') && child.phone} />
+        <ValueRow label={t('student.email')} value={visible('email') && child.email} />
+      </>
+    );
+  }
+
+  return null;
+}
+
 // ОДИН StudentProfileCard, ДВА режима — никакой второй копии карточки.
 //
 // mode="normal" (по умолчанию) — реальная карточка ученика.
 //
-// mode="settings" — используется ТОЛЬКО из /trainer/settings. 14 полей
-// сгруппированы в 5 колонок (PROFILE_FIELD_COLUMNS,
-// src/config/studentPageConfig.js) — согласованный вид задания
-// "student-profile-club-wide-config" (раздел 3), НЕ позиционное
-// повторение normal-mode layout (это сознательный отход от строгого
-// WYSIWYG PR #10 в пользу читаемости — категории вместо одной длинной
-// колонки). trainingSchedule/contractStatus/contractDate сюда НЕ входят и
-// НЕ показываются здесь вообще НИ В КАКОМ виде (ни как toggleable поле,
-// ни как informational/disabled строка) — они больше не являются полями
-// профиля (раздел 4 задания): расписание принадлежит разделу "Мои
-// тренировки", статус/дата договора — разделу "Договор и оплата", у обоих
-// есть собственные nav-toggles (StudentPageSettingsPanels), колонка
-// "Спортивная информация" заканчивается на "Тренер" и ничего после него
-// не показывает.
+// mode="settings" — используется ТОЛЬКО из /trainer/settings. Оба режима
+// используют ОДНУ и ту же 5-колоночную структуру (PROFILE_FIELD_COLUMNS,
+// см. renderColumnBody выше и итоговый отчёт задачи "student-profile-
+// shared-layout") — WYSIWYG: расположение полей в конструкторе точно
+// совпадает с расположением на реальной Student Page.
+// trainingSchedule/contractStatus/contractDate сюда НЕ входят и НЕ
+// показываются здесь вообще НИ В КАКОМ виде — они больше не являются
+// полями профиля (задание "student-profile-club-wide-config", раздел 4):
+// расписание принадлежит разделу "Мои тренировки", статус/дата договора —
+// разделу "Договор и оплата", у обоих есть собственные nav-toggles
+// (StudentPageSettingsPanels).
 export default function StudentProfileCard({ child, mode = 'normal', fieldVisibility, onFieldToggle }) {
   const { t } = useTranslation();
+  const visible = (key) => isFieldVisible(fieldVisibility, key);
 
   if (mode === 'settings') {
     return (
@@ -85,144 +206,14 @@ export default function StudentProfileCard({ child, mode = 'normal', fieldVisibi
 
   if (!child) return null;
 
-  const visible = (key) => isFieldVisible(fieldVisibility, key);
-
-  // age/birthYear/currentBelt/nextBelt (Mock-Form: {color,key}) пока
-  // приходят только из mock-данных. Реальные данные (Family/Trainer/Super
-  // Admin Preview) заполняют firstName/lastName/gender/birthDate/age/
-  // weight/sportName/groupName/trainerName/kyuGrade/beltColorName/phone/
-  // email/photoUrl — см. familyDataService.js/trainerStudentsService.js/
-  // get-student-preview (задача "student-profile-data-pipeline-audit").
-  // age ВСЕГДА вычисляется из даты рождения через calculateAge() на
-  // уровне сервиса, не хранится статично. weight/phone/email/photoUrl/
-  // trainerName у Family/Trainer пайплайнов требуют миграции
-  // 20260916160059 (⚠️ ПРЕДЛОЖЕНИЕ, ещё НЕ применена к production на этом
-  // шаге) — до её применения соответствующие значения будут undefined,
-  // строка просто не рендерится (тот же safe-fallback, что и всегда).
-  // Каждая строка рендерится только если поле ACTIVE И значение реально
-  // есть у ученика — ACTIVE-но-пустое значение НЕ показывает бессмысленную
-  // строку (задание, раздел 8).
-  //
-  // trainingSchedule/contractStatus/contractDate ПОЛНОСТЬЮ убраны из этого
-  // компонента (задание "student-profile-club-wide-config", раздел 4) —
-  // это больше не поля профиля, а поля разделов "Мои тренировки"/"Договор
-  // и оплата" под навигационными карточками (не подключены к этим
-  // разделам на этом шаге — только визуально убраны отсюда).
   return (
     <div className={styles.card}>
-      <ChildAvatar child={child} showPhoto={visible('photo')} />
-
-      <div className={styles.info}>
-        <div className={styles.name}>
-          {visible('firstName') && child.firstName}
-          {visible('firstName') && visible('lastName') && child.firstName && child.lastName ? ' ' : ''}
-          {visible('lastName') && child.lastName}
-        </div>
-
-        {visible('gender') && child.gender && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.gender')}</span>
-            <span className={styles.beltValue}>{child.gender}</span>
+      <div className={styles.columnsGrid}>
+        {PROFILE_FIELD_COLUMNS.map((column) => (
+          <div key={column.id} className={styles.column}>
+            {renderColumnBody(column.id, child, visible, t)}
           </div>
-        )}
-
-        {visible('birthDate') && child.birthDate && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.birthDate')}</span>
-            <span className={styles.beltValue}>{child.birthDate}</span>
-          </div>
-        )}
-
-        {visible('age') && child.age != null && (
-          <div className={styles.age}>
-            {t('common.years', { count: child.age })}{child.birthYear ? ` (${child.birthYear})` : ''}
-          </div>
-        )}
-
-        {visible('weight') && child.weight != null && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.weight')}</span>
-            <span className={styles.beltValue}>{child.weight}</span>
-          </div>
-        )}
-
-        {visible('sport') && child.sportName && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.sport')}</span>
-            <span className={styles.beltValue}>{child.sportName}</span>
-          </div>
-        )}
-
-        {visible('group') && child.groupName && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.group')}</span>
-            <span className={styles.beltValue}>{child.groupName}</span>
-          </div>
-        )}
-
-        {visible('trainer') && child.trainerName && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.trainer')}</span>
-            <span className={styles.beltValue}>{child.trainerName}</span>
-          </div>
-        )}
-
-        {/* Kyu/Цвет пояса — ОДНА объединённая строка, а не два независимых
-            .beltRow, потому что toggle'ы управляют ЧАСТЯМИ одного и того же
-            смыслового значения "пояс" (задание "student-profile-data-
-            pipeline-audit", раздел 10): kyuGrade+beltColor оба ACTIVE ->
-            "gelb · 7. Kyu"; только один ACTIVE -> показывается только он;
-            оба INACTIVE -> строка отсутствует целиком. Порядок — цвет,
-            затем Kyu (тот же порядок, что уже был у комбинированного
-            beltLabel: "gelb · 7. Kyu"). */}
-        {((visible('beltColor') && child.beltColorName) || (visible('kyuGrade') && child.kyuGrade)) && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
-            <span className={styles.beltValue}>
-              {[visible('beltColor') && child.beltColorName, visible('kyuGrade') && child.kyuGrade]
-                .filter(Boolean)
-                .join(' · ')}
-            </span>
-          </div>
-        )}
-
-        {/* currentBelt/nextBelt — ТОЛЬКО mock-данные (childrenMock.js,
-            {color,key}-форма), реальные RPC этот shape никогда не задают —
-            не конфликтует с блоком выше (реальные данные используют
-            kyuGrade/beltColorName, mock их не устанавливает). */}
-        {(visible('kyuGrade') || visible('beltColor')) && child.currentBelt && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.currentBelt')}</span>
-            <span className={styles.beltValue}>
-              <span className={styles.beltDot} style={{ background: child.currentBelt.color }} />
-              {t(child.currentBelt.key)}
-            </span>
-          </div>
-        )}
-
-        {(visible('kyuGrade') || visible('beltColor')) && child.nextBelt && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.nextBelt')}</span>
-            <span className={styles.beltValue}>
-              <span className={styles.beltDot} style={{ background: child.nextBelt.color }} />
-              {t(child.nextBelt.key)}
-            </span>
-          </div>
-        )}
-
-        {visible('phone') && child.phone && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.phone')}</span>
-            <span className={styles.beltValue}>{child.phone}</span>
-          </div>
-        )}
-
-        {visible('email') && child.email && (
-          <div className={styles.beltRow}>
-            <span className={styles.beltLabel}>{t('student.email')}</span>
-            <span className={styles.beltValue}>{child.email}</span>
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );

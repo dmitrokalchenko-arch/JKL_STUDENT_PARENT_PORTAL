@@ -1,16 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
-import JudoTechniquePicker from '../../components/trainer/JudoTechniquePicker.jsx';
-import JudoTechniqueVideoModal from '../../components/trainer/JudoTechniqueVideoModal.jsx';
-import MarkTechniqueCompletedModal from '../../components/trainer/MarkTechniqueCompletedModal.jsx';
-import StudentVideoPlayerModal from '../../components/trainer/StudentVideoPlayerModal.jsx';
-import CompletedTechniquesList from '../../components/trainer/CompletedTechniquesList.jsx';
-import { useTrainerWriteContext } from '../../hooks/useTrainerWriteContext.js';
 import { useTrainerStudentProfile } from '../../hooks/useTrainerStudentProfile.js';
-import { useStudentTechniqueRecords } from '../../hooks/useStudentTechniqueRecords.js';
-import { useUnmarkTechniqueCompleted } from '../../hooks/useUnmarkTechniqueCompleted.js';
 import { signOutTrainer } from '../../services/trainerAuthService.js';
 import { getTrainerStudentPageConfig } from '../../services/studentPageConfigService.js';
 import styles from './TrainerStudentPage.module.css';
@@ -23,67 +15,34 @@ import styles from './TrainerStudentPage.module.css';
 // TRAINER UNIVERSAL STUDENT PAGE: страница использует общий presentation-
 // каркас StudentPageContent (accessMode="trainer") — тот же, что уже
 // использует Super Admin Preview (accessMode="superadmin") и FamilyDashboard
-// (accessMode="family"). С миграции 20260915130056 (ещё НЕ применена к
-// production) get_trainer_student_by_id возвращает тот же набор
+// (accessMode="family"). get_trainer_student_by_id возвращает тот же набор
 // Block-1-профильных полей, что get_current_family_children() уже отдаёт
-// Family (sport/group/пояс/статус договора) — StudentProfileCard теперь
-// рендерит их одинаково независимо от accessMode, БЕЗ mock-данных. До
-// применения этой миграции production по-прежнему вернёт только
-// {id, vorname, nachname} (см. итоговый отчёт задачи) — остальные поля
-// просто не будут показаны, StudentProfileCard уже устойчив к их
-// отсутствию (см. её собственный комментарий).
+// Family — StudentProfileCard рендерит их одинаково независимо от
+// accessMode, БЕЗ mock-данных.
 //
-// Bonus-техники (прогресс-блок) сюда НЕ подключаются на этом шаге —
-// techniqueProgress не передаётся вовсе, секция просто не рендерится (та
-// же семантика, что и везде в StudentPageContent) — отдельная задача, не
-// затронута здесь. Ряд навигационных карточек ("Моя семья"/"Договор и
-// оплата"/...) тоже намеренно не показывается тренеру (showNavigationCards
-// не передаётся) — эти карточки принадлежат family-стороне (аккаунт/
-// договор семьи), и для тренера сегодня нет ни одного реального
-// backend-источника под ними; честный "подключим позже" в каждой из них
-// был бы просто лишним шумом на странице, а не полезной функциональностью.
+// useTrainerStudentProfile(studentId) — ЕДИНСТВЕННЫЙ источник профиля для
+// StudentPageContent's student-пропа И единственный page-level access-check
+// (get_trainer_student_by_id сам вызывает can_trainer_access_student, 0
+// строк без ошибки = доступа нет — см. ветку ниже). Familienzugang/
+// families.status/family_students.status здесь НИГДЕ не участвуют —
+// Trainer-доступ к Student Page не зависит от семейного доступа.
 //
-// ⚠️ LEGACY SECTION (см. children-слот ниже): "Выполненные техники" +
-// полный "Каталог техник" (все 100 judo_techniques) — старая, дошедшая с
-// прежнего этапа модель, где тренер мог отметить ЛЮБУЮ из 100 техник
-// каталога выполненной ученику. Это НЕ соответствует финальной продуктовой
-// модели Bonus Techniques (техника считается "выполненной" только если она
-// входит в bonus-пул ЭТОГО ученика — программу его уже полученного Kyu) —
-// но замена на bonus-пул СОЗНАТЕЛЬНО НЕ делается в этой задаче (задание:
-// "не переделывать их в Bonus Techniques… не трогать Kyu"). Секция
-// оставлена КАК ЕСТЬ, без изменений логики, временно, до отдельного
-// следующего этапа Bonus Techniques, который её заменит/встроит в общий
-// блок "Бонусные техники".
-//
-// Сама техническая часть — самостоятельная, УЖЕ полностью рабочая часть
-// этой страницы, переехавшая БЕЗ ИЗМЕНЕНИЙ ЛОГИКИ в children-слот
-// StudentPageContent:
-//   1) useStudentTechniqueRecords(studentId) — читает student_technique_records
-//      JOIN judo_techniques для ЭТОГО ученика (RLS: can_trainer_access_student).
-//   2) useTrainerWriteContext() — узнаёт {trainerRowId, clubId} текущего
-//      тренера через RPC get_current_trainer_write_context.
-//   3) useTrainerStudentProfile(studentId) — ЕДИНСТВЕННЫЙ источник профиля
-//      для StudentPageContent's student-пропа И единственный page-level
-//      access-check (get_trainer_student_by_id сам вызывает
-//      can_trainer_access_student, 0 строк без ошибки = доступа нет — см.
-//      ветку ниже). Familienzugang/families.status/family_students.status
-//      здесь НИГДЕ не участвуют — Trainer-доступ к Student Page не зависит
-//      от семейного доступа (см. итоговый отчёт задачи).
-//   4) pendingTechnique — какая техника прямо сейчас ждёт подтверждения в
-//      модалке; клик "Отметить как выполнено" в JudoTechniquePicker
-//      больше НЕ делает INSERT сразу, только открывает модалку — сам
-//      upload видео + INSERT происходят внутри MarkTechniqueCompletedModal
-//      (useCompleteTechniqueWithVideo).
-//   5) viewingStudentVideoRecord — какая ИЗ ВЫПОЛНЕННЫХ записей сейчас
-//      открыта в StudentVideoPlayerModal (персональное видео ученика,
-//      НЕ YouTube).
-// completedTechniqueIds строится из уже загруженных records — Picker не
-// делает отдельный запрос, чтобы узнать, что уже выполнено.
+// ⚠️ REMOVED FROM THIS PAGE (задача "student-profile-shared-layout",
+// раздел "Задача 2"): inline-рендер "Выполненные техники"
+// (CompletedTechniquesList) + полный "Каталог техник" (JudoTechniquePicker,
+// все 100 judo_techniques) больше НЕ показываются под StudentProfileCard —
+// эта legacy-модель (тренер отмечает ЛЮБУЮ технику каталога, без привязки
+// к bonus-пулу ученика) не соответствует финальной архитектуре Universal
+// Student Page. Ни функциональность, ни компоненты (CompletedTechniquesList,
+// JudoTechniquePicker, JudoTechniqueVideoModal, MarkTechniqueCompletedModal,
+// StudentVideoPlayerModal), ни хуки (useStudentTechniqueRecords,
+// useTrainerWriteContext, useUnmarkTechniqueCompleted), ни services/RPC/DB
+// НЕ удалены — только их использование ИМЕННО на этой странице. Они
+// подключатся позже к отдельному разделу Student Page ("Необходимые
+// техники" или будущий Bonus Techniques UI) — отдельной следующей задачей,
+// не здесь.
 export default function TrainerStudentPage({ studentId }) {
   const { t } = useTranslation();
-  const [videoTechnique, setVideoTechnique] = useState(null);
-  const [pendingTechnique, setPendingTechnique] = useState(null);
-  const [viewingStudentVideoRecord, setViewingStudentVideoRecord] = useState(null);
 
   // Club-wide конфигурация видимости (см. FamilyDashboard.jsx — тот же
   // паттерн: один запрос при монтировании, честный null-fallback ->
@@ -101,81 +60,16 @@ export default function TrainerStudentPage({ studentId }) {
   }, []);
 
   const {
-    context: writeContext,
-    isLoading: isWriteContextLoading,
-    error: writeContextHookError
-  } = useTrainerWriteContext();
-
-  const {
     student,
     isLoading: isProfileLoading,
     error: profileError,
     reload: reloadProfile
   } = useTrainerStudentProfile(studentId);
 
-  const {
-    records,
-    isLoading: isRecordsLoading,
-    error: recordsError,
-    refetch: refetchRecords,
-    addRecordLocally,
-    removeRecordLocally
-  } = useStudentTechniqueRecords(studentId);
-
-  // ЭТАП 7 (прежний): без reload/refetch — новая запись (ровно то, что
-  // вернул INSERT ... select(...).single() внутри модалки) добавляется в
-  // уже загруженный список напрямую, completedTechniqueIds пересчитывается
-  // автоматически (useMemo ниже зависит от records); модалка закрывается
-  // тем же сеттером, что её открывал.
-  const handleModalCompleted = useCallback(
-    (record) => {
-      addRecordLocally(record);
-      setPendingTechnique(null);
-    },
-    [addRecordLocally]
-  );
-
-  // Симметрично — после успешного DELETE запись убирается локально
-  // (removeRecordLocally), completedTechniqueIds пересчитывается
-  // автоматически тем же useMemo, JudoTechniquePicker сразу видит технику
-  // как невыполненную (задание, "не допускать рассинхронизации между
-  // CompletedTechniquesList и JudoTechniquePicker" — общий источник, один
-  // и тот же records, а не два независимых состояния).
-  const handleUnmarked = useCallback(
-    (recordId) => {
-      removeRecordLocally(recordId);
-    },
-    [removeRecordLocally]
-  );
-
-  const {
-    unmarkCompleted,
-    unmarkingId,
-    error: unmarkError,
-    videoCleanupWarning,
-    clearVideoCleanupWarning
-  } = useUnmarkTechniqueCompleted({
-    onUnmarked: handleUnmarked
-  });
-
-  const completedTechniqueIds = useMemo(() => new Set((records ?? []).map((r) => r.techniqueId)), [records]);
-
   const handleLogout = async () => {
     await signOutTrainer();
     window.location.href = '/';
   };
-
-  // Авто-скрытие предупреждения об неудачном video cleanup — не нужен
-  // отдельный "закрыть" контрол/i18n-ключ (не входит в явный список
-  // задания), но и оставлять его висеть навсегда до следующей отмены было
-  // бы неаккуратно (задание, этап 15: интерфейс компактный, не
-  // доминирующий). Само предупреждение уже сказано пользователю один раз —
-  // этого достаточно, оно не блокирует и не требует действия.
-  useEffect(() => {
-    if (!videoCleanupWarning) return undefined;
-    const timeoutId = setTimeout(clearVideoCleanupWarning, 8000);
-    return () => clearTimeout(timeoutId);
-  }, [videoCleanupWarning, clearVideoCleanupWarning]);
 
   // Page-level gate — тот же паттерн, что StudentPreviewPage.jsx (Super
   // Admin Preview): loading/error/denied обрабатываются ЗДЕСЬ, ДО рендера
@@ -215,59 +109,6 @@ export default function TrainerStudentPage({ studentId }) {
       }
       student={student}
       studentPageConfig={studentPageConfig}
-    >
-      <div className={styles.content}>
-        {/* "current trainer cannot be resolved" — баннер на уровне
-            страницы, не per-row: если тренер деактивирован, ЛЮБАЯ попытка
-            отметить технику заведомо провалится — лучше сказать это один
-            раз заранее, чем дать открыть модалку и получить ошибку внутри. */}
-        {!isWriteContextLoading && writeContextHookError && (
-          <div className={styles.writeContextBanner}>{t('trainerTechniques.writeContextError')}</div>
-        )}
-
-        {videoCleanupWarning && (
-          <div className={styles.warningBanner}>{t('trainerTechniques.couldNotDeletePerformanceVideo')}</div>
-        )}
-
-        {/* LEGACY — см. комментарий в шапке файла: полный каталог 100
-            techniques, будет заменён bonus-пулом в отдельной следующей
-            задаче. Логика ниже не менялась. */}
-        <h2 className={styles.sectionTitle}>{t('trainerTechniques.completedListTitle')}</h2>
-        <CompletedTechniquesList
-          records={records}
-          isLoading={isRecordsLoading}
-          error={recordsError}
-          onRetry={refetchRecords}
-          onPlay={setViewingStudentVideoRecord}
-          onUnmark={unmarkCompleted}
-          unmarkingId={unmarkingId}
-          unmarkError={unmarkError}
-        />
-
-        <h2 className={styles.sectionTitle}>{t('trainerTechniques.title')}</h2>
-        <JudoTechniquePicker
-          completedTechniqueIds={completedTechniqueIds}
-          onMarkCompleted={setPendingTechnique}
-          onPlay={setVideoTechnique}
-        />
-      </div>
-
-      {/* Каталожная YouTube-модалка — БЕЗ изменений, эталонное видео техники. */}
-      <JudoTechniqueVideoModal technique={videoTechnique} onClose={() => setVideoTechnique(null)} />
-
-      <MarkTechniqueCompletedModal
-        technique={pendingTechnique}
-        student={student}
-        writeContext={writeContext}
-        onCompleted={handleModalCompleted}
-        onClose={() => setPendingTechnique(null)}
-      />
-
-      <StudentVideoPlayerModal
-        record={viewingStudentVideoRecord}
-        student={student}
-        onClose={() => setViewingStudentVideoRecord(null)}
-      />
-    </StudentPageContent>
+    />
   );
 }

@@ -1,12 +1,14 @@
+/* Normal mode — та же 5-колоночная геометрия, что Settings Mode (см.
+   .settingsCard ниже): контейнер держит ТОЛЬКО .columnsGrid, никакого
+   собственного flex/info-списка не осталось (задача "student-profile-
+   shared-layout" — устраняет расхождение, из-за которого normal mode
+   раньше показывал всё одной вертикальной колонкой). */
 .card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 16px;
-  display: flex;
-  gap: 14px;
-  flex: 1.4;
-  min-width: 220px;
+  width: 100%;
 }
 
 .avatar {
@@ -20,6 +22,7 @@
   justify-content: center;
   font-size: 20px;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .avatar img {
@@ -28,16 +31,11 @@
   object-fit: cover;
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
 .name {
   font-size: 16px;
   font-weight: 600;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .age {
@@ -63,6 +61,8 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .beltDot {
@@ -82,6 +82,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 16px;
+  width: 100%;
 }
 
 .settingsHeaderRow {
