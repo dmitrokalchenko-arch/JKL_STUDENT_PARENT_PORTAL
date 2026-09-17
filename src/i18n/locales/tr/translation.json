@@ -46,7 +46,21 @@
     "nextBelt": "Sonraki kuşak",
     "sport": "Spor dalı",
     "group": "Grup",
-    "contractStatus": "Sözleşme durumu"
+    "contractStatus": "Sözleşme durumu",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "gender": "Cinsiyet",
+    "birthDate": "Doğum tarihi",
+    "age": "Yaş",
+    "weight": "Kilo",
+    "trainingSchedule": "Antrenman programı",
+    "trainer": "Antrenör",
+    "kyuGrade": "Kyu derecesi",
+    "beltColor": "Kuşak rengi",
+    "phone": "Telefon",
+    "email": "E-posta",
+    "contractDate": "Sözleşme tarihi",
+    "photo": "Fotoğraf"
   },
   "exam": {
     "title": "Sınav için asgari yaş",
@@ -269,6 +283,39 @@
       "trainer": "Antrenör",
       "superadmin": "Süper Admin"
     },
-    "sectionNotConnectedYet": "Bu bölümün verileri ileriki bir adımda bağlanacak."
+    "sectionNotConnectedYet": "Bu bölümün verileri ileriki bir adımda bağlanacak.",
+    "settingsMode": {
+      "active": "Aktif",
+      "inactive": "Devre dışı"
+    },
+    "futureRatingBlock": {
+      "title": "Puanlama ve bir sonraki Kyu için uygunluk",
+      "description": "Gelecek bölüm: puanlama ve yaş şartı ilerlemesi"
+    },
+    "bonusPlaceholder": {
+      "description": "Bonus teknikler programı ayarlandıktan sonra veriler kullanılabilir olacaktır."
+    }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Öğrenci sayfası",
+    "cardSubtitle": "Öğrenci sayfasında hangi bilgi alanlarının gösterileceğini seçin.",
+    "columns": {
+      "basic": "Temel bilgiler",
+      "personal": "Kişisel bilgiler",
+      "sport": "Spor bilgileri",
+      "qualification": "Yeterlilik",
+      "contact": "İletişim bilgileri"
+    },
+    "futureBadge": "Gelecek bölüm",
+    "showOnStudentPage": "Bu bölümü öğrenci sayfasında göster",
+    "navigationTitle": "Gezinme bölümleri",
+    "navigationSubtitle": "Öğrenci sayfasının altında hangi bölümlerin gösterileceğini seçin.",
+    "saveButton": "Ayarları kaydet",
+    "discardButton": "Değişiklikleri geri al",
+    "savedMessage": "Ayarlar kaydedildi",
+    "saveError": "Kaydetme başarısız oldu",
+    "unsavedChanges": "Kaydedilmemiş değişiklikler var",
+    "saving": "Kaydediliyor…",
+    "bonusDescription": "Mevcut kuşak için bonus tekniklerin öğrenilme ilerlemesi."
   }
 }

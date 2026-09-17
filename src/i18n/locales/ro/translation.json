@@ -48,7 +48,21 @@
     "nextBelt": "Centura următoare",
     "sport": "Sport",
     "group": "Grupă",
-    "contractStatus": "Stare contract"
+    "contractStatus": "Stare contract",
+    "firstName": "Prenume",
+    "lastName": "Nume",
+    "gender": "Sex",
+    "birthDate": "Data nașterii",
+    "age": "Vârstă",
+    "weight": "Greutate",
+    "trainingSchedule": "Program de antrenament",
+    "trainer": "Antrenor",
+    "kyuGrade": "Grad Kyu",
+    "beltColor": "Culoarea centurii",
+    "phone": "Telefon",
+    "email": "Email",
+    "contractDate": "Data contractului",
+    "photo": "Fotografie"
   },
   "exam": {
     "title": "Vârsta minimă pentru examen",
@@ -279,6 +293,39 @@
       "trainer": "Antrenor",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Datele acestei secțiuni vor fi conectate într-un pas ulterior."
+    "sectionNotConnectedYet": "Datele acestei secțiuni vor fi conectate într-un pas ulterior.",
+    "settingsMode": {
+      "active": "Activ",
+      "inactive": "Inactiv"
+    },
+    "futureRatingBlock": {
+      "title": "Punctaj și eligibilitate pentru următorul Kyu",
+      "description": "Secțiune viitoare: progresul punctajului și cerința de vârstă"
+    },
+    "bonusPlaceholder": {
+      "description": "Datele vor fi disponibile după configurarea programului de tehnici bonus."
+    }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Pagina elevului",
+    "cardSubtitle": "Alegeți ce câmpuri de informații sunt afișate pe pagina elevului.",
+    "columns": {
+      "basic": "Informații de bază",
+      "personal": "Date personale",
+      "sport": "Informații sportive",
+      "qualification": "Calificare",
+      "contact": "Date de contact"
+    },
+    "futureBadge": "Secțiune viitoare",
+    "showOnStudentPage": "Afișează această secțiune pe pagina elevului",
+    "navigationTitle": "Secțiuni de navigare",
+    "navigationSubtitle": "Alegeți ce secțiuni sunt afișate în partea de jos a paginii elevului.",
+    "saveButton": "Salvează setările",
+    "discardButton": "Anulează modificările",
+    "savedMessage": "Setări salvate",
+    "saveError": "Salvarea a eșuat",
+    "unsavedChanges": "Există modificări nesalvate",
+    "saving": "Se salvează…",
+    "bonusDescription": "Progresul învățării tehnicilor bonus pentru centura curentă."
   }
 }

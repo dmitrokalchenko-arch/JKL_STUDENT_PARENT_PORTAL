@@ -20,9 +20,12 @@ import styles from './StudentPreviewPage.module.css';
 // Loading/error-состояния остаются локальными для этой страницы (общий
 // shell их не знает — он получает student только когда данные уже есть).
 //
-// REAL SUPER ADMIN STUDENT PAGE — STEP 1/2: студент ниже — РЕАЛЬНЫЕ данные
-// из get-student-preview (studentId/firstName/lastName/sportName/
-// groupName/beltLabel). showNavigationCards показывает тот же ряд карточек
+// REAL SUPER ADMIN STUDENT PAGE — STEP 1/2/3 (STEP 3, задача
+// "student-profile-data-pipeline-audit": get-student-preview теперь
+// возвращает тот же полный набор profile-полей, что Family/Trainer —
+// gender/birthDate/age/weight/trainerName/kyuGrade/beltColorName/phone/
+// email/photoUrl, не только firstName/lastName/sportName/groupName).
+// showNavigationCards показывает тот же ряд карточек
 // «Моя семья/Мои тренировки/...», что и демо-стенд, но БЕЗ mock-данных под
 // ними (trainings/familyAccount/contract сюда намеренно не передаются) —
 // StudentPageContent сам покажет нейтральное "подключим позже" вместо
@@ -78,10 +81,20 @@ export default function StudentPreviewPage({ token }) {
         id: student.studentId,
         firstName: student.firstName,
         lastName: student.lastName,
+        gender: student.gender,
+        birthDate: student.birthDate,
+        age: student.age,
+        weight: student.weight,
         sportName: student.sportName,
         groupName: student.groupName,
-        beltLabel: student.beltLabel
+        trainerName: student.trainerName,
+        kyuGrade: student.kyuGrade,
+        beltColorName: student.beltColorName,
+        phone: student.phone,
+        email: student.email,
+        photoUrl: student.photoUrl
       }}
+      studentPageConfig={student.studentPageConfig}
       techniqueProgress={student.techniqueProgress}
       isTechniqueProgressLoading={false}
       techniqueProgressError={null}

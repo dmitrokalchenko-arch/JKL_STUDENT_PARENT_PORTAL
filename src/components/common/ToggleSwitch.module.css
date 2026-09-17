@@ -1,0 +1,22 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle:hover {
+  border-color: var(--color-gold);
+}
+
+.toggleActive {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}

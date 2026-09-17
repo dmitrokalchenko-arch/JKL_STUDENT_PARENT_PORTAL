@@ -50,7 +50,21 @@
     "nextBelt": "Następny pas",
     "sport": "Dyscyplina",
     "group": "Grupa",
-    "contractStatus": "Status umowy"
+    "contractStatus": "Status umowy",
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "gender": "Płeć",
+    "birthDate": "Data urodzenia",
+    "age": "Wiek",
+    "weight": "Waga",
+    "trainingSchedule": "Harmonogram treningów",
+    "trainer": "Trener",
+    "kyuGrade": "Stopień Kyu",
+    "beltColor": "Kolor pasa",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "contractDate": "Data umowy",
+    "photo": "Zdjęcie"
   },
   "exam": {
     "title": "Wiek dopuszczenia do egzaminu",
@@ -289,6 +303,39 @@
       "trainer": "Trener",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Dane tej sekcji zostaną podłączone w kolejnym etapie."
+    "sectionNotConnectedYet": "Dane tej sekcji zostaną podłączone w kolejnym etapie.",
+    "settingsMode": {
+      "active": "Aktywne",
+      "inactive": "Nieaktywne"
+    },
+    "futureRatingBlock": {
+      "title": "Ranking i dopuszczenie do kolejnego Kyu",
+      "description": "Przyszła sekcja: postęp rankingu i wymogu wiekowego"
+    },
+    "bonusPlaceholder": {
+      "description": "Dane będą dostępne po skonfigurowaniu programu technik bonusowych."
+    }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Strona ucznia",
+    "cardSubtitle": "Wybierz, które pola informacji będą wyświetlane na stronie ucznia.",
+    "columns": {
+      "basic": "Informacje podstawowe",
+      "personal": "Dane osobowe",
+      "sport": "Informacje sportowe",
+      "qualification": "Kwalifikacja",
+      "contact": "Dane kontaktowe"
+    },
+    "futureBadge": "Przyszła sekcja",
+    "showOnStudentPage": "Pokaż tę sekcję na stronie ucznia",
+    "navigationTitle": "Sekcje nawigacyjne",
+    "navigationSubtitle": "Wybierz, które sekcje będą wyświetlane u dołu strony ucznia.",
+    "saveButton": "Zapisz ustawienia",
+    "discardButton": "Odrzuć zmiany",
+    "savedMessage": "Ustawienia zapisane",
+    "saveError": "Błąd zapisu",
+    "unsavedChanges": "Masz niezapisane zmiany",
+    "saving": "Zapisywanie…",
+    "bonusDescription": "Postęp w nauce technik bonusowych dla aktualnego pasa."
   }
 }

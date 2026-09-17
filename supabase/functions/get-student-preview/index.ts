@@ -144,7 +144,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: studentRow, error: studentError } = await supabaseAdmin
     .from('students')
-    .select('id, vorname, nachname, sport_id, gruppe_id, guertelfarbe, kyu_grad')
+    .select(
+      'id, vorname, nachname, sport_id, gruppe_id, guertelfarbe, kyu_grad, geschlecht, geburtsdatum, aktuelles_gewicht, telefon, email, foto_url'
+    )
     .eq('id', claimed.student_id)
     .maybeSingle();
 
@@ -169,7 +171,33 @@ Deno.serve(async (req: Request) => {
       : Promise.resolve({ data: null })
   ]);
 
-  const beltLabel = [studentRow.guertelfarbe, studentRow.kyu_grad].filter(Boolean).join(' · ') || null;
+  // TRAINER NAMES (задача "student-profile-data-pipeline-audit") — тот же
+  // способ резолва, что теперь используют get_trainer_student_by_id/
+  // get_current_family_children (миграция 20260916160059, ⚠️ ПРЕДЛОЖЕНИЕ,
+  // ещё НЕ применена к production): students.gruppe_id (может содержать
+  // несколько ID через ';'/',') -> trainer_groups(club_id=claimed.club_id).
+  // service_role уже обходит RLS, но club_id строго ограничен уже
+  // провалидированным claimed.club_id — тренер другого клуба никогда не
+  // попадёт в список, даже случайно совпав gruppe_id. best-effort: любая
+  // ошибка -> null, не роняет основной ответ.
+  let trainerNames = null;
+  try {
+    const groupIds = (studentRow.gruppe_id ?? '')
+      .split(/[;,]/)
+      .map((g: string) => g.trim())
+      .filter(Boolean);
+    if (groupIds.length > 0) {
+      const { data: trainerRows } = await supabaseAdmin
+        .from('trainer_groups')
+        .select('trainer_name')
+        .eq('club_id', claimed.club_id)
+        .in('gruppe_id', groupIds);
+      const uniqueNames = [...new Set((trainerRows ?? []).map((r) => r.trainer_name).filter(Boolean))].sort();
+      trainerNames = uniqueNames.length > 0 ? uniqueNames.join(', ') : null;
+    }
+  } catch {
+    trainerNames = null;
+  }
 
   // ── Club-scoped technique progress — best-effort, никогда не роняет
   // основной ответ. club_id берётся ИЗ УЖЕ ПРОВЕРЕННОГО claimed.club_id
@@ -183,19 +211,77 @@ Deno.serve(async (req: Request) => {
     studentRow.kyu_grad
   );
 
+  // CLUB-WIDE STUDENT PAGE CONFIG (миграции 20260916140057/058, применены
+  // к production) — best-effort, тот же принцип, что buildTechniqueProgress:
+  // любая ошибка -> null, ответ вообще не включает studentPageConfig,
+  // StudentPreviewPage/StudentPageContent откатываются на
+  // DEFAULT_STUDENT_PAGE_CONFIG. service_role уже обошёл RLS для
+  // students/sports/groups выше — тот же принцип для
+  // club_student_page_settings, читаем НАПРЯМУЮ по уже провалидированному
+  // claimed.club_id (никогда не от клиента).
+  let studentPageConfig = null;
+  try {
+    const { data: configRow } = await supabaseAdmin
+      .from('club_student_page_settings')
+      .select('config')
+      .eq('club_id', claimed.club_id)
+      .maybeSingle();
+    studentPageConfig = configRow?.config ?? null;
+  } catch {
+    studentPageConfig = null;
+  }
+
   return jsonResponse(
     {
       studentId: String(studentRow.id),
       firstName: studentRow.vorname,
       lastName: studentRow.nachname,
+      gender: studentRow.geschlecht ?? null,
+      birthDate: formatBirthDate(studentRow.geburtsdatum),
+      age: calculateAge(studentRow.geburtsdatum),
+      weight: studentRow.aktuelles_gewicht ?? null,
       sportName: sportRow?.name ?? null,
       groupName: groupRow?.gruppenname ?? null,
-      beltLabel,
-      ...(techniqueProgress ? { techniqueProgress } : {})
+      trainerName: trainerNames,
+      kyuGrade: studentRow.kyu_grad ?? null,
+      beltColorName: studentRow.guertelfarbe ?? null,
+      phone: studentRow.telefon || null,
+      email: studentRow.email ?? null,
+      photoUrl: studentRow.foto_url || null,
+      ...(techniqueProgress ? { techniqueProgress } : {}),
+      ...(studentPageConfig ? { studentPageConfig } : {})
     },
     200
   );
 });
+
+// Дублирует src/utils/studentProfileFormatting.js (calculateAge/
+// formatBirthDate) НАМЕРЕННО, а не импортирует — эта функция выполняется в
+// отдельном Deno-рантайме Edge Function, не в Vite-сборке фронтенда, общий
+// модуль между ними потребовал бы отдельной инфраструктуры для
+// cross-runtime shared-package, что выходит за рамки этой задачи. Логика
+// ЗЕРКАЛЬНО идентична фронтенд-версии — исходная дата рождения не
+// изменяется, только читается.
+function calculateAge(birthDateString: string | null): number | null {
+  if (!birthDateString) return null;
+  const birthDate = new Date(birthDateString);
+  if (Number.isNaN(birthDate.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
+function formatBirthDate(birthDateString: string | null): string | null {
+  if (!birthDateString) return null;
+  const [year, month, day] = birthDateString.split('-');
+  if (!year || !month || !day) return birthDateString;
+  return `${day}.${month}.${year}`;
+}
 
 // BONUS TECHNIQUES (не "техники, которые ученик знает вообще") — см.
 // миграцию 20260914100054. Бонусный пул ученика = club_required_techniques

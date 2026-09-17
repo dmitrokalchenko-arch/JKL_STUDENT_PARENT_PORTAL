@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import FamilyHeader from '../../components/family/FamilyHeader.jsx';
@@ -13,6 +13,7 @@ import { useTechniqueProgress } from '../../hooks/useTechniqueProgress.js';
 
 import { signOutFamily, markFamilyAccessDeactivated } from '../../services/familyAuthService.js';
 import { isSupabaseConfigured } from '../../services/supabaseClient.js';
+import { getFamilyStudentPageConfig } from '../../services/studentPageConfigService.js';
 
 import styles from './FamilyDashboard.module.css';
 
@@ -28,6 +29,26 @@ export default function FamilyDashboard() {
   } = useFamilyData();
   const { selectedChild, selectedId, selectChild } = useSelectedChild(children);
   const { activeSection, selectSection } = useActiveSection();
+
+  // Club-wide видимость полей/секций/навигации (см.
+  // src/config/studentPageConfig.js) — загружается один раз при появлении
+  // authenticated-сессии. Ошибка/RPC ещё не задеплоен (миграция
+  // 20260916140057 НЕ применена к production на этом шаге) —
+  // getFamilyStudentPageConfig() сама проглатывает это и возвращает null,
+  // studentPageConfig остаётся null -> StudentPageContent откатывается на
+  // DEFAULT_STUDENT_PAGE_CONFIG (полностью совпадает с сегодняшним
+  // production-видом), а не ломает страницу.
+  const [studentPageConfig, setStudentPageConfig] = useState(null);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let isCancelled = false;
+    getFamilyStudentPageConfig().then((config) => {
+      if (!isCancelled) setStudentPageConfig(config);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated]);
   const {
     data: techniqueProgress,
     isLoading: isTechniqueProgressLoading,
@@ -154,6 +175,7 @@ export default function FamilyDashboard() {
         />
       }
       student={selectedChild}
+      studentPageConfig={studentPageConfig}
       techniqueProgress={techniqueProgress}
       isTechniqueProgressLoading={isTechniqueProgressLoading}
       techniqueProgressError={techniqueProgressError}

@@ -50,7 +50,21 @@
     "nextBelt": "Наступний пояс",
     "sport": "Вид спорту",
     "group": "Група",
-    "contractStatus": "Статус договору"
+    "contractStatus": "Статус договору",
+    "firstName": "Ім'я",
+    "lastName": "Прізвище",
+    "gender": "Стать",
+    "birthDate": "Дата народження",
+    "age": "Вік",
+    "weight": "Вага",
+    "trainingSchedule": "Розклад тренувань",
+    "trainer": "Тренер",
+    "kyuGrade": "Kyu",
+    "beltColor": "Колір пояса",
+    "phone": "Телефон",
+    "email": "E-Mail",
+    "contractDate": "Дата договору",
+    "photo": "Фото"
   },
   "exam": {
     "title": "Вік допуску до іспиту",
@@ -289,6 +303,39 @@
       "trainer": "Тренер",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "Дані цього розділу буде підключено на наступному етапі."
+    "sectionNotConnectedYet": "Дані цього розділу буде підключено на наступному етапі.",
+    "settingsMode": {
+      "active": "Активно",
+      "inactive": "Вимкнено"
+    },
+    "futureRatingBlock": {
+      "title": "Рейтинг і допуск до наступного Kyu",
+      "description": "Майбутній блок: прогрес рейтингу та вікового нормативу"
+    },
+    "bonusPlaceholder": {
+      "description": "Дані стануть доступні після налаштування програми бонусних технік."
+    }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Сторінка учня",
+    "cardSubtitle": "Виберіть, які поля інформації відображатимуться на сторінці учня.",
+    "columns": {
+      "basic": "Основна інформація",
+      "personal": "Особисті дані",
+      "sport": "Спортивна інформація",
+      "qualification": "Кваліфікація",
+      "contact": "Контактні дані"
+    },
+    "futureBadge": "Майбутній блок",
+    "showOnStudentPage": "Показувати цей блок на сторінці учня",
+    "navigationTitle": "Навігаційні розділи",
+    "navigationSubtitle": "Виберіть, які розділи відображатимуться внизу сторінки учня.",
+    "saveButton": "Зберегти налаштування",
+    "discardButton": "Скасувати зміни",
+    "savedMessage": "Налаштування збережено",
+    "saveError": "Помилка збереження",
+    "unsavedChanges": "Є незбережені зміни",
+    "saving": "Збереження…",
+    "bonusDescription": "Прогрес вивчення бонусних технік для поточного пояса."
   }
 }

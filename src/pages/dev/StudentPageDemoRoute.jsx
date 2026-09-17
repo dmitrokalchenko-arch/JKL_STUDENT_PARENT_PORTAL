@@ -94,14 +94,18 @@ function getDemoAccessMode() {
 // Полностью вымышленные данные — не связаны ни с одним реальным студентом.
 // Форма объекта в точности повторяет то, что реально возвращает
 // get-student-preview (studentId/firstName/lastName/sportName/groupName/
-// beltLabel) — те же поля, только вымышленные значения.
+// kyuGrade/beltColorName/...) — те же поля, только вымышленные значения.
+// kyuGrade/beltColorName вместо прежнего единого beltLabel — задача
+// "student-profile-data-pipeline-audit" сделала Kyu/цвет пояса
+// независимыми полями и на реальном get-student-preview.
 const MOCK_STUDENT = {
   id: 'demo-000',
   firstName: 'Max',
   lastName: 'Mustermann',
   sportName: 'Judo',
   groupName: 'Judo_Mo_19:00_Mi_18:30',
-  beltLabel: 'weiß · 5. Kyu'
+  kyuGrade: '5. Kyu',
+  beltColorName: 'weiß'
 };
 
 // MOCK, только здесь. Пул из 5 реальных техник программы "уже полученного"

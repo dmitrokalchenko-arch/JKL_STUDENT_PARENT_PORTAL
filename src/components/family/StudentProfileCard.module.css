@@ -1,12 +1,14 @@
+/* Normal mode — та же 5-колоночная геометрия, что Settings Mode (см.
+   .settingsCard ниже): контейнер держит ТОЛЬКО .columnsGrid, никакого
+   собственного flex/info-списка не осталось (задача "student-profile-
+   shared-layout" — устраняет расхождение, из-за которого normal mode
+   раньше показывал всё одной вертикальной колонкой). */
 .card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: 16px;
-  display: flex;
-  gap: 14px;
-  flex: 1.4;
-  min-width: 220px;
+  width: 100%;
 }
 
 .avatar {
@@ -20,6 +22,7 @@
   justify-content: center;
   font-size: 20px;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .avatar img {
@@ -28,16 +31,11 @@
   object-fit: cover;
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
 .name {
   font-size: 16px;
   font-weight: 600;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .age {
@@ -63,6 +61,8 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .beltDot {
@@ -70,4 +70,95 @@
   height: 10px;
   border-radius: 50%;
   display: inline-block;
+}
+
+/* Settings Mode (club-wide конструктор /trainer/settings) — согласованный
+   вид задания "student-profile-club-wide-config": отдельный контейнер
+   .settingsCard (то же background/border/radius, что .card, но
+   display:block — вертикальный header + grid колонок, а не flex-row
+   normal mode). */
+.settingsCard {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  width: 100%;
+}
+
+.settingsHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.settingsHeaderTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settingsHeaderSubtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.columnsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .columnsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .columnsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .columnsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  min-width: 0;
+}
+
+.columnTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.15s ease;
+}
+
+.settingsRow:last-child {
+  border-bottom: none;
+}
+
+.settingsRowInactive {
+  opacity: 0.45;
+}
+
+.settingsFieldLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
 }

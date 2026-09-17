@@ -1,59 +1,101 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
+import { SectionToggleCard, NavigationTogglesCard } from '../../components/trainer/StudentPageSettingsPanels.jsx';
 import { signOutTrainer } from '../../services/trainerAuthService.js';
+import {
+  getTrainerStudentPageConfig,
+  saveTrainerStudentPageConfig
+} from '../../services/studentPageConfigService.js';
+import { DEFAULT_STUDENT_PAGE_CONFIG, mergeStudentPageConfig } from '../../config/studentPageConfig.js';
 import styles from './TrainerSettingsPage.module.css';
 
 // CLUB-WIDE STUDENT PAGE SETTINGS MODE — открывается карточкой «Настроить
 // вид страницы ученика» с Trainer Dashboard (/trainer/settings, маршрут не
-// менялся). ПЕРЕСМОТРЕНО (см. отчёт задачи): это НЕ отдельный Settings
-// Hub со своим дизайном (предыдущая версия — grid из TrainerDashboardCard —
-// заменена, TrainerDashboardCard/конфиг-массив здесь больше не
-// используются) — это тот же самый StudentPageContent (accessMode=
-// "trainer"), что и на /trainer/student/:id, но БЕЗ данных конкретного
-// ученика. Trainer должен видеть ЗДЕСЬ ту же страницу, что он видит для
-// Matviei Sukonko — потому что здесь позже, отдельной задачей, появятся
-// органы управления, влияющие на ОБЩИЙ шаблон Student Page ВСЕХ учеников
-// клуба (club-wide scope), а не только на этого одного ученика
-// (student-specific scope у /trainer/student/:id остаётся отдельным и не
-// затронут). Разделение ролей и scope НЕ через новый accessMode
-// ("trainer" — это по-прежнему просто роль, кто смотрит) — сама разница
-// "student vs club-settings" выражается ЗДЕСЬ, в том, что этой странице
-// сознательно НЕ передаётся ничей реальный student.
+// менялся). StudentProfileCard здесь работает в mode="settings"
+// (5-колоночный конструктор 14 полей), плюс две SectionToggleCard
+// (Rating/Bonus Techniques) и одна NavigationTogglesCard (6 nav-карточек)
+// — все три из StudentPageSettingsPanels.jsx, переданы через
+// StudentPageContent.settingsPanels. Всё вместе образует ОДИН
+// studentPageConfig объект (см. src/config/studentPageConfig.js) —
+// единственный источник видимости для этой страницы и для реальных
+// Family/Trainer Student Page/Super Admin Preview (см. итоговый отчёт
+// задачи "student-profile-club-wide-config").
 //
-// TEMPLATE_STUDENT ниже — НЕ mock ученика (никаких Vorname/Nachname,
-// похожих на настоящее имя, никакого вида спорта/группы/пояса/статуса
-// договора — только один нейтральный ярлык в поле "имени" карточки).
-// Сознательно НЕ переиспользует MOCK_STUDENT из StudentPageDemoRoute.jsx —
-// тот выглядит как настоящий ученик (Max Mustermann + реалистичные
-// вид спорта/группа/пояс) и рассчитан на dev/Deploy-Preview демонстрацию,
-// а не на реальный production-экран, который видит каждый тренер.
-const TEMPLATE_STUDENT_KEY = 'trainerDashboard.settingsPageTemplateName';
-
-// TEMPLATE-состояние блока "Бонусные техники" — ЧИСТО статический объект,
-// без единого RPC/fetch. TechniqueProgressSection.jsx (импортируется
-// изнутри StudentPageContent, здесь напрямую не используется) — уже
-// полностью presentational-компонент: получает progressData/isLoading/
-// error/onRetry пропами и сам ничего не загружает. Family Student Page
-// использует этот же компонент через тот же прямой проп техника
-// StudentPageContent — та же самая связка, никакой отдельной копии.
-// featureEnabled:true + techniques:[] + bonusRequirement:null ->
-// selectTechniqueGroups даёт completed=[]/requiredNageWaza=[]/
-// requiredKatameWaza=[] -> компонент сам заходит в свою штатную
-// hasNoProgram-ветку (см. TechniqueProgressSection.jsx) и показывает тот
-// же честный "для этого пояса ещё не создана программа техник", что и для
-// реального ученика без настроенной программы — ни фейковых техник, ни
-// ошибки загрузки, ни малейшего намёка на student_id=78/Matviei.
-const TEMPLATE_TECHNIQUE_PROGRESS = {
-  featureEnabled: true,
-  bonusRequirement: null,
-  bonusPoints: null,
-  belt: null,
-  techniques: []
-};
-
+// САМА КОНФИГУРАЦИЯ ТЕПЕРЬ CLUB-WIDE И СОХРАНЯЕТСЯ (в отличие от PR #10,
+// где fieldVisibility был чисто frontend-only state, который сбрасывался
+// при reload): draftConfig — текущий редактируемый черновик, savedConfig —
+// последнее подтверждённое сохранённое состояние (или
+// DEFAULT_STUDENT_PAGE_CONFIG, пока клуб ни разу не сохранял). Кнопка
+// "Сохранить" появляется активной только когда draftConfig отличается от
+// savedConfig; "Отменить изменения" откатывает draftConfig обратно на
+// savedConfig без сетевого запроса.
+//
+// ⚠️ persistence требует миграции 20260916140057
+// (club_student_page_settings + 3 RPC), которая НЕ применена к production
+// на этом шаге (см. итоговый отчёт) — до её применения
+// getTrainerStudentPageConfig()/saveTrainerStudentPageConfig() будут
+// получать "функция не существует" от Supabase; get честно откатывается
+// на DEFAULT_STUDENT_PAGE_CONFIG (см. её комментарий), save показывает
+// t('studentPageConfig.saveError') — это ОЖИДАЕМОЕ, не баг, поведение на
+// Deploy Preview этого PR.
 export default function TrainerSettingsPage() {
   const { t } = useTranslation();
+  const [savedConfig, setSavedConfig] = useState(DEFAULT_STUDENT_PAGE_CONFIG);
+  const [draftConfig, setDraftConfig] = useState(DEFAULT_STUDENT_PAGE_CONFIG);
+  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved | error
+
+  useEffect(() => {
+    let isCancelled = false;
+    getTrainerStudentPageConfig().then((raw) => {
+      if (isCancelled) return;
+      const merged = mergeStudentPageConfig(raw);
+      setSavedConfig(merged);
+      setDraftConfig(merged);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const hasUnsavedChanges = JSON.stringify(draftConfig) !== JSON.stringify(savedConfig);
+
+  // Любое новое изменение черновика сбрасывает предыдущий save-статус
+  // ("Настройки сохранены"/"Ошибка сохранения" не должны висеть на экране
+  // после того, как trainer уже успел изменить что-то ещё).
+  const editDraft = (updater) => {
+    setSaveState('idle');
+    setDraftConfig(updater);
+  };
+
+  const handleFieldToggle = (key) => {
+    editDraft((prev) => ({ ...prev, profileFields: { ...prev.profileFields, [key]: !prev.profileFields[key] } }));
+  };
+
+  const handleSectionToggle = (key) => {
+    editDraft((prev) => ({ ...prev, sections: { ...prev.sections, [key]: !prev.sections[key] } }));
+  };
+
+  const handleNavigationToggle = (key) => {
+    editDraft((prev) => ({ ...prev, navigation: { ...prev.navigation, [key]: !prev.navigation[key] } }));
+  };
+
+  const handleDiscard = () => {
+    setDraftConfig(savedConfig);
+    setSaveState('idle');
+  };
+
+  const handleSave = async () => {
+    setSaveState('saving');
+    try {
+      await saveTrainerStudentPageConfig(draftConfig);
+      setSavedConfig(draftConfig);
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+  };
 
   const handleLogout = async () => {
     await signOutTrainer();
@@ -69,11 +111,60 @@ export default function TrainerSettingsPage() {
           <div className={styles.scopeNote}>{t('trainerDashboard.settingsPageScopeNote')}</div>
         </div>
       }
-      student={{ id: 'template', firstName: t(TEMPLATE_STUDENT_KEY), lastName: '' }}
-      techniqueProgress={TEMPLATE_TECHNIQUE_PROGRESS}
-      isTechniqueProgressLoading={false}
-      techniqueProgressError={null}
-      showNavigationCards
+      profileMode="settings"
+      fieldVisibility={draftConfig.profileFields}
+      onFieldToggle={handleFieldToggle}
+      settingsPanels={
+        <div className={styles.panelsStack}>
+          <SectionToggleCard
+            icon="trophy"
+            title={t('studentPage.futureRatingBlock.title')}
+            badge={t('studentPageConfig.futureBadge')}
+            description={t('studentPage.futureRatingBlock.description')}
+            active={draftConfig.sections.ratingEligibility}
+            onToggle={() => handleSectionToggle('ratingEligibility')}
+          />
+
+          <SectionToggleCard
+            icon="belt"
+            title={t('techniqueProgress.title')}
+            description={t('studentPageConfig.bonusDescription')}
+            active={draftConfig.sections.bonusTechniques}
+            onToggle={() => handleSectionToggle('bonusTechniques')}
+          />
+
+          <NavigationTogglesCard navigation={draftConfig.navigation} onToggle={handleNavigationToggle} />
+
+          <div className={styles.saveBar}>
+            <div className={styles.saveBarStatus}>
+              {saveState === 'saved' && <span className={styles.saveBarSaved}>{t('studentPageConfig.savedMessage')}</span>}
+              {saveState === 'error' && <span className={styles.saveBarError}>{t('studentPageConfig.saveError')}</span>}
+              {saveState === 'idle' && hasUnsavedChanges && (
+                <span className={styles.saveBarUnsaved}>{t('studentPageConfig.unsavedChanges')}</span>
+              )}
+            </div>
+            <div className={styles.saveBarActions}>
+              <button
+                type="button"
+                className={styles.discardButton}
+                onClick={handleDiscard}
+                disabled={!hasUnsavedChanges || saveState === 'saving'}
+              >
+                {t('studentPageConfig.discardButton')}
+              </button>
+              <button
+                type="button"
+                className={styles.saveButton}
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges || saveState === 'saving'}
+              >
+                {saveState === 'saving' ? t('studentPageConfig.saving') : t('studentPageConfig.saveButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      showNavigationCards={false}
     />
   );
 }

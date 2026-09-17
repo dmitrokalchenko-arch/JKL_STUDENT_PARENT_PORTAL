@@ -46,7 +46,21 @@
     "nextBelt": "Volgende band",
     "sport": "Sport",
     "group": "Groep",
-    "contractStatus": "Contractstatus"
+    "contractStatus": "Contractstatus",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "gender": "Geslacht",
+    "birthDate": "Geboortedatum",
+    "age": "Leeftijd",
+    "weight": "Gewicht",
+    "trainingSchedule": "Trainingsschema",
+    "trainer": "Trainer",
+    "kyuGrade": "Kyu-graad",
+    "beltColor": "Bandkleur",
+    "phone": "Telefoon",
+    "email": "E-mail",
+    "contractDate": "Contractdatum",
+    "photo": "Foto"
   },
   "exam": {
     "title": "Minimumleeftijd voor het examen",
@@ -269,6 +283,39 @@
       "trainer": "Trainer",
       "superadmin": "Super Admin"
     },
-    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld."
+    "sectionNotConnectedYet": "De gegevens van dit onderdeel worden in een volgende stap gekoppeld.",
+    "settingsMode": {
+      "active": "Actief",
+      "inactive": "Inactief"
+    },
+    "futureRatingBlock": {
+      "title": "Ranking en toelating tot volgende Kyu",
+      "description": "Toekomstig onderdeel: voortgang ranking en leeftijdseis"
+    },
+    "bonusPlaceholder": {
+      "description": "Gegevens zijn beschikbaar zodra het bonustechniekenprogramma is ingesteld."
+    }
+  },
+  "studentPageConfig": {
+    "cardTitle": "Leerlingpagina",
+    "cardSubtitle": "Kies welke informatievelden worden weergegeven op de leerlingpagina.",
+    "columns": {
+      "basic": "Basisinformatie",
+      "personal": "Persoonlijke gegevens",
+      "sport": "Sportinformatie",
+      "qualification": "Kwalificatie",
+      "contact": "Contactgegevens"
+    },
+    "futureBadge": "Toekomstig onderdeel",
+    "showOnStudentPage": "Dit onderdeel op de leerlingpagina tonen",
+    "navigationTitle": "Navigatieonderdelen",
+    "navigationSubtitle": "Kies welke onderdelen onderaan de leerlingpagina worden weergegeven.",
+    "saveButton": "Instellingen opslaan",
+    "discardButton": "Wijzigingen annuleren",
+    "savedMessage": "Instellingen opgeslagen",
+    "saveError": "Opslaan mislukt",
+    "unsavedChanges": "Er zijn niet-opgeslagen wijzigingen",
+    "saving": "Bezig met opslaan…",
+    "bonusDescription": "Voortgang bij het leren van bonustechnieken voor de huidige band."
   }
 }
