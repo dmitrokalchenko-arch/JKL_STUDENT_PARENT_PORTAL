@@ -303,7 +303,22 @@
     "settingsTitle": "تخصيص عرض صفحة الطالب",
     "settingsDescription": "اختر الأقسام التي تظهر في صفحة الطالب",
     "settingsPageScopeNote": "إعدادات عامة لصفحات جميع طلاب النادي",
-    "settingsPageTemplateName": "صفحة الطالب"
+    "settingsPageTemplateName": "صفحة الطالب",
+    "kyuProgramTitle": "إعداد التقنيات المطلوبة لكل Kyu",
+    "kyuProgramDescription": "اختيار التقنيات المطلوبة لكل مستوى Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "المحدد:",
+    "searchPlaceholder": "البحث عن تقنية",
+    "selectedCount": "التقنيات المختارة: {{count}}",
+    "loadingKyuLevels": "جارٍ تحميل مستويات Kyu…",
+    "kyuLevelsLoadError": "تعذّر تحميل قائمة مستويات Kyu.",
+    "loadingProgram": "جارٍ تحميل البرنامج…",
+    "programLoadError": "تعذّر تحميل برنامج هذا الـ Kyu.",
+    "retry": "إعادة المحاولة",
+    "saveButton": "حفظ",
+    "saveError": "تعذّر حفظ البرنامج.",
+    "switchConfirm": "هناك تغييرات غير محفوظة. الانتقال إلى Kyu آخر دون الحفظ؟"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "اللقب",

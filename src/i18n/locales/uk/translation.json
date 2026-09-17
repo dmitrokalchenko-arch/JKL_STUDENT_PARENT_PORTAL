@@ -283,7 +283,22 @@
     "settingsTitle": "Налаштувати вигляд сторінки учня",
     "settingsDescription": "Вибрати, які розділи відображаються на сторінці учня",
     "settingsPageScopeNote": "Загальні налаштування сторінок учнів клубу",
-    "settingsPageTemplateName": "Сторінка учня"
+    "settingsPageTemplateName": "Сторінка учня",
+    "kyuProgramTitle": "Налаштування необхідних технік на Kyu",
+    "kyuProgramDescription": "Обрати техніки, необхідні для кожного рівня Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Обрано:",
+    "searchPlaceholder": "Пошук техніки",
+    "selectedCount": "Обрано технік: {{count}}",
+    "loadingKyuLevels": "Завантаження рівнів Kyu…",
+    "kyuLevelsLoadError": "Не вдалося завантажити список рівнів Kyu.",
+    "loadingProgram": "Завантаження програми…",
+    "programLoadError": "Не вдалося завантажити програму цього Kyu.",
+    "retry": "Повторити",
+    "saveButton": "Зберегти",
+    "saveError": "Не вдалося зберегти програму.",
+    "switchConfirm": "Є незбережені зміни. Перейти до іншого Kyu без збереження?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Прізвище",

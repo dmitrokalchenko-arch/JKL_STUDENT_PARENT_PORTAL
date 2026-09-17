@@ -264,7 +264,22 @@
     "settingsTitle": "Customize student page view",
     "settingsDescription": "Choose which sections are visible on the student page",
     "settingsPageScopeNote": "Club-wide settings for all student pages",
-    "settingsPageTemplateName": "Student page"
+    "settingsPageTemplateName": "Student page",
+    "kyuProgramTitle": "Set up required techniques per Kyu",
+    "kyuProgramDescription": "Choose the techniques required for each Kyu level"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Selected:",
+    "searchPlaceholder": "Search technique",
+    "selectedCount": "Techniques selected: {{count}}",
+    "loadingKyuLevels": "Loading Kyu levels…",
+    "kyuLevelsLoadError": "Could not load the list of Kyu levels.",
+    "loadingProgram": "Loading program…",
+    "programLoadError": "Could not load the program for this Kyu.",
+    "retry": "Retry",
+    "saveButton": "Save",
+    "saveError": "Could not save the program.",
+    "switchConfirm": "You have unsaved changes. Switch to another Kyu without saving?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Last name",

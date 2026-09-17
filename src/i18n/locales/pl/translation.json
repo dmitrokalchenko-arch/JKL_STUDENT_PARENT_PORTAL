@@ -283,7 +283,22 @@
     "settingsTitle": "Dostosuj widok strony ucznia",
     "settingsDescription": "Wybierz, które sekcje są widoczne na stronie ucznia",
     "settingsPageScopeNote": "Ogólne ustawienia stron uczniów klubu",
-    "settingsPageTemplateName": "Strona ucznia"
+    "settingsPageTemplateName": "Strona ucznia",
+    "kyuProgramTitle": "Skonfiguruj wymagane techniki dla Kyu",
+    "kyuProgramDescription": "Wybierz techniki wymagane dla każdego stopnia Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Wybrano:",
+    "searchPlaceholder": "Szukaj techniki",
+    "selectedCount": "Wybrane techniki: {{count}}",
+    "loadingKyuLevels": "Ładowanie stopni Kyu…",
+    "kyuLevelsLoadError": "Nie udało się załadować listy stopni Kyu.",
+    "loadingProgram": "Ładowanie programu…",
+    "programLoadError": "Nie udało się załadować programu tego stopnia Kyu.",
+    "retry": "Spróbuj ponownie",
+    "saveButton": "Zapisz",
+    "saveError": "Nie udało się zapisać programu.",
+    "switchConfirm": "Masz niezapisane zmiany. Przejść do innego stopnia Kyu bez zapisywania?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nazwisko",

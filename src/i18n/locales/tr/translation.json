@@ -263,7 +263,22 @@
     "settingsTitle": "Öğrenci sayfası görünümünü özelleştir",
     "settingsDescription": "Öğrenci sayfasında hangi bölümlerin görüneceğini seçin",
     "settingsPageScopeNote": "Kulübün tüm öğrenci sayfaları için genel ayarlar",
-    "settingsPageTemplateName": "Öğrenci sayfası"
+    "settingsPageTemplateName": "Öğrenci sayfası",
+    "kyuProgramTitle": "Kyu için gerekli teknikleri ayarla",
+    "kyuProgramDescription": "Her Kyu seviyesi için gerekli teknikleri seç"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Seçili:",
+    "searchPlaceholder": "Teknik ara",
+    "selectedCount": "Seçilen teknik sayısı: {{count}}",
+    "loadingKyuLevels": "Kyu seviyeleri yükleniyor…",
+    "kyuLevelsLoadError": "Kyu seviyeleri listesi yüklenemedi.",
+    "loadingProgram": "Program yükleniyor…",
+    "programLoadError": "Bu Kyu için program yüklenemedi.",
+    "retry": "Tekrar dene",
+    "saveButton": "Kaydet",
+    "saveError": "Program kaydedilemedi.",
+    "switchConfirm": "Kaydedilmemiş değişiklikler var. Kaydetmeden başka bir Kyu'ya geçilsin mi?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Soyad",

@@ -12,5 +12,12 @@ export const trainerDashboardSections = [
     descriptionKey: 'trainerDashboard.settingsDescription',
     icon: 'gear',
     path: '/trainer/settings'
+  },
+  {
+    id: 'kyu-program',
+    titleKey: 'trainerDashboard.kyuProgramTitle',
+    descriptionKey: 'trainerDashboard.kyuProgramDescription',
+    icon: 'belt',
+    path: '/trainer/kyu-program'
   }
 ];

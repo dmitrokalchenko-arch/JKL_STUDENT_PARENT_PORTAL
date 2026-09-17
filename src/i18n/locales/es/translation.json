@@ -263,7 +263,22 @@
     "settingsTitle": "Personalizar la vista de la página del alumno",
     "settingsDescription": "Elegir qué secciones son visibles en la página del alumno",
     "settingsPageScopeNote": "Ajustes generales de las páginas de alumnos del club",
-    "settingsPageTemplateName": "Página del alumno"
+    "settingsPageTemplateName": "Página del alumno",
+    "kyuProgramTitle": "Configurar técnicas necesarias por Kyu",
+    "kyuProgramDescription": "Elegir las técnicas necesarias para cada nivel de Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Seleccionado:",
+    "searchPlaceholder": "Buscar técnica",
+    "selectedCount": "Técnicas seleccionadas: {{count}}",
+    "loadingKyuLevels": "Cargando niveles de Kyu…",
+    "kyuLevelsLoadError": "No se pudo cargar la lista de niveles de Kyu.",
+    "loadingProgram": "Cargando programa…",
+    "programLoadError": "No se pudo cargar el programa de este Kyu.",
+    "retry": "Reintentar",
+    "saveButton": "Guardar",
+    "saveError": "No se pudo guardar el programa.",
+    "switchConfirm": "Hay cambios sin guardar. ¿Cambiar a otro Kyu sin guardar?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Apellido",

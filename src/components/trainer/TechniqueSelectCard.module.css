@@ -1,0 +1,58 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: var(--color-border-strong);
+  outline: none;
+}
+
+.cardSelected {
+  background: var(--color-bg-card-alt);
+  border-color: var(--color-gold);
+}
+
+.checkbox {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-card-alt);
+  flex: none;
+}
+
+.cardSelected .checkbox {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
+.category {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}

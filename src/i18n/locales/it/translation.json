@@ -263,7 +263,22 @@
     "settingsTitle": "Personalizza la visualizzazione della pagina dell'allievo",
     "settingsDescription": "Scegli quali sezioni sono visibili nella pagina dell'allievo",
     "settingsPageScopeNote": "Impostazioni generali delle pagine allievo del club",
-    "settingsPageTemplateName": "Pagina dell'allievo"
+    "settingsPageTemplateName": "Pagina dell'allievo",
+    "kyuProgramTitle": "Configurare le tecniche necessarie per Kyu",
+    "kyuProgramDescription": "Scegliere le tecniche necessarie per ogni livello di Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Selezionato:",
+    "searchPlaceholder": "Cerca tecnica",
+    "selectedCount": "Tecniche selezionate: {{count}}",
+    "loadingKyuLevels": "Caricamento livelli Kyu…",
+    "kyuLevelsLoadError": "Impossibile caricare l'elenco dei livelli Kyu.",
+    "loadingProgram": "Caricamento programma…",
+    "programLoadError": "Impossibile caricare il programma di questo Kyu.",
+    "retry": "Riprova",
+    "saveButton": "Salva",
+    "saveError": "Impossibile salvare il programma.",
+    "switchConfirm": "Ci sono modifiche non salvate. Passare a un altro Kyu senza salvare?"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Cognome",
