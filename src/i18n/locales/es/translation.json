@@ -278,7 +278,8 @@
     "retry": "Reintentar",
     "saveButton": "Guardar",
     "saveError": "No se pudo guardar el programa.",
-    "switchConfirm": "Hay cambios sin guardar. ¿Cambiar a otro Kyu sin guardar?"
+    "switchConfirm": "Hay cambios sin guardar. ¿Cambiar a otro Kyu sin guardar?",
+    "stripEmpty": "Aún no se han seleccionado técnicas"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Apellido",

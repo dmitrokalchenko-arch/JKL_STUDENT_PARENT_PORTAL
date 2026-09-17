@@ -290,7 +290,8 @@
     "retry": "Erneut versuchen",
     "saveButton": "Speichern",
     "saveError": "Das Programm konnte nicht gespeichert werden.",
-    "switchConfirm": "Es gibt ungespeicherte Änderungen. Zu einem anderen Kyu-Grad wechseln, ohne zu speichern?"
+    "switchConfirm": "Es gibt ungespeicherte Änderungen. Zu einem anderen Kyu-Grad wechseln, ohne zu speichern?",
+    "stripEmpty": "Noch keine Techniken ausgewählt"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nachname",

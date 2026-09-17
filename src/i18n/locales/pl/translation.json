@@ -298,7 +298,8 @@
     "retry": "Spróbuj ponownie",
     "saveButton": "Zapisz",
     "saveError": "Nie udało się zapisać programu.",
-    "switchConfirm": "Masz niezapisane zmiany. Przejść do innego stopnia Kyu bez zapisywania?"
+    "switchConfirm": "Masz niezapisane zmiany. Przejść do innego stopnia Kyu bez zapisywania?",
+    "stripEmpty": "Nie wybrano jeszcze żadnych technik"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nazwisko",

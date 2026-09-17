@@ -298,7 +298,8 @@
     "retry": "Повторити",
     "saveButton": "Зберегти",
     "saveError": "Не вдалося зберегти програму.",
-    "switchConfirm": "Є незбережені зміни. Перейти до іншого Kyu без збереження?"
+    "switchConfirm": "Є незбережені зміни. Перейти до іншого Kyu без збереження?",
+    "stripEmpty": "Технік поки не обрано"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Прізвище",

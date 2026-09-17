@@ -318,7 +318,8 @@
     "retry": "إعادة المحاولة",
     "saveButton": "حفظ",
     "saveError": "تعذّر حفظ البرنامج.",
-    "switchConfirm": "هناك تغييرات غير محفوظة. الانتقال إلى Kyu آخر دون الحفظ؟"
+    "switchConfirm": "هناك تغييرات غير محفوظة. الانتقال إلى Kyu آخر دون الحفظ؟",
+    "stripEmpty": "لم يتم اختيار أي تقنية بعد"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "اللقب",

@@ -278,7 +278,8 @@
     "retry": "Riprova",
     "saveButton": "Salva",
     "saveError": "Impossibile salvare il programma.",
-    "switchConfirm": "Ci sono modifiche non salvate. Passare a un altro Kyu senza salvare?"
+    "switchConfirm": "Ci sono modifiche non salvate. Passare a un altro Kyu senza salvare?",
+    "stripEmpty": "Nessuna tecnica selezionata"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Cognome",

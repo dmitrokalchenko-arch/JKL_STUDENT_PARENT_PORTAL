@@ -288,7 +288,8 @@
     "retry": "Reîncearcă",
     "saveButton": "Salvează",
     "saveError": "Programul nu a putut fi salvat.",
-    "switchConfirm": "Există modificări nesalvate. Treci la alt Kyu fără să salvezi?"
+    "switchConfirm": "Există modificări nesalvate. Treci la alt Kyu fără să salvezi?",
+    "stripEmpty": "Nu a fost selectată nicio tehnică"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nume",

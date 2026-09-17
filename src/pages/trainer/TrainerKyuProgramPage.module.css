@@ -2,22 +2,9 @@
   min-height: 100vh;
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.plainStateBox {
   max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px 48px;
-}
-
-@media (min-width: 768px) {
-  .content {
-    padding: 32px 24px 56px;
-  }
-}
-
-.stateBox {
+  margin: 16px auto 0;
   padding: 16px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
@@ -39,20 +26,43 @@
   cursor: pointer;
 }
 
+/* Sticky control panel — TrainerHeader сам НЕ sticky (обычный document
+   flow), поэтому top:0 здесь достаточно: пока header виден, панель просто
+   идёт под ним в нормальном потоке; когда header прокручивается за экран,
+   панель "включает" sticky и прилипает к самому верху — перекрытия header
+   не возникает без единой правки в TrainerHeader.module.css. */
+.stickyPanel {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.6);
+}
+
+.stickyInner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px 16px;
+}
+
 .kyuSelector {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .kyuButton {
-  padding: 9px 16px;
+  padding: 7px 13px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-chip);
   color: var(--color-text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -68,8 +78,20 @@
   color: #17171b;
 }
 
-.selectedKyuLabel {
-  font-size: 13px;
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.statusInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
   color: var(--color-text-secondary);
 }
 
@@ -78,28 +100,8 @@
 }
 
 .counter {
-  font-size: 13px;
   font-weight: 600;
   color: var(--color-gold);
-}
-
-.saveBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 12px 16px;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  position: sticky;
-  bottom: 12px;
-}
-
-.saveBarStatus {
-  font-size: 12px;
-  min-height: 16px;
 }
 
 .saveBarUnsaved {
@@ -114,11 +116,11 @@
   color: var(--color-error);
 }
 
-.saveBarActions {
+.statusActions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: auto;
+  gap: 8px;
+  flex: none;
 }
 
 .discardButton {
@@ -126,9 +128,10 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-button);
   color: var(--color-text-secondary);
-  font-size: 13px;
-  padding: 9px 16px;
+  font-size: 12px;
+  padding: 7px 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .discardButton:hover:not(:disabled) {
@@ -141,10 +144,11 @@
   border: none;
   border-radius: var(--radius-button);
   color: #17171b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 9px 18px;
+  padding: 7px 14px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .discardButton:disabled,
@@ -153,9 +157,59 @@
   cursor: default;
 }
 
+.searchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-gold);
+}
+
+.catalogArea {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+@media (min-width: 768px) {
+  .catalogArea {
+    padding: 20px 24px 56px;
+  }
+
+  .stickyInner {
+    padding: 16px 24px;
+  }
+}
+
 @media (max-width: 640px) {
   .kyuButton {
-    padding: 8px 13px;
-    font-size: 12px;
+    padding: 6px 11px;
+    font-size: 11px;
+  }
+
+  .statusInfo {
+    font-size: 11px;
+    gap: 8px;
   }
 }

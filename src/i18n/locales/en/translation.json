@@ -279,7 +279,8 @@
     "retry": "Retry",
     "saveButton": "Save",
     "saveError": "Could not save the program.",
-    "switchConfirm": "You have unsaved changes. Switch to another Kyu without saving?"
+    "switchConfirm": "You have unsaved changes. Switch to another Kyu without saving?",
+    "stripEmpty": "No techniques selected yet"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Last name",

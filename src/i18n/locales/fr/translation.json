@@ -278,7 +278,8 @@
     "retry": "Réessayer",
     "saveButton": "Enregistrer",
     "saveError": "Impossible d'enregistrer le programme.",
-    "switchConfirm": "Des modifications non enregistrées existent. Passer à un autre Kyu sans enregistrer ?"
+    "switchConfirm": "Des modifications non enregistrées existent. Passer à un autre Kyu sans enregistrer ?",
+    "stripEmpty": "Aucune technique sélectionnée pour l'instant"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nom",

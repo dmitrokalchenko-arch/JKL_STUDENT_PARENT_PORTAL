@@ -278,7 +278,8 @@
     "retry": "Tekrar dene",
     "saveButton": "Kaydet",
     "saveError": "Program kaydedilemedi.",
-    "switchConfirm": "Kaydedilmemiş değişiklikler var. Kaydetmeden başka bir Kyu'ya geçilsin mi?"
+    "switchConfirm": "Kaydedilmemiş değişiklikler var. Kaydetmeden başka bir Kyu'ya geçilsin mi?",
+    "stripEmpty": "Henüz teknik seçilmedi"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Soyad",

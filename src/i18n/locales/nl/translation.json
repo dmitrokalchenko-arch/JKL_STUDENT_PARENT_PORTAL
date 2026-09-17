@@ -278,7 +278,8 @@
     "retry": "Opnieuw proberen",
     "saveButton": "Opslaan",
     "saveError": "Het programma kon niet worden opgeslagen.",
-    "switchConfirm": "Er zijn niet-opgeslagen wijzigingen. Naar een ander Kyu-niveau gaan zonder op te slaan?"
+    "switchConfirm": "Er zijn niet-opgeslagen wijzigingen. Naar een ander Kyu-niveau gaan zonder op te slaan?",
+    "stripEmpty": "Nog geen technieken geselecteerd"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Achternaam",

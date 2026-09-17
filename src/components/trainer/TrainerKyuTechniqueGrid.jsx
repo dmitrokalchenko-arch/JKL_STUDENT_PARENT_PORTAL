@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Icon from '../common/Icon.jsx';
 import TechniqueSelectCard from './TechniqueSelectCard.jsx';
 import { groupTechniquesByCategory, searchTechniques } from '../../utils/judoTechniques.js';
 import styles from './TrainerKyuTechniqueGrid.module.css';
@@ -10,18 +9,10 @@ import styles from './TrainerKyuTechniqueGrid.module.css';
 // и TechniqueSelectCard — сам каталог (все 100 активных техник) грузится
 // ОДИН раз родителем (TrainerKyuProgramPage через useJudoTechniques) и не
 // зависит от выбранного Kyu; меняется только selectedIds при переключении
-// Kyu. query — состояние поиска, специально поднято в родителя (НЕ
-// сбрасывается при смене выбранных техник, см. задание раздел 8).
-export default function TrainerKyuTechniqueGrid({
-  techniques,
-  isLoading,
-  error,
-  onRetry,
-  query,
-  onQueryChange,
-  selectedIds,
-  onToggle
-}) {
+// Kyu. query — состояние поиска, поднято в родителя и живёт в sticky
+// control panel (само поле ввода теперь там, не здесь) — НЕ сбрасывается
+// при смене выбранных техник (см. задание раздел 8/9).
+export default function TrainerKyuTechniqueGrid({ techniques, isLoading, error, onRetry, query, selectedIds, onToggle }) {
   const { t } = useTranslation();
 
   const groups = useMemo(() => {
@@ -34,21 +25,6 @@ export default function TrainerKyuTechniqueGrid({
 
   return (
     <div className={styles.wrap}>
-      <label className={styles.searchField}>
-        <Icon name="search" size={16} className={styles.searchIcon} />
-        <input
-          className={styles.searchInput}
-          type="search"
-          value={query}
-          placeholder={t('trainerKyuProgram.searchPlaceholder')}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="none"
-          spellCheck="false"
-          onChange={(event) => onQueryChange(event.target.value)}
-        />
-      </label>
-
       {isLoading && <div className={styles.stateText}>{t('trainerTechniques.loading')}</div>}
 
       {!isLoading && error && (
