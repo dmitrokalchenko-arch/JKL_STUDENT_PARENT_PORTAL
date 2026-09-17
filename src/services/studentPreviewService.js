@@ -1,7 +1,9 @@
-// get-student-preview (Edge Function, ещё НЕ применена/задеплоена к
-// production) — потребляет одноразовый Super Admin Preview токен (выдан
-// Block 1, JCL_Gruppen, create-student-preview-token) и возвращает
-// МИНИМАЛЬНЫЙ read-only набор данных ученика.
+// get-student-preview (Edge Function, production) — потребляет одноразовый
+// Super Admin Preview токен (выдан Block 1, JCL_Gruppen,
+// create-student-preview-token) и возвращает read-only набор данных
+// ученика — тот же полный profile/config contract, что уже отдают
+// get_current_family_children/get_trainer_student_by_id (см. миграцию
+// 20260916160059) плюс studentPageConfig/techniqueProgress.
 //
 // НАМЕРЕННО не supabase.rpc() и не trainerSupabase/supabase клиент — эта
 // страница (/admin-preview/:token) открывается АНОНИМНО, без family/
@@ -43,14 +45,28 @@ export async function getStudentPreview(token) {
     studentId: data.studentId,
     firstName: data.firstName ?? null,
     lastName: data.lastName ?? null,
+    gender: data.gender ?? null,
+    birthDate: data.birthDate ?? null,
+    age: data.age ?? null,
+    weight: data.weight ?? null,
     sportName: data.sportName ?? null,
     groupName: data.groupName ?? null,
-    beltLabel: data.beltLabel ?? null,
+    trainerName: data.trainerName ?? null,
+    kyuGrade: data.kyuGrade ?? null,
+    beltColorName: data.beltColorName ?? null,
+    phone: data.phone ?? null,
+    email: data.email ?? null,
+    photoUrl: data.photoUrl ?? null,
     // Отсутствует в ответе, пока club-scoped миграция/данные не готовы —
     // см. get-student-preview: undefined, а не null, чтобы
     // StudentPageContent корректно не рендерил секцию вовсе (та же
     // семантика "не подключено", что уже используется для остальных
     // секций, см. StudentPreviewPage.jsx).
-    techniqueProgress: data.techniqueProgress ?? undefined
+    techniqueProgress: data.techniqueProgress ?? undefined,
+    // studentPageConfig — та же семантика: undefined, если Edge Function
+    // его не вернул (миграция/RPC ещё не готовы), чтобы
+    // mergeStudentPageConfig откатился на DEFAULT_STUDENT_PAGE_CONFIG, а не
+    // получил пустой объект, который выглядел бы как "всё выключено".
+    studentPageConfig: data.studentPageConfig ?? undefined
   };
 }
