@@ -67,7 +67,8 @@ type Action =
   | 'set_manual_disabled'
   | 'set_trainer_exception'
   | 'get_family_students'
-  | 'add_family_student';
+  | 'add_family_student'
+  | 'remove_family_student';
 
 interface RequestBody {
   action: Action;
@@ -93,6 +94,11 @@ interface RequestBody {
   // сознательно НЕ "newStudentId" — эта операция НИКОГДА не создаёт нового
   // студента, только связывает уже существующего.
   addStudentId?: number;
+  // Nur für action='remove_family_student' — der Schüler, dessen AKTIVE
+  // Verknüpfung zum bereits aufgelösten Familienkonto suspendiert werden
+  // soll ("Kind entfernen"). Niemals ein Hard-Delete, siehe Kommentar bei
+  // der Aktion selbst.
+  removeStudentId?: number;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -245,7 +251,7 @@ Deno.serve(async (req: Request) => {
   const validActions: Action[] = [
     'get_status', 'create', 'set_login', 'set_contact_email', 'set_password', 'activate', 'deactivate', 'send_recovery',
     'get_student_page_access', 'set_access_until', 'set_manual_disabled', 'set_trainer_exception',
-    'get_family_students', 'add_family_student'
+    'get_family_students', 'add_family_student', 'remove_family_student'
   ];
   if (!action || !validActions.includes(action)) {
     return jsonResponse({ error: 'invalid_action' }, 400);
@@ -1107,6 +1113,69 @@ Deno.serve(async (req: Request) => {
       familyId: familyRow.id,
       addedStudentId: addStudentId,
       operation: 'add_family_student',
+      students: children ?? []
+    }, 200);
+  }
+
+  // ── remove_family_student ───────────────────────────────────────────
+  // "Kind entfernen" — SUSPENDIERT die family_students-Beziehung zwischen
+  // dem bereits aufgelösten Familienkonto und removeStudentId. NIEMALS ein
+  // Hard-Delete: die Zeile bleibt als Historie erhalten (status='suspended'),
+  // exakt wie schon jede andere Nutzung von status in dieser Tabelle. Rührt
+  // NICHTS anderes an — nicht den Schüler, nicht student_page_access, nicht
+  // families/family_guardians (auch wenn dies das LETZTE Kind dieser Familie
+  // war: eine dadurch "leere" Familie wird hier bewusst NICHT gelöscht/
+  // deaktiviert — das bleibt eine separate, spätere Super-Admin-Entscheidung,
+  // siehe Abschlussbericht).
+  if (action === 'remove_family_student') {
+    const removeStudentId = body.removeStudentId;
+    if (!removeStudentId || typeof removeStudentId !== 'number') {
+      return jsonResponse({ error: 'missing_remove_student_id' }, 400);
+    }
+
+    const { data: activeLink, error: activeLinkError } = await supabaseAdmin
+      .from('family_students')
+      .select('id')
+      .eq('family_id', familyRow.id)
+      .eq('student_id', removeStudentId)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (activeLinkError) {
+      return jsonResponse({ error: 'existing_link_lookup_failed', details: activeLinkError.message }, 500);
+    }
+    if (!activeLink) {
+      // Entweder nie verknüpft, oder bereits suspendiert, oder gehört einer
+      // ANDEREN Familie — in allen drei Fällen gibt es hier nichts zu
+      // entfernen. Kein Rückschluss auf eine andere Familie in der Antwort.
+      return jsonResponse({ error: 'not_active_in_this_family' }, 404);
+    }
+
+    const { error: suspendError } = await supabaseAdmin
+      .from('family_students')
+      .update({ status: 'suspended' })
+      .eq('id', activeLink.id);
+    if (suspendError) {
+      return jsonResponse({ error: 'remove_family_student_failed', details: suspendError.message }, 500);
+    }
+
+    await logOperation('remove_child', familyRow.id, removeStudentId);
+
+    const { data: children, error: childrenError } = await supabaseAdmin.rpc('get_family_students', {
+      p_family_id: familyRow.id
+    });
+    if (childrenError) {
+      return jsonResponse({
+        familyId: familyRow.id,
+        removedStudentId: removeStudentId,
+        operation: 'remove_family_student',
+        studentsReloadError: childrenError.message
+      }, 200);
+    }
+
+    return jsonResponse({
+      familyId: familyRow.id,
+      removedStudentId: removeStudentId,
+      operation: 'remove_family_student',
       students: children ?? []
     }, 200);
   }
