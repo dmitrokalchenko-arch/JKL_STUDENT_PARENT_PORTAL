@@ -293,6 +293,17 @@
     "badge": "Süper Admin Önizleme",
     "invalidOrExpired": "Bu bağlantı geçersiz veya süresi dolmuş."
   },
+  "requiredTechniques": {
+    "watchVideo": "Video",
+    "loading": "Gerekli teknikler yükleniyor…",
+    "loadError": "Gerekli teknikler yüklenemedi.",
+    "retry": "Tekrar dene",
+    "noCurrentKyu": "Öğrencinin mevcut Kyu seviyesi belirtilmemiş.",
+    "unmappedKyu": "Öğrencinin mevcut seviyesi, bir sonraki Kyu'yu belirlemek için henüz desteklenmiyor.",
+    "maxLevel": "Mevcut seviye için bir sonraki Kyu öngörülmemiştir.",
+    "titleForKyu": "{{kyu}} için gerekli teknikler",
+    "emptyProgram": "Kulüp {{kyu}} için gerekli teknikleri henüz ayarlamadı."
+  },
   "studentPage": {
     "accessMode": {
       "family": "Aile",

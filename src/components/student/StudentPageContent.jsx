@@ -6,6 +6,7 @@ import TechniqueProgressSection from '../family/TechniqueProgressSection.jsx';
 import DashboardButtons from '../family/DashboardButtons.jsx';
 import ContentArea from '../family/ContentArea.jsx';
 import { SectionToggleCard } from '../trainer/StudentPageSettingsPanels.jsx';
+import RequiredTechniquesSection from './RequiredTechniquesSection.jsx';
 import { mergeStudentPageConfig } from '../../config/studentPageConfig.js';
 import styles from './StudentPageContent.module.css';
 
@@ -87,6 +88,10 @@ export default function StudentPageContent({
   familyAccount,
   familyChildren = [],
   contract,
+  requiredTechniques,
+  isRequiredTechniquesLoading,
+  requiredTechniquesError,
+  onRetryRequiredTechniques,
   children
 }) {
   const { t } = useTranslation();
@@ -191,10 +196,33 @@ export default function StudentPageContent({
             onSelectSection={handleSelectSection}
             navigation={config.navigation}
           />
-          {activeSection && !hasRealSectionData && (
+
+          {/* "Необходимые техники" — ОТДЕЛЬНАЯ ветка, намеренно не через
+              ContentArea/hasRealSectionData: та пара обслуживает
+              trainings/familyAccount/contract и не должна получить
+              побочный эффект (PlaceholderSection вместо
+              sectionNotConnectedYet) для ДРУГИХ, всё ещё не подключённых
+              карточек только из-за того, что Required Techniques
+              подключены. requiredTechniques !== undefined — единственный
+              признак "эта страница поддерживает Required Techniques"
+              (Family/Trainer передают, Super Admin Preview на этом этапе
+              не передаёт вовсе -> здесь всегда undefined, старый
+              placeholder ниже работает как раньше, RPC не вызывается). */}
+          {activeSection === 'techniques' && requiredTechniques !== undefined && (
+            <RequiredTechniquesSection
+              nextKyu={requiredTechniques?.nextKyu ?? null}
+              status={requiredTechniques?.status ?? null}
+              techniques={requiredTechniques?.techniques ?? []}
+              isLoading={isRequiredTechniquesLoading}
+              error={requiredTechniquesError}
+              onRetry={onRetryRequiredTechniques}
+            />
+          )}
+
+          {activeSection && activeSection !== 'techniques' && !hasRealSectionData && (
             <div className={styles.sectionNotConnected}>{t('studentPage.sectionNotConnectedYet')}</div>
           )}
-          {activeSection && hasRealSectionData && (
+          {activeSection && activeSection !== 'techniques' && hasRealSectionData && (
             <ContentArea
               activeSection={activeSection}
               trainings={trainings}

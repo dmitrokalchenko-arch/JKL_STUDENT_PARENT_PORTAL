@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
 import { useTrainerStudentProfile } from '../../hooks/useTrainerStudentProfile.js';
+import { useActiveSection } from '../../hooks/useActiveSection.js';
+import { useRequiredTechniques } from '../../hooks/useRequiredTechniques.js';
 import { signOutTrainer } from '../../services/trainerAuthService.js';
 import { getTrainerStudentPageConfig } from '../../services/studentPageConfigService.js';
+import { getTrainerRequiredTechniques } from '../../services/requiredTechniquesService.js';
 import styles from './TrainerStudentPage.module.css';
 
 // Маршрут /trainer/student/:studentId — рендерится ВНУТРИ TrainerAuthGuard
@@ -77,6 +80,20 @@ export default function TrainerStudentPage({ studentId }) {
     reload: reloadProfile
   } = useTrainerStudentProfile(studentId);
 
+  // activeSection теперь поднят сюда (раньше StudentPageContent управлял
+  // им целиком внутри себя, activeSection/onSelectSection не
+  // передавались) — нужен здесь, чтобы Required Techniques грузился LAZY
+  // именно по клику на карточку «Необходимые техники», тем же
+  // useActiveSection(), что уже использует FamilyDashboard.jsx.
+  const { activeSection, selectSection } = useActiveSection();
+
+  const {
+    data: requiredTechniques,
+    isLoading: isRequiredTechniquesLoading,
+    error: requiredTechniquesError,
+    refetch: refetchRequiredTechniques
+  } = useRequiredTechniques(getTrainerRequiredTechniques, student?.id, activeSection === 'techniques');
+
   const handleLogout = async () => {
     await signOutTrainer();
     window.location.href = '/';
@@ -121,6 +138,12 @@ export default function TrainerStudentPage({ studentId }) {
       student={student}
       studentPageConfig={studentPageConfig}
       showNavigationCards
+      activeSection={activeSection}
+      onSelectSection={selectSection}
+      requiredTechniques={requiredTechniques}
+      isRequiredTechniquesLoading={isRequiredTechniquesLoading}
+      requiredTechniquesError={requiredTechniquesError}
+      onRetryRequiredTechniques={refetchRequiredTechniques}
     />
   );
 }

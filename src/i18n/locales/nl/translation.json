@@ -293,6 +293,17 @@
     "badge": "Super Admin Voorbeeld",
     "invalidOrExpired": "Deze link is ongeldig of verlopen."
   },
+  "requiredTechniques": {
+    "watchVideo": "Video",
+    "loading": "Vereiste technieken laden…",
+    "loadError": "De vereiste technieken konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "noCurrentKyu": "De huidige Kyu-graad van de leerling is niet ingesteld.",
+    "unmappedKyu": "Het huidige niveau van de leerling wordt nog niet ondersteund om de volgende Kyu te bepalen.",
+    "maxLevel": "Voor het huidige niveau is geen volgende Kyu voorzien.",
+    "titleForKyu": "Vereiste technieken voor {{kyu}}",
+    "emptyProgram": "De club heeft de vereiste technieken voor {{kyu}} nog niet ingesteld."
+  },
   "studentPage": {
     "accessMode": {
       "family": "Familie",

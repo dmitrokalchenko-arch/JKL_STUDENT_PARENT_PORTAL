@@ -303,6 +303,17 @@
     "badge": "Previzualizare Super Admin",
     "invalidOrExpired": "Acest link este invalid sau a expirat."
   },
+  "requiredTechniques": {
+    "watchVideo": "Video",
+    "loading": "Se încarcă tehnicile necesare…",
+    "loadError": "Tehnicile necesare nu au putut fi încărcate.",
+    "retry": "Reîncearcă",
+    "noCurrentKyu": "Kyu-ul actual al elevului nu este specificat.",
+    "unmappedKyu": "Nivelul actual al elevului nu este încă acceptat pentru determinarea următorului Kyu.",
+    "maxLevel": "Pentru nivelul actual nu este prevăzut un Kyu următor.",
+    "titleForKyu": "Tehnici necesare pentru {{kyu}}",
+    "emptyProgram": "Clubul nu a configurat încă tehnicile necesare pentru {{kyu}}."
+  },
   "studentPage": {
     "accessMode": {
       "family": "Familie",

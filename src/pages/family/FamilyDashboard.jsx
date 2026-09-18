@@ -10,10 +10,12 @@ import { useFamilyData } from '../../hooks/useFamilyData.js';
 import { useSelectedChild } from '../../hooks/useSelectedChild.js';
 import { useActiveSection } from '../../hooks/useActiveSection.js';
 import { useTechniqueProgress } from '../../hooks/useTechniqueProgress.js';
+import { useRequiredTechniques } from '../../hooks/useRequiredTechniques.js';
 
 import { signOutFamily, markFamilyAccessDeactivated } from '../../services/familyAuthService.js';
 import { isSupabaseConfigured } from '../../services/supabaseClient.js';
 import { getFamilyStudentPageConfig } from '../../services/studentPageConfigService.js';
+import { getFamilyRequiredTechniques } from '../../services/requiredTechniquesService.js';
 
 import styles from './FamilyDashboard.module.css';
 
@@ -55,6 +57,17 @@ export default function FamilyDashboard() {
     error: techniqueProgressError,
     refetch: refetchTechniqueProgress
   } = useTechniqueProgress(selectedChild?.id);
+
+  // LAZY: RPC вызывается только когда activeSection действительно
+  // "techniques" — не при каждом открытии Student Page/смене ребёнка
+  // (см. useRequiredTechniques.js). НЕ get_student_technique_progress —
+  // отдельный read-path (см. requiredTechniquesService.js).
+  const {
+    data: requiredTechniques,
+    isLoading: isRequiredTechniquesLoading,
+    error: requiredTechniquesError,
+    refetch: refetchRequiredTechniques
+  } = useRequiredTechniques(getFamilyRequiredTechniques, selectedChild?.id, activeSection === 'techniques');
 
   // Ошибка выхода намеренно проглатывается здесь: сама сессия проверяется
   // заново при следующей загрузке (useFamilySession), пользователю нечего
@@ -180,6 +193,10 @@ export default function FamilyDashboard() {
       isTechniqueProgressLoading={isTechniqueProgressLoading}
       techniqueProgressError={techniqueProgressError}
       onRetryTechniqueProgress={refetchTechniqueProgress}
+      requiredTechniques={requiredTechniques}
+      isRequiredTechniquesLoading={isRequiredTechniquesLoading}
+      requiredTechniquesError={requiredTechniquesError}
+      onRetryRequiredTechniques={refetchRequiredTechniques}
       showNavigationCards
       activeSection={activeSection}
       onSelectSection={selectSection}
