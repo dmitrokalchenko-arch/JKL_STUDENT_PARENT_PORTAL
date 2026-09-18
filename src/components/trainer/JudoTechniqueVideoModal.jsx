@@ -43,7 +43,7 @@ export default function JudoTechniqueVideoModal({ technique, onClose }) {
             <div className={styles.videoWrap}>
               <iframe
                 className={styles.video}
-                src={`https://www.youtube.com/embed/${technique.youtube_video_id}`}
+                src={`https://www.youtube-nocookie.com/embed/${technique.youtube_video_id}`}
                 title={technique.name}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

@@ -293,6 +293,17 @@
     "badge": "Aperçu Super Admin",
     "invalidOrExpired": "Ce lien est invalide ou a expiré."
   },
+  "requiredTechniques": {
+    "watchVideo": "Vidéo",
+    "loading": "Chargement des techniques requises…",
+    "loadError": "Impossible de charger les techniques requises.",
+    "retry": "Réessayer",
+    "noCurrentKyu": "Le Kyu actuel de l'élève n'est pas renseigné.",
+    "unmappedKyu": "Le niveau actuel de l'élève n'est pas encore pris en charge pour déterminer le Kyu suivant.",
+    "maxLevel": "Aucun Kyu suivant n'est prévu pour le niveau actuel.",
+    "titleForKyu": "Techniques requises pour {{kyu}}",
+    "emptyProgram": "Le club n'a pas encore configuré les techniques requises pour {{kyu}}."
+  },
   "studentPage": {
     "accessMode": {
       "family": "Famille",
