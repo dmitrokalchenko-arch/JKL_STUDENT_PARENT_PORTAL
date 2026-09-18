@@ -61,7 +61,11 @@ type Action =
   | 'set_password'
   | 'activate'
   | 'deactivate'
-  | 'send_recovery';
+  | 'send_recovery'
+  | 'get_student_page_access'
+  | 'set_access_until'
+  | 'set_manual_disabled'
+  | 'set_trainer_exception';
 
 interface RequestBody {
   action: Action;
@@ -70,6 +74,15 @@ interface RequestBody {
   newNickname?: string;
   password?: string;
   contactEmail?: string;
+  // STUDENT PAGE SUBSCRIPTION (Phase 3, задача "Student Page Access /
+  // Subscription Management") — НЕ family account, см. комментарий у
+  // блока новых actions ниже. accessUntil: 'YYYY-MM-DD' | null | не
+  // передано вовсе (undefined — только для action='create', означает
+  // "старый frontend, не трогать subscription"). manualDisabled/
+  // trainerAccessAfterExpiry — только для соответствующих set_*-actions.
+  accessUntil?: string | null;
+  manualDisabled?: boolean;
+  trainerAccessAfterExpiry?: boolean;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -77,6 +90,37 @@ const MAX_NICKNAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
 const PERMANENT_BAN_DURATION = '876000h'; // ~100 Jahre, faktisch "gesperrt bis manuell entsperrt"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ACCESS_UNTIL_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+// STUDENT PAGE SUBSCRIPTION — строгая проверка, что строка не только
+// СИНТАКСИЧЕСКИ похожа на YYYY-MM-DD, но и является РЕАЛЬНОЙ календарной
+// датой (без time-компонента) — new Date('2026-02-30') не бросает
+// исключение, а молча "перекатывает" в 2026-03-02, поэтому сверяем
+// компоненты после построения UTC-даты обратно с исходным вводом.
+// Прошлые даты НЕ отклоняются намеренно (см. комментарий у actions
+// set_access_until/create ниже) — только формат/реальность даты.
+function isValidAccessUntilString(raw: string): boolean {
+  if (!ACCESS_UNTIL_PATTERN.test(raw)) return false;
+  const [year, month, day] = raw.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return (
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+  );
+}
+
+// Возвращает {ok:true, value} с value === null или 'YYYY-MM-DD', либо
+// {ok:false} — единая проверка, переиспользуемая и set_access_until, и
+// action='create' (см. ниже). raw===null -> ok (сознательный возврат в
+// legacy/unmanaged режим). raw===undefined никогда сюда не передаётся —
+// вызывающий код сам решает, что undefined означает "не трогать".
+function parseAccessUntilInput(raw: string | null): { ok: true; value: string | null } | { ok: false } {
+  if (raw === null) return { ok: true, value: null };
+  if (typeof raw !== 'string' || !isValidAccessUntilString(raw)) return { ok: false };
+  return { ok: true, value: raw };
+}
 
 // CORS — ДОБАВЛЕНО (безопасный pre-deploy аудит Family Layer, 2026-08-29):
 // изначально отсутствовало здесь полностью (ни CORS_HEADERS, ни обработки
@@ -139,6 +183,29 @@ async function dispatchRecoveryEmail(toEmail: string, actionLink: string): Promi
   }
 }
 
+// STUDENT PAGE SUBSCRIPTION — вызывается ТОЛЬКО из action='create' (оба
+// success-пути), ПОСЛЕ уже успешной family_students-привязки. Единственная
+// ответственность — вызвать уже существующий атомарный UPSERT-RPC
+// (migration 20260921100066) с уже провалидированным accessUntil и уже
+// resolved server-side callerSuperAdminId (никогда не от клиента).
+async function applyAccessUntilOnCreate(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  studentId: number,
+  accessUntil: string | null,
+  superAdminId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error } = await supabaseAdmin.rpc('set_student_page_access_until', {
+    p_student_id: studentId,
+    p_access_until: accessUntil,
+    p_updated_by_super_admin_id: superAdminId
+  });
+  if (error) {
+    console.error('[manage-family-account] set_student_page_access_until failed during create', error);
+    return { ok: false, error: 'access_until_set_failed' };
+  }
+  return { ok: true };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -166,7 +233,8 @@ Deno.serve(async (req: Request) => {
 
   const { action, studentId } = body;
   const validActions: Action[] = [
-    'get_status', 'create', 'set_login', 'set_contact_email', 'set_password', 'activate', 'deactivate', 'send_recovery'
+    'get_status', 'create', 'set_login', 'set_contact_email', 'set_password', 'activate', 'deactivate', 'send_recovery',
+    'get_student_page_access', 'set_access_until', 'set_manual_disabled', 'set_trainer_exception'
   ];
   if (!action || !validActions.includes(action)) {
     return jsonResponse({ error: 'invalid_action' }, 400);
@@ -375,6 +443,20 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'invalid_contact_email' }, 400);
     }
 
+    // STUDENT PAGE SUBSCRIPTION (Phase 3) — accessUntil OPTIONAL для
+    // backward compatibility: старый Block 1 frontend не отправляет это
+    // поле вовсе (undefined) -> subscription вообще не трогается (missing
+    // row уже означает legacy/unlimited, см. migration 20260919100064) —
+    // НЕ создаём строку без необходимости. Явно переданное значение
+    // (включая null — сознательный unmanaged-режим) валидируется здесь же,
+    // ДО любых side-effects этого action.
+    let parsedAccessUntilForCreate: string | null | undefined = undefined;
+    if (body.accessUntil !== undefined) {
+      const parsedAccessUntil = parseAccessUntilInput(body.accessUntil);
+      if (!parsedAccessUntil.ok) return jsonResponse({ error: 'invalid_access_until' }, 400);
+      parsedAccessUntilForCreate = parsedAccessUntil.value;
+    }
+
     // Normalisierung IMMER über dieselbe SQL-Funktion wie beim Login
     // (resolve_family_login_email) — keine duplizierte Formel im Edge-
     // Function-Code, gleiches Prinzip wie create-family-account.
@@ -416,8 +498,34 @@ Deno.serve(async (req: Request) => {
         const status = linkError.message?.toLowerCase().includes('duplicate') ? 409 : 500;
         return jsonResponse({ error: 'link_existing_family_failed', details: linkError.message }, status);
       }
+
+      // STUDENT PAGE SUBSCRIPTION — Familienzugang (Geschwister-Fall) ist
+      // bereits vollständig und nutzbar angelegt; dieser Schritt ist eine
+      // sekundäre Anreicherung. Ein Fehlschlag hier rollt den bereits
+      // erfolgreichen link_existing NICHT zurück (unverhältnismäßig — die
+      // Kernoperation ist bereits gültig) — die Antwort ist stattdessen
+      // ehrlich und deterministisch (accessUntilSet/accessUntilError),
+      // niemals stiller Erfolg. Siehe applyAccessUntilOnCreate.
+      let accessUntilSet: boolean | undefined;
+      let accessUntilError: string | undefined;
+      if (parsedAccessUntilForCreate !== undefined) {
+        const accessUntilResult = await applyAccessUntilOnCreate(
+          supabaseAdmin,
+          studentId,
+          parsedAccessUntilForCreate,
+          callerSuperAdminId
+        );
+        accessUntilSet = accessUntilResult.ok;
+        if (!accessUntilResult.ok) accessUntilError = accessUntilResult.error;
+      }
+
       await logOperation('link_existing', existingFamily.id);
-      return jsonResponse({ familyId: existingFamily.id, operation: 'link_existing' }, 200);
+      return jsonResponse({
+        familyId: existingFamily.id,
+        operation: 'link_existing',
+        ...(accessUntilSet !== undefined ? { accessUntilSet } : {}),
+        ...(accessUntilError ? { accessUntilError } : {})
+      }, 200);
     }
 
     if (!password || password.length < MIN_PASSWORD_LENGTH) {
@@ -492,8 +600,161 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'student_link_failed', details: studentLinkError.message }, 500);
     }
 
+    // STUDENT PAGE SUBSCRIPTION — тот же принцип, что и в ветке
+    // link_existing выше: Family account к этому моменту уже полностью
+    // создан и рабочий (auth user + families + family_guardians +
+    // family_students все успешны) — это вторичное обогащение, не часть
+    // атомарного "создания аккаунта" (сам create-flow и без того НЕ единая
+    // SQL-транзакция, см. комментарий в шапке файла про compensating
+    // rollback). Ошибка здесь НЕ откатывает уже созданный Family account —
+    // ответ честно и детерминированно сообщает о частичном результате
+    // (accessUntilSet/accessUntilError), никогда не молчаливый full success.
+    let accessUntilSet: boolean | undefined;
+    let accessUntilError: string | undefined;
+    if (parsedAccessUntilForCreate !== undefined) {
+      const accessUntilResult = await applyAccessUntilOnCreate(
+        supabaseAdmin,
+        studentId,
+        parsedAccessUntilForCreate,
+        callerSuperAdminId
+      );
+      accessUntilSet = accessUntilResult.ok;
+      if (!accessUntilResult.ok) accessUntilError = accessUntilResult.error;
+    }
+
     await logOperation('create', insertedFamily.id);
-    return jsonResponse({ familyId: insertedFamily.id, operation: 'create' }, 201);
+    return jsonResponse({
+      familyId: insertedFamily.id,
+      operation: 'create',
+      ...(accessUntilSet !== undefined ? { accessUntilSet } : {}),
+      ...(accessUntilError ? { accessUntilError } : {})
+    }, 201);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // STUDENT PAGE SUBSCRIPTION (Phase 3) — НАМЕРЕННО перед gate "familyRow/
+  // guardianRow обязательны" ниже: platные Student Page-действия должны
+  // работать ДАЖЕ для ученика, у которого ЕЩЁ НЕТ Familienzugang вообще
+  // (архитектура Phase 1/2: "Student Page существует независимо от Family
+  // account"). studentRow/clubRow уже провалидированы сервером выше (тот
+  // же механизм, что и для всех остальных actions — studentId существует,
+  // club существует и active) — никакой новой/отдельной club-scope
+  // проверки не вводится (Super Admin здесь, как и везде в этом файле,
+  // платформенный, не привязан к одному клубу). callerSuperAdminId — уже
+  // resolved trusted server-side актор (Weg A/B выше), НИКОГДА не от
+  // клиента — используется как updated_by_super_admin_id и в audit log.
+  // ══════════════════════════════════════════════════════════════════════
+
+  // ── get_student_page_access ─────────────────────────────────────────
+  if (action === 'get_student_page_access') {
+    const { data: access, error: accessError } = await supabaseAdmin.rpc('get_student_page_access', {
+      p_student_id: studentId
+    });
+    if (accessError) {
+      return jsonResponse({ error: 'student_page_access_lookup_failed', details: accessError.message }, 500);
+    }
+    return jsonResponse({ studentId: String(studentId), ...(access as Record<string, unknown>) }, 200);
+  }
+
+  // ── set_access_until ─────────────────────────────────────────────────
+  if (action === 'set_access_until') {
+    // Здесь (в отличие от action='create') accessUntil ОБЯЗАТЕЛЕН в теле
+    // запроса — либо валидная 'YYYY-MM-DD', либо явный null (сознательный
+    // возврат в unmanaged-режим). undefined означает "поле не передано" —
+    // отклоняется, а не трактуется как null.
+    if (body.accessUntil === undefined) {
+      return jsonResponse({ error: 'invalid_access_until' }, 400);
+    }
+    const parsedAccessUntil = parseAccessUntilInput(body.accessUntil);
+    if (!parsedAccessUntil.ok) {
+      return jsonResponse({ error: 'invalid_access_until' }, 400);
+    }
+
+    const { data: oldAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    const { error: setError } = await supabaseAdmin.rpc('set_student_page_access_until', {
+      p_student_id: studentId,
+      p_access_until: parsedAccessUntil.value,
+      p_updated_by_super_admin_id: callerSuperAdminId
+    });
+    if (setError) {
+      return jsonResponse({ error: 'access_until_update_failed', details: setError.message }, 500);
+    }
+
+    const { data: newAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    await supabaseAdmin.rpc('log_student_page_access_operation', {
+      p_performed_by_super_admin_id: callerSuperAdminId,
+      p_performed_by_auth_user_id: callerAuthUserId,
+      p_target_student_id: studentId,
+      p_operation: 'set_access_until',
+      p_old_value: oldAccess ?? null,
+      p_new_value: newAccess ?? null
+    });
+
+    return jsonResponse({ studentId: String(studentId), operation: 'set_access_until', ...(newAccess as Record<string, unknown>) }, 200);
+  }
+
+  // ── set_manual_disabled ──────────────────────────────────────────────
+  if (action === 'set_manual_disabled') {
+    if (typeof body.manualDisabled !== 'boolean') {
+      return jsonResponse({ error: 'invalid_manual_disabled' }, 400);
+    }
+
+    const { data: oldAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    const { error: setError } = await supabaseAdmin.rpc('set_student_page_manual_disabled', {
+      p_student_id: studentId,
+      p_manual_disabled: body.manualDisabled,
+      p_updated_by_super_admin_id: callerSuperAdminId
+    });
+    if (setError) {
+      return jsonResponse({ error: 'manual_disabled_update_failed', details: setError.message }, 500);
+    }
+
+    const { data: newAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    await supabaseAdmin.rpc('log_student_page_access_operation', {
+      p_performed_by_super_admin_id: callerSuperAdminId,
+      p_performed_by_auth_user_id: callerAuthUserId,
+      p_target_student_id: studentId,
+      p_operation: 'set_manual_disabled',
+      p_old_value: oldAccess ?? null,
+      p_new_value: newAccess ?? null
+    });
+
+    return jsonResponse({ studentId: String(studentId), operation: 'set_manual_disabled', ...(newAccess as Record<string, unknown>) }, 200);
+  }
+
+  // ── set_trainer_exception ────────────────────────────────────────────
+  if (action === 'set_trainer_exception') {
+    if (typeof body.trainerAccessAfterExpiry !== 'boolean') {
+      return jsonResponse({ error: 'invalid_trainer_exception' }, 400);
+    }
+
+    const { data: oldAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    const { error: setError } = await supabaseAdmin.rpc('set_student_page_trainer_exception', {
+      p_student_id: studentId,
+      p_trainer_access_after_expiry: body.trainerAccessAfterExpiry,
+      p_updated_by_super_admin_id: callerSuperAdminId
+    });
+    if (setError) {
+      return jsonResponse({ error: 'trainer_exception_update_failed', details: setError.message }, 500);
+    }
+
+    const { data: newAccess } = await supabaseAdmin.rpc('get_student_page_access', { p_student_id: studentId });
+
+    await supabaseAdmin.rpc('log_student_page_access_operation', {
+      p_performed_by_super_admin_id: callerSuperAdminId,
+      p_performed_by_auth_user_id: callerAuthUserId,
+      p_target_student_id: studentId,
+      p_operation: 'set_trainer_exception',
+      p_old_value: oldAccess ?? null,
+      p_new_value: newAccess ?? null
+    });
+
+    return jsonResponse({ studentId: String(studentId), operation: 'set_trainer_exception', ...(newAccess as Record<string, unknown>) }, 200);
   }
 
   // Ab hier: alle übrigen Aktionen benötigen einen bereits eingerichteten Zugang.
