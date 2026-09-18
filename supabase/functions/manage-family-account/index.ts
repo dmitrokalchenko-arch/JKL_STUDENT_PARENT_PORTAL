@@ -1003,31 +1003,60 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'add_student_club_mismatch' }, 403);
     }
 
-    const { data: existingLink, error: existingLinkError } = await supabaseAdmin
+    // PRODUKTENTSCHEIDUNG 2026-09-24 (Migration 20260924100069): EIN Schüler
+    // -> MAXIMAL EIN aktives Familienkonto (vorher: bis zu 2). Deshalb hier
+    // ALLE family_students-Zeilen dieses addStudentId laden (nicht mehr nur
+    // die für DIESES familyRow.id) — wir müssen wissen, ob er *irgendwo
+    // anders* bereits aktiv ist, BEVOR wir irgendetwas schreiben.
+    const { data: addStudentLinks, error: addStudentLinksError } = await supabaseAdmin
       .from('family_students')
-      .select('id, status')
-      .eq('family_id', familyRow.id)
-      .eq('student_id', addStudentId)
-      .maybeSingle();
-    if (existingLinkError) {
-      return jsonResponse({ error: 'existing_link_lookup_failed', details: existingLinkError.message }, 500);
+      .select('id, family_id, status')
+      .eq('student_id', addStudentId);
+    if (addStudentLinksError) {
+      return jsonResponse({ error: 'existing_link_lookup_failed', details: addStudentLinksError.message }, 500);
     }
 
-    if (existingLink && existingLink.status === 'active') {
+    type FamilyStudentLink = { id: string; family_id: string; status: string };
+    const links: FamilyStudentLink[] = addStudentLinks ?? [];
+    const activeLinkHere = links.find(
+      (l) => l.status === 'active' && l.family_id === familyRow.id
+    );
+    const activeLinkElsewhere = links.find(
+      (l) => l.status === 'active' && l.family_id !== familyRow.id
+    );
+    const suspendedLinkHere = links.find(
+      (l) => l.status === 'suspended' && l.family_id === familyRow.id
+    );
+
+    // CASE B — bereits aktiv GENAU HIER: kein Duplikat, klarer 409.
+    if (activeLinkHere) {
       return jsonResponse({ error: 'already_linked' }, 409);
     }
 
-    if (existingLink) {
-      // Bereits vorhandene, aber inaktive Verknüpfung -> reaktivieren statt
-      // eines zweiten INSERT (würde unique(family_id, student_id) verletzen).
+    // CASE C — bereits aktiv in EINER ANDEREN Familie: STRIKT ablehnen, NIE
+    // als zweite aktive Familie anhängen. Absichtlich KEINE Details über die
+    // andere Familie (kein family_id/Name/Login/Guardian) in der Antwort —
+    // nur ein generischer, für das künftige Frontend eindeutiger Fehlercode.
+    if (activeLinkElsewhere) {
+      return jsonResponse({ error: 'student_already_in_another_family' }, 409);
+    }
+
+    if (suspendedLinkHere) {
+      // Historische, ausgesetzte Verknüpfung GENAU ZU DIESER Familie ->
+      // reaktivieren statt eines zweiten INSERT (würde unique(family_id,
+      // student_id) verletzen). Ausgesetzte Verknüpfungen zu ANDEREN
+      // Familien werden bewusst NICHT angerührt (Historie bleibt erhalten,
+      // siehe Kommentar am Dateianfang) — sie sind hier ohnehin irrelevant,
+      // da activeLinkElsewhere oben bereits geprüft wurde und nichts fand.
       const { error: reactivateError } = await supabaseAdmin
         .from('family_students')
         .update({ status: 'active' })
-        .eq('id', existingLink.id);
+        .eq('id', suspendedLinkHere.id);
       if (reactivateError) {
         return jsonResponse({ error: 'reactivate_link_failed', details: reactivateError.message }, 500);
       }
     } else {
+      // CASE A — noch keine Verknüpfung zu addStudentId irgendwo: neu anlegen.
       const { error: insertError } = await supabaseAdmin
         .from('family_students')
         .insert({
@@ -1038,15 +1067,22 @@ Deno.serve(async (req: Request) => {
           linked_by: callerAuthUserId
         });
       if (insertError) {
-        // trg_family_students_max_active (Migration 20260720120001) wirft
-        // hier eine Exception, falls addStudentId bereits 2 aktive Familien
-        // hat — dieselbe, bereits bestehende Regel, hier NICHT dupliziert,
-        // nur ihre Fehlermeldung in einen sauberen 409 übersetzt.
+        // Verteidigung gegen eine echte Race Condition (zwei gleichzeitige
+        // add_family_student-Aufrufe für denselben addStudentId): die oben
+        // durchgeführte JS-seitige Prüfung ist NICHT race-frei, aber die
+        // Datenbank selbst ist es — idx_family_students_one_active_per_student
+        // (Postgres-Code 23505) UND trg_family_students_max_active (Migration
+        // 20260720120001, jetzt Schwelle >=1 statt >=2, Migration
+        // 20260924100069) schlagen in diesem Fall zuverlässig fehl.
         const message = insertError.message?.toLowerCase() ?? '';
-        const status = message.includes('already linked to 2 active families') || message.includes('duplicate')
-          ? 409
-          : 500;
-        return jsonResponse({ error: 'add_family_student_failed', details: insertError.message }, status);
+        const isConflict =
+          insertError.code === '23505' ||
+          message.includes('already has an active familienkonto') ||
+          message.includes('duplicate');
+        return jsonResponse(
+          { error: isConflict ? 'student_already_in_another_family' : 'add_family_student_failed', details: insertError.message },
+          isConflict ? 409 : 500
+        );
       }
     }
 
