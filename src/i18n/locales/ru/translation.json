@@ -226,6 +226,9 @@
   },
   "trainerTechniques": {
     "title": "Каталог техник",
+    "bonusSectionTitle": "Бонусные техники",
+    "bonusPoolTitle": "Доступные бонусные техники",
+    "bonusPoolEmpty": "Клуб пока не настроил бонусные техники для текущего уровня Kyu этого ученика.",
     "searchPlaceholder": "Поиск техники…",
     "loading": "Загрузка техник…",
     "loadError": "Не удалось загрузить техники.",
@@ -286,7 +289,9 @@
     "settingsPageScopeNote": "Общие настройки страниц учеников клуба",
     "settingsPageTemplateName": "Страница ученика",
     "kyuProgramTitle": "Настройка необходимых техник на Kyu",
-    "kyuProgramDescription": "Выбрать техники, необходимые для каждого уровня Kyu"
+    "kyuProgramDescription": "Выбрать техники, необходимые для каждого уровня Kyu",
+    "kyuBonusProgramTitle": "Настройка бонусных техник на Kyu",
+    "kyuBonusProgramDescription": "Выбрать техники, которые засчитываются как бонус для каждого достигнутого уровня Kyu"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Выбран:",
