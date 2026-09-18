@@ -231,6 +231,23 @@ Deno.serve(async (req: Request) => {
     studentPageConfig = null;
   }
 
+  // REQUIRED TECHNIQUES (задача "Super Admin Preview → Required
+  // Techniques", этап 3) — единственный источник вычисления:
+  // public.get_required_techniques_for_student(bigint) (миграция
+  // 20260918140063, уже применена к production). Та же функция, которую
+  // используют get_family_required_techniques/get_trainer_required_techniques
+  // (миграция 20260918100061) — SQL/логика НЕ дублируется здесь ни в каком
+  // виде. Вызывается ИСКЛЮЧИТЕЛЬНО с claimed.student_id (из уже
+  // потреблённого токена выше, НЕ от клиента) — club_id/currentKyu/nextKyu
+  // resolver резолвит сам, Edge Function их не вычисляет и не принимает.
+  // EXECUTE на этой функции выдан только service_role — тот же
+  // supabaseAdmin-клиент, что уже использован для всех остальных запросов
+  // этой функции. Best-effort, как techniqueProgress: любая ошибка ->
+  // requiredTechniques отсутствует в ответе (Preview продолжает открываться
+  // с уже полученным профилем), ошибка логируется на сервере, но клиенту не
+  // передаются ни SQL-детали, ни какие-либо внутренние данные.
+  const requiredTechniques = await buildRequiredTechniques(supabaseAdmin, studentRow.id);
+
   return jsonResponse(
     {
       studentId: String(studentRow.id),
@@ -249,7 +266,8 @@ Deno.serve(async (req: Request) => {
       email: studentRow.email ?? null,
       photoUrl: studentRow.foto_url || null,
       ...(techniqueProgress ? { techniqueProgress } : {}),
-      ...(studentPageConfig ? { studentPageConfig } : {})
+      ...(studentPageConfig ? { studentPageConfig } : {}),
+      ...(requiredTechniques ? { requiredTechniques } : {})
     },
     200
   );
@@ -440,6 +458,42 @@ async function buildTechniqueProgress(
     };
   } catch (e) {
     console.error('[get-student-preview] technique progress build failed', e);
+    return null;
+  }
+}
+
+// REQUIRED TECHNIQUES — тонкая обёртка над ЕДИНСТВЕННЫМ shared resolver'ом
+// public.get_required_techniques_for_student(p_student_id) (миграция
+// 20260918140063). Никакой SQL/бизнес-логики здесь нет и не должно быть —
+// current Kyu -> next Kyu -> club program -> techniques целиком вычисляется
+// внутри resolver'а (та же функция, что уже использует Family/Trainer
+// read-path). EXECUTE на resolver'е выдан только service_role — вызов
+// возможен только из этого supabaseAdmin-клиента, не из frontend и не из
+// authenticated-сессии. Ответ resolver'а возвращается КАК ЕСТЬ (тот же
+// {currentKyu, nextKyu, status, techniques} контракт, что уже используют
+// FamilyDashboard/TrainerStudentPage) — поля не переименовываются и не
+// трансформируются. Возвращает null при любой ошибке RPC (best-effort, как
+// buildTechniqueProgress выше) — Preview продолжает открываться с уже
+// полученным профилем, requiredTechniques просто отсутствует в ответе;
+// ошибка логируется на сервере, но клиенту не передаются ни SQL-детали, ни
+// какие-либо внутренние данные.
+async function buildRequiredTechniques(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  studentId: number
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { data, error } = await supabaseAdmin.rpc('get_required_techniques_for_student', {
+      p_student_id: studentId
+    });
+
+    if (error) {
+      console.error('[get-student-preview] required techniques unavailable', error);
+      return null;
+    }
+
+    return (data as Record<string, unknown>) ?? null;
+  } catch (e) {
+    console.error('[get-student-preview] required techniques build failed', e);
     return null;
   }
 }
