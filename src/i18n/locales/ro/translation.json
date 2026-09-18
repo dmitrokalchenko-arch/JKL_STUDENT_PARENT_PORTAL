@@ -273,7 +273,23 @@
     "settingsTitle": "Personalizează vizualizarea paginii elevului",
     "settingsDescription": "Alege ce secțiuni sunt vizibile pe pagina elevului",
     "settingsPageScopeNote": "Setări generale ale paginilor elevilor clubului",
-    "settingsPageTemplateName": "Pagina elevului"
+    "settingsPageTemplateName": "Pagina elevului",
+    "kyuProgramTitle": "Configurează tehnicile necesare pentru Kyu",
+    "kyuProgramDescription": "Alege tehnicile necesare pentru fiecare nivel de Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Selectat:",
+    "searchPlaceholder": "Caută tehnică",
+    "selectedCount": "Tehnici selectate: {{count}}",
+    "loadingKyuLevels": "Se încarcă nivelurile de Kyu…",
+    "kyuLevelsLoadError": "Lista nivelurilor de Kyu nu a putut fi încărcată.",
+    "loadingProgram": "Se încarcă programul…",
+    "programLoadError": "Programul pentru acest Kyu nu a putut fi încărcat.",
+    "retry": "Reîncearcă",
+    "saveButton": "Salvează",
+    "saveError": "Programul nu a putut fi salvat.",
+    "switchConfirm": "Există modificări nesalvate. Treci la alt Kyu fără să salvezi?",
+    "stripEmpty": "Nu a fost selectată nicio tehnică"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nume",

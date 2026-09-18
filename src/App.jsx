@@ -8,6 +8,7 @@ import TrainerDashboard from './pages/trainer/TrainerDashboard.jsx';
 import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
+import TrainerKyuProgramPage from './pages/trainer/TrainerKyuProgramPage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
 import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
 import StudentPageDemoRoute from './pages/dev/StudentPageDemoRoute.jsx';
@@ -67,6 +68,9 @@ function parseTrainerView(pathname) {
   if (pathname === '/trainer/settings') {
     return { view: 'settings' };
   }
+  if (pathname === '/trainer/kyu-program') {
+    return { view: 'kyu-program' };
+  }
   return { view: 'dashboard' };
 }
 
@@ -88,6 +92,8 @@ export default function App() {
       trainerContent = <TrainerStudentsScreen />;
     } else if (trainerView.view === 'settings') {
       trainerContent = <TrainerSettingsPage />;
+    } else if (trainerView.view === 'kyu-program') {
+      trainerContent = <TrainerKyuProgramPage />;
     } else if (trainerView.view === 'student') {
       trainerContent = <TrainerStudentPage studentId={trainerView.studentId} />;
     } else {

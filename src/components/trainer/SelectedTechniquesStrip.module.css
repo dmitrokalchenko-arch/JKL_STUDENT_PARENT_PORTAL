@@ -1,0 +1,23 @@
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.strip::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 4px 0;
+}

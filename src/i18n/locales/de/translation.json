@@ -275,7 +275,23 @@
     "settingsTitle": "Ansicht der Schülerseite anpassen",
     "settingsDescription": "Festlegen, welche Bereiche auf der Schülerseite sichtbar sind",
     "settingsPageScopeNote": "Allgemeine Einstellungen für die Schülerseiten des Vereins",
-    "settingsPageTemplateName": "Schülerseite"
+    "settingsPageTemplateName": "Schülerseite",
+    "kyuProgramTitle": "Erforderliche Techniken pro Kyu einrichten",
+    "kyuProgramDescription": "Techniken auswählen, die für jeden Kyu-Grad erforderlich sind"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Ausgewählt:",
+    "searchPlaceholder": "Technik suchen",
+    "selectedCount": "Ausgewählte Techniken: {{count}}",
+    "loadingKyuLevels": "Kyu-Grade werden geladen…",
+    "kyuLevelsLoadError": "Die Liste der Kyu-Grade konnte nicht geladen werden.",
+    "loadingProgram": "Programm wird geladen…",
+    "programLoadError": "Das Programm für diesen Kyu-Grad konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "saveButton": "Speichern",
+    "saveError": "Das Programm konnte nicht gespeichert werden.",
+    "switchConfirm": "Es gibt ungespeicherte Änderungen. Zu einem anderen Kyu-Grad wechseln, ohne zu speichern?",
+    "stripEmpty": "Noch keine Techniken ausgewählt"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nachname",

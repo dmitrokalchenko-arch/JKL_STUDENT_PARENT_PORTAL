@@ -13,12 +13,16 @@ import styles from './TechniqueThumbnail.module.css';
 // ре-рендер/лишний state у остальных строк. Если image_url нет вообще
 // (image_path пустой) или картинка не загрузилась — показывается тот же
 // placeholder, карточка/кнопки продолжают работать как обычно.
-export default function TechniqueThumbnail({ imageUrl }) {
+// size="sm" — компактный вариант для SelectedTechniqueChip (лента
+// выбранных техник) — тот же компонент, тот же placeholder/object-fit,
+// только меньше. Без size — прежнее поведение/размер, ни один
+// существующий вызов не меняется.
+export default function TechniqueThumbnail({ imageUrl, size }) {
   const [hasError, setHasError] = useState(false);
   const showImage = Boolean(imageUrl) && !hasError;
 
   return (
-    <div className={styles.thumbnail}>
+    <div className={`${styles.thumbnail} ${size === 'sm' ? styles.thumbnailSm : ''}`}>
       {showImage ? (
         <img
           src={imageUrl}
@@ -28,7 +32,7 @@ export default function TechniqueThumbnail({ imageUrl }) {
           onError={() => setHasError(true)}
         />
       ) : (
-        <Icon name="belt" size={20} className={styles.thumbnailPlaceholderIcon} />
+        <Icon name="belt" size={size === 'sm' ? 14 : 20} className={styles.thumbnailPlaceholderIcon} />
       )}
     </div>
   );

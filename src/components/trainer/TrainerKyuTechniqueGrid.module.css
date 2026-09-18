@@ -1,0 +1,73 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stateText {
+  padding: 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.retryButton {
+  display: block;
+  margin: 8px auto 0;
+  padding: 6px 14px;
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mainGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mainGroupTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.categoryTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+}

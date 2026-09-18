@@ -284,7 +284,23 @@
     "settingsTitle": "Настроить вид страницы ученика",
     "settingsDescription": "Выбрать, какие разделы отображаются на странице ученика",
     "settingsPageScopeNote": "Общие настройки страниц учеников клуба",
-    "settingsPageTemplateName": "Страница ученика"
+    "settingsPageTemplateName": "Страница ученика",
+    "kyuProgramTitle": "Настройка необходимых техник на Kyu",
+    "kyuProgramDescription": "Выбрать техники, необходимые для каждого уровня Kyu"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Выбран:",
+    "searchPlaceholder": "Поиск техники",
+    "selectedCount": "Выбрано техник: {{count}}",
+    "loadingKyuLevels": "Загрузка уровней Kyu…",
+    "kyuLevelsLoadError": "Не удалось загрузить список Kyu.",
+    "loadingProgram": "Загрузка программы…",
+    "programLoadError": "Не удалось загрузить программу этого Kyu.",
+    "retry": "Повторить",
+    "saveButton": "Сохранить",
+    "saveError": "Не удалось сохранить программу.",
+    "switchConfirm": "Есть несохранённые изменения. Перейти к другому Kyu без сохранения?",
+    "stripEmpty": "Техники пока не выбраны"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Фамилия",

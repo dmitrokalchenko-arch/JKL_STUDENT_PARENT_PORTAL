@@ -263,7 +263,23 @@
     "settingsTitle": "Weergave van de leerlingpagina aanpassen",
     "settingsDescription": "Kies welke onderdelen zichtbaar zijn op de leerlingpagina",
     "settingsPageScopeNote": "Algemene instellingen voor de leerlingpagina's van de club",
-    "settingsPageTemplateName": "Leerlingpagina"
+    "settingsPageTemplateName": "Leerlingpagina",
+    "kyuProgramTitle": "Vereiste technieken per Kyu instellen",
+    "kyuProgramDescription": "Kies de technieken die nodig zijn voor elk Kyu-niveau"
+  },
+  "trainerKyuProgram": {
+    "kyuSelectedLabel": "Geselecteerd:",
+    "searchPlaceholder": "Techniek zoeken",
+    "selectedCount": "Geselecteerde technieken: {{count}}",
+    "loadingKyuLevels": "Kyu-niveaus laden…",
+    "kyuLevelsLoadError": "De lijst met Kyu-niveaus kon niet worden geladen.",
+    "loadingProgram": "Programma laden…",
+    "programLoadError": "Het programma voor dit Kyu-niveau kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "saveButton": "Opslaan",
+    "saveError": "Het programma kon niet worden opgeslagen.",
+    "switchConfirm": "Er zijn niet-opgeslagen wijzigingen. Naar een ander Kyu-niveau gaan zonder op te slaan?",
+    "stripEmpty": "Nog geen technieken geselecteerd"
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Achternaam",

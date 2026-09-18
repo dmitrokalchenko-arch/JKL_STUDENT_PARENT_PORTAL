@@ -25,6 +25,11 @@
   color: var(--color-text-muted);
 }
 
+.thumbnailSm {
+  width: 40px;
+  height: 32px;
+}
+
 @media (max-width: 640px) {
   .thumbnail {
     width: 72px;
