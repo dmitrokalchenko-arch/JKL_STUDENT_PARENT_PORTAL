@@ -2,15 +2,22 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Icon from '../common/Icon.jsx';
 import TechniqueThumbnail from './TechniqueThumbnail.jsx';
-import { useJudoTechniques } from '../../hooks/useJudoTechniques.js';
 import { groupTechniquesByCategory, searchTechniques } from '../../utils/judoTechniques.js';
 import styles from './JudoTechniquePicker.module.css';
 
-// Каталог техник дзюдо для Trainer Area — единственный источник данных
-// public.judo_techniques (см. этот же файл в отчёте сессии, раздел
-// DATA FLOW). Ничего не хардкодится: ни список техник, ни YouTube-ссылки —
-// только порядок отображения категорий (CATEGORY_ORDER/MAIN_GROUP_ORDER,
-// см. utils/judoTechniques.js), что явно допущено заданием (этап 9).
+// ИСТОЧНИК-АГНОСТИЧНЫЙ каталог-picker (задача "Trainer Bonus Techniques"):
+// раньше сам вызывал useJudoTechniques() (ВЕСЬ каталог public.judo_techniques,
+// 100 техник) — теперь техники/loading/error приходят пропами от
+// вызывающей страницы, тем же паттерном, что уже CompletedTechniquesList/
+// RequiredTechniquesSection (presentational-компонент, data-loader живёт
+// снаружи). Это позволяет переиспользовать ОДИН и тот же UI как для
+// club-wide редактора программы (весь каталог, useJudoTechniques в
+// TrainerKyuProgramPage/TrainerKyuBonusProgramPage), так и для per-student
+// Bonus Techniques picker (только пул ученика,
+// useTrainerStudentBonusPool в TrainerStudentPage) — без дублирования
+// разметки/поиска/группировки. Сам компонент НЕ решает, какой именно
+// технике позволено сюда попасть — эта ответственность целиком у
+// вызывающей стороны/backend RPC.
 //
 // completedTechniqueIds (Set<string>) — id техник, уже отмеченных ученику
 // (student_technique_records), приходит от родителя (TrainerStudentPage),
@@ -30,9 +37,16 @@ import styles from './JudoTechniquePicker.module.css';
 // показывали per-row loading/ошибку INSERT прямо в этом списке, больше не
 // нужны — вся эта async-логика и её ошибки теперь внутри модалки, не в
 // каталоге.
-export default function JudoTechniquePicker({ completedTechniqueIds, onMarkCompleted, onPlay }) {
+export default function JudoTechniquePicker({
+  techniques,
+  isLoading,
+  error,
+  onRetry,
+  completedTechniqueIds,
+  onMarkCompleted,
+  onPlay
+}) {
   const { t } = useTranslation();
-  const { techniques, isLoading, error, refetch } = useJudoTechniques();
   const [query, setQuery] = useState('');
 
   const groups = useMemo(() => {
@@ -65,7 +79,7 @@ export default function JudoTechniquePicker({ completedTechniqueIds, onMarkCompl
       {!isLoading && error && (
         <div className={styles.stateText}>
           {t('trainerTechniques.loadError')}
-          <button type="button" className={styles.retryButton} onClick={refetch}>
+          <button type="button" className={styles.retryButton} onClick={onRetry}>
             {t('trainerGroups.retry')}
           </button>
         </div>

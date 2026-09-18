@@ -246,6 +246,9 @@
   },
   "trainerTechniques": {
     "title": "كتالوج التقنيات",
+    "bonusSectionTitle": "التقنيات الإضافية",
+    "bonusPoolTitle": "التقنيات الإضافية المتاحة",
+    "bonusPoolEmpty": "لم يقم النادي بعد بإعداد تقنيات إضافية لمستوى Kyu الحالي لهذا الطالب.",
     "searchPlaceholder": "البحث عن تقنية…",
     "loading": "جارٍ تحميل التقنيات…",
     "loadError": "تعذّر تحميل التقنيات.",
@@ -305,7 +308,9 @@
     "settingsPageScopeNote": "إعدادات عامة لصفحات جميع طلاب النادي",
     "settingsPageTemplateName": "صفحة الطالب",
     "kyuProgramTitle": "إعداد التقنيات المطلوبة لكل Kyu",
-    "kyuProgramDescription": "اختيار التقنيات المطلوبة لكل مستوى Kyu"
+    "kyuProgramDescription": "اختيار التقنيات المطلوبة لكل مستوى Kyu",
+    "kyuBonusProgramTitle": "إعداد التقنيات الإضافية لكل Kyu",
+    "kyuBonusProgramDescription": "اختيار التقنيات التي تُحتسب كمكافأة لكل مستوى Kyu تم بلوغه بالفعل"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "المحدد:",

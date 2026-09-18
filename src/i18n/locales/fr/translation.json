@@ -206,6 +206,9 @@
   },
   "trainerTechniques": {
     "title": "Catalogue des techniques",
+    "bonusSectionTitle": "Techniques bonus",
+    "bonusPoolTitle": "Techniques bonus disponibles",
+    "bonusPoolEmpty": "Le club n'a pas encore configuré de techniques bonus pour le niveau de Kyu actuel de cet élève.",
     "searchPlaceholder": "Rechercher une technique…",
     "loading": "Chargement des techniques…",
     "loadError": "Impossible de charger les techniques.",
@@ -265,7 +268,9 @@
     "settingsPageScopeNote": "Réglages généraux des pages élèves du club",
     "settingsPageTemplateName": "Page de l'élève",
     "kyuProgramTitle": "Configurer les techniques requises par Kyu",
-    "kyuProgramDescription": "Choisir les techniques requises pour chaque niveau de Kyu"
+    "kyuProgramDescription": "Choisir les techniques requises pour chaque niveau de Kyu",
+    "kyuBonusProgramTitle": "Configurer les techniques bonus par Kyu",
+    "kyuBonusProgramDescription": "Choisir les techniques comptant comme bonus pour chaque niveau de Kyu déjà atteint"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Sélectionné :",

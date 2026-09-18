@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StudentPageContent from '../../components/student/StudentPageContent.jsx';
 import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
+import TrainerBonusTechniquesSection from '../../components/trainer/TrainerBonusTechniquesSection.jsx';
 import { useTrainerStudentProfile } from '../../hooks/useTrainerStudentProfile.js';
 import { useActiveSection } from '../../hooks/useActiveSection.js';
 import { useRequiredTechniques } from '../../hooks/useRequiredTechniques.js';
@@ -30,20 +31,22 @@ import styles from './TrainerStudentPage.module.css';
 // families.status/family_students.status здесь НИГДЕ не участвуют —
 // Trainer-доступ к Student Page не зависит от семейного доступа.
 //
-// ⚠️ REMOVED FROM THIS PAGE (задача "student-profile-shared-layout",
-// раздел "Задача 2"): inline-рендер "Выполненные техники"
-// (CompletedTechniquesList) + полный "Каталог техник" (JudoTechniquePicker,
-// все 100 judo_techniques) больше НЕ показываются под StudentProfileCard —
-// эта legacy-модель (тренер отмечает ЛЮБУЮ технику каталога, без привязки
-// к bonus-пулу ученика) не соответствует финальной архитектуре Universal
-// Student Page. Ни функциональность, ни компоненты (CompletedTechniquesList,
-// JudoTechniquePicker, JudoTechniqueVideoModal, MarkTechniqueCompletedModal,
-// StudentVideoPlayerModal), ни хуки (useStudentTechniqueRecords,
-// useTrainerWriteContext, useUnmarkTechniqueCompleted), ни services/RPC/DB
-// НЕ удалены — только их использование ИМЕННО на этой странице. Они
-// подключатся позже к отдельному разделу Student Page ("Необходимые
-// техники" или будущий Bonus Techniques UI) — отдельной следующей задачей,
-// не здесь.
+// BONUS TECHNIQUES (задача "Trainer Bonus Techniques") — переподключено
+// ниже как TrainerBonusTechniquesSection. Раньше (см. историю: задача
+// "student-profile-shared-layout") "Выполненные техники"
+// (CompletedTechniquesList) + picker ВСЕГО каталога (JudoTechniquePicker,
+// все 100 judo_techniques) были убраны отсюда целиком — legacy-модель
+// позволяла тренеру отмечать ЛЮБУЮ технику каталога, без привязки к
+// бонус-пулу ученика. Теперь JudoTechniquePicker источник-агностичен и
+// получает НЕ весь каталог, а get_trainer_student_bonus_pool(studentId) —
+// пул, ограниченный бонусной программой ДОСТИГНУТОГО Kyu ЭТОГО ученика
+// (club_kyu_bonus_program_items, миграция 20260922100066). Сами
+// компоненты/хуки (CompletedTechniquesList, JudoTechniquePicker,
+// JudoTechniqueVideoModal, MarkTechniqueCompletedModal,
+// StudentVideoPlayerModal, useStudentTechniqueRecords,
+// useTrainerWriteContext, useUnmarkTechniqueCompleted) ПЕРЕИСПОЛЬЗУЮТСЯ
+// БЕЗ ИЗМЕНЕНИЙ — тот же canonical student_technique_records/video flow,
+// вторая реализация не создавалась (см. TrainerBonusTechniquesSection.jsx).
 //
 // showNavigationCards (задача "student-profile-universal-page-sections"):
 // раньше здесь сознательно не передавался ("для тренера сегодня нет ни
@@ -144,6 +147,8 @@ export default function TrainerStudentPage({ studentId }) {
       isRequiredTechniquesLoading={isRequiredTechniquesLoading}
       requiredTechniquesError={requiredTechniquesError}
       onRetryRequiredTechniques={refetchRequiredTechniques}
-    />
+    >
+      <TrainerBonusTechniquesSection student={student} />
+    </StudentPageContent>
   );
 }

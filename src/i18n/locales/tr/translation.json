@@ -206,6 +206,9 @@
   },
   "trainerTechniques": {
     "title": "Teknik kataloğu",
+    "bonusSectionTitle": "Bonus teknikler",
+    "bonusPoolTitle": "Mevcut bonus teknikler",
+    "bonusPoolEmpty": "Kulüp bu öğrencinin mevcut Kyu seviyesi için henüz bonus teknik ayarlamadı.",
     "searchPlaceholder": "Teknik ara…",
     "loading": "Teknikler yükleniyor…",
     "loadError": "Teknikler yüklenemedi.",
@@ -265,7 +268,9 @@
     "settingsPageScopeNote": "Kulübün tüm öğrenci sayfaları için genel ayarlar",
     "settingsPageTemplateName": "Öğrenci sayfası",
     "kyuProgramTitle": "Kyu için gerekli teknikleri ayarla",
-    "kyuProgramDescription": "Her Kyu seviyesi için gerekli teknikleri seç"
+    "kyuProgramDescription": "Her Kyu seviyesi için gerekli teknikleri seç",
+    "kyuBonusProgramTitle": "Kyu için bonus teknikleri ayarla",
+    "kyuBonusProgramDescription": "Ulaşılan her Kyu seviyesi için bonus sayılan teknikleri seç"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Seçili:",
