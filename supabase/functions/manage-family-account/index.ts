@@ -65,7 +65,9 @@ type Action =
   | 'get_student_page_access'
   | 'set_access_until'
   | 'set_manual_disabled'
-  | 'set_trainer_exception';
+  | 'set_trainer_exception'
+  | 'get_family_students'
+  | 'add_family_student';
 
 interface RequestBody {
   action: Action;
@@ -83,6 +85,14 @@ interface RequestBody {
   accessUntil?: string | null;
   manualDisabled?: boolean;
   trainerAccessAfterExpiry?: boolean;
+  // MULTI-CHILD FAMILY BACKEND (задача "Super Admin multi-child family
+  // backend") — только для action='add_family_student'. studentId в теле
+  // запроса остаётся КОНТЕКСТНЫМ студентом (резолвит family_id тем же уже
+  // существующим путём, что и все остальные actions) — addStudentId это
+  // ОТДЕЛЬНЫЙ студент, которого нужно добавить в это же family_id. Имя
+  // сознательно НЕ "newStudentId" — эта операция НИКОГДА не создаёт нового
+  // студента, только связывает уже существующего.
+  addStudentId?: number;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -234,7 +244,8 @@ Deno.serve(async (req: Request) => {
   const { action, studentId } = body;
   const validActions: Action[] = [
     'get_status', 'create', 'set_login', 'set_contact_email', 'set_password', 'activate', 'deactivate', 'send_recovery',
-    'get_student_page_access', 'set_access_until', 'set_manual_disabled', 'set_trainer_exception'
+    'get_student_page_access', 'set_access_until', 'set_manual_disabled', 'set_trainer_exception',
+    'get_family_students', 'add_family_student'
   ];
   if (!action || !validActions.includes(action)) {
     return jsonResponse({ error: 'invalid_action' }, 400);
@@ -392,12 +403,17 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  async function logOperation(operation: string, familyId: string) {
+  // targetStudentId ist optional und defaultet auf den Kontext-studentId
+  // (unverändertes Verhalten für alle bestehenden Aufrufer). Für
+  // add_family_student wird explizit der HINZUGEFÜGTE Schüler übergeben —
+  // aussagekräftiger als der Kontext-Schüler, dessen Karte zufällig offen
+  // war (siehe Kommentar bei add_family_student unten).
+  async function logOperation(operation: string, familyId: string, targetStudentId: number = studentId) {
     await supabaseAdmin.rpc('log_family_account_operation', {
       p_performed_by_super_admin_id: callerSuperAdminId,
       p_performed_by_auth_user_id: callerAuthUserId,
       p_target_family_id: familyId,
-      p_target_student_id: studentId,
+      p_target_student_id: targetStudentId,
       p_club_id: studentRow.club_id,
       p_operation: operation
     });
@@ -930,6 +946,133 @@ Deno.serve(async (req: Request) => {
     // technisch verschickt wurde, statt "Mail gesendet" vorzutäuschen, wenn
     // nur der Link geloggt wurde (siehe Kommentar am Dateianfang).
     return jsonResponse({ recovery: 'requested', emailDispatched }, 200);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // MULTI-CHILD FAMILY BACKEND (Audit vor Implementierung, read-only, siehe
+  // Sitzungsverlauf) — get_family_students/add_family_student. BEWUSST NACH
+  // dem "familyRow/guardianRow erforderlich"-Gate oben (anders als die
+  // Student-Page-Subscription-Actions, die bewusst DAVOR liegen): ein
+  // Familienkonto kann keine Kinder auflisten oder aufnehmen, wenn es noch
+  // gar nicht existiert — dieselbe Semantik wie set_login/set_password/etc.
+  // family_id kommt HIER NIEMALS vom Client — ausschließlich aus der bereits
+  // oben (Schritt 4) servergeseitig aufgelösten familyRow, über denselben
+  // Pfad, den auch get_status/set_login/... längst benutzen.
+  // ══════════════════════════════════════════════════════════════════════
+
+  // ── get_family_students ─────────────────────────────────────────────
+  if (action === 'get_family_students') {
+    const { data: children, error: childrenError } = await supabaseAdmin.rpc('get_family_students', {
+      p_family_id: familyRow.id
+    });
+    if (childrenError) {
+      return jsonResponse({ error: 'family_students_lookup_failed', details: childrenError.message }, 500);
+    }
+    return jsonResponse({ familyId: familyRow.id, students: children ?? [] }, 200);
+  }
+
+  // ── add_family_student ───────────────────────────────────────────────
+  // Fügt einen BEREITS EXISTIERENDEN Schüler desselben Vereins zum bereits
+  // aufgelösten Familienkonto hinzu. Erstellt NIEMALS einen neuen Schüler,
+  // NIEMALS ein zweites Familienkonto und rührt student_page_access dieses
+  // oder irgendeines anderen Kindes NICHT an (siehe Kommentar am
+  // Dateianfang zur strikten Trennung Familienkonto <-> Student Page —
+  // dieselbe Trennung gilt jetzt auch für Familienzugehörigkeit).
+  if (action === 'add_family_student') {
+    const addStudentId = body.addStudentId;
+    if (!addStudentId || typeof addStudentId !== 'number') {
+      return jsonResponse({ error: 'missing_add_student_id' }, 400);
+    }
+
+    const { data: addStudentRow, error: addStudentLookupError } = await supabaseAdmin
+      .from('students')
+      .select('id, club_id')
+      .eq('id', addStudentId)
+      .maybeSingle();
+    if (addStudentLookupError) {
+      return jsonResponse({ error: 'add_student_lookup_failed', details: addStudentLookupError.message }, 500);
+    }
+    if (!addStudentRow) {
+      return jsonResponse({ error: 'add_student_not_found' }, 404);
+    }
+    // Freundliche Vorab-Prüfung — die eigentliche, maßgebliche Durchsetzung
+    // bleibt trg_family_students_club_match (Migration 20260720120001),
+    // unverändert. Diese Prüfung hier verhindert nur eine unnötige, weniger
+    // aussagekräftige DB-Fehlermeldung für den häufigsten Fall.
+    if (addStudentRow.club_id !== familyRow.club_id) {
+      return jsonResponse({ error: 'add_student_club_mismatch' }, 403);
+    }
+
+    const { data: existingLink, error: existingLinkError } = await supabaseAdmin
+      .from('family_students')
+      .select('id, status')
+      .eq('family_id', familyRow.id)
+      .eq('student_id', addStudentId)
+      .maybeSingle();
+    if (existingLinkError) {
+      return jsonResponse({ error: 'existing_link_lookup_failed', details: existingLinkError.message }, 500);
+    }
+
+    if (existingLink && existingLink.status === 'active') {
+      return jsonResponse({ error: 'already_linked' }, 409);
+    }
+
+    if (existingLink) {
+      // Bereits vorhandene, aber inaktive Verknüpfung -> reaktivieren statt
+      // eines zweiten INSERT (würde unique(family_id, student_id) verletzen).
+      const { error: reactivateError } = await supabaseAdmin
+        .from('family_students')
+        .update({ status: 'active' })
+        .eq('id', existingLink.id);
+      if (reactivateError) {
+        return jsonResponse({ error: 'reactivate_link_failed', details: reactivateError.message }, 500);
+      }
+    } else {
+      const { error: insertError } = await supabaseAdmin
+        .from('family_students')
+        .insert({
+          family_id: familyRow.id,
+          student_id: addStudentId,
+          club_id: familyRow.club_id,
+          is_primary: true,
+          linked_by: callerAuthUserId
+        });
+      if (insertError) {
+        // trg_family_students_max_active (Migration 20260720120001) wirft
+        // hier eine Exception, falls addStudentId bereits 2 aktive Familien
+        // hat — dieselbe, bereits bestehende Regel, hier NICHT dupliziert,
+        // nur ihre Fehlermeldung in einen sauberen 409 übersetzt.
+        const message = insertError.message?.toLowerCase() ?? '';
+        const status = message.includes('already linked to 2 active families') || message.includes('duplicate')
+          ? 409
+          : 500;
+        return jsonResponse({ error: 'add_family_student_failed', details: insertError.message }, status);
+      }
+    }
+
+    await logOperation('add_child', familyRow.id, addStudentId);
+
+    const { data: children, error: childrenError } = await supabaseAdmin.rpc('get_family_students', {
+      p_family_id: familyRow.id
+    });
+    if (childrenError) {
+      // Schreiben war erfolgreich — ein Fehler beim anschließenden Re-Read
+      // darf das nicht verschleiern, wird aber ehrlich gemeldet statt eines
+      // stillen leeren students-Arrays.
+      return jsonResponse({
+        familyId: familyRow.id,
+        addedStudentId: addStudentId,
+        operation: 'add_family_student',
+        studentsReloadError: childrenError.message
+      }, 200);
+    }
+
+    return jsonResponse({
+      familyId: familyRow.id,
+      addedStudentId: addStudentId,
+      operation: 'add_family_student',
+      students: children ?? []
+    }, 200);
   }
 
   return jsonResponse({ error: 'unhandled_action' }, 400);
