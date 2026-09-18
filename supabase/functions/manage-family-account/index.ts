@@ -1133,31 +1133,37 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'missing_remove_student_id' }, 400);
     }
 
-    const { data: activeLink, error: activeLinkError } = await supabaseAdmin
-      .from('family_students')
-      .select('id')
-      .eq('family_id', familyRow.id)
-      .eq('student_id', removeStudentId)
-      .eq('status', 'active')
-      .maybeSingle();
-    if (activeLinkError) {
-      return jsonResponse({ error: 'existing_link_lookup_failed', details: activeLinkError.message }, 500);
-    }
-    if (!activeLink) {
-      // Entweder nie verknüpft, oder bereits suspendiert, oder gehört einer
-      // ANDEREN Familie — in allen drei Fällen gibt es hier nichts zu
-      // entfernen. Kein Rückschluss auf eine andere Familie in der Antwort.
-      return jsonResponse({ error: 'not_active_in_this_family' }, 404);
+    // PRODUKTENTSCHEIDUNG 2026-09-26 (Migration 20260926100071): eine
+    // existierende Familie darf NIE durch diese Aktion auf 0 aktive Kinder
+    // fallen. Prüfung UND Schreiben laufen deshalb ATOMAR und race-frei in
+    // EINER SECURITY DEFINER Funktion (SELECT ... FOR UPDATE auf die
+    // families-Zeile serialisiert gleichzeitige remove-Aufrufe für
+    // dieselbe Familie) — NICHT als separates SELECT+UPDATE hier in JS
+    // (das wäre gegenüber zwei gleichzeitigen Anfragen NICHT race-frei,
+    // siehe Migrationskommentar).
+    const { error: removeError } = await supabaseAdmin.rpc('remove_family_student_link', {
+      p_family_id: familyRow.id,
+      p_student_id: removeStudentId
+    });
+    if (removeError) {
+      const message = removeError.message ?? '';
+      if (message.includes('not_active_in_this_family')) {
+        // Entweder nie verknüpft, oder bereits suspendiert, oder gehört
+        // einer ANDEREN Familie — kein Rückschluss auf eine andere Familie
+        // in der Antwort.
+        return jsonResponse({ error: 'not_active_in_this_family' }, 404);
+      }
+      if (message.includes('cannot_remove_last_student')) {
+        // Invariante B: eine existierende Familie braucht mindestens ein
+        // aktives Kind — die Verknüpfung bleibt unverändert AKTIV.
+        return jsonResponse({ error: 'cannot_remove_last_student' }, 409);
+      }
+      return jsonResponse({ error: 'remove_family_student_failed', details: removeError.message }, 500);
     }
 
-    const { error: suspendError } = await supabaseAdmin
-      .from('family_students')
-      .update({ status: 'suspended' })
-      .eq('id', activeLink.id);
-    if (suspendError) {
-      return jsonResponse({ error: 'remove_family_student_failed', details: suspendError.message }, 500);
-    }
-
+    // Erfolgs-Audit NUR hier, NACH erfolgreichem Schreiben — bei einem der
+    // beiden obigen Ablehnungsfälle fand keine Zustandsänderung statt, also
+    // wird auch kein erfolgreiches remove_child-Ereignis protokolliert.
     await logOperation('remove_child', familyRow.id, removeStudentId);
 
     const { data: children, error: childrenError } = await supabaseAdmin.rpc('get_family_students', {
