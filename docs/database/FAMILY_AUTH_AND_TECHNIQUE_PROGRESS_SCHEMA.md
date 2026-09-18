@@ -259,8 +259,10 @@ family-слой (с Supabase Auth), затем на нём — RLS модуля 
   семьи. Пароль хранится и проверяется только Supabase Auth — нигде в
   `public`-схеме пароль/хэш не хранится.
 - `family_students` — связь семьи с существующим `students.id`
-  (`JCL_Gruppen`), не копирует данные ученика. Максимум 2 активные записи на
-  `student_id` — обеспечено триггером (`BUSINESS_RULES.md`, правило 24).
+  (`JCL_Gruppen`), не копирует данные ученика. С 2026-09-24: максимум 1
+  активная запись на `student_id` (прежде было 2) — обеспечено триггером И
+  партиальным unique index (`BUSINESS_RULES.md`, правило 24; migration
+  `20260924100069`).
 - Технический вход: `family_login_email(club_id, nickname)` строит
   `family_<clubId>_<normalizedNickname>@internal.jkl` — не показывается
   пользователю. `resolve_family_login_email(club_short_name, nickname)` —
