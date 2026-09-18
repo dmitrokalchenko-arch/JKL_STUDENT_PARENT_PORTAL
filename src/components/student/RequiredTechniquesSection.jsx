@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import RequiredTechniqueCard from './RequiredTechniqueCard.jsx';
+import JudoTechniqueVideoModal from '../trainer/JudoTechniqueVideoModal.jsx';
 import { groupTechniquesByCategory } from '../../utils/judoTechniques.js';
 import styles from './RequiredTechniquesSection.module.css';
 
@@ -19,6 +20,12 @@ import styles from './RequiredTechniquesSection.module.css';
 // выполнения (см. итоговый отчёт задачи).
 export default function RequiredTechniquesSection({ nextKyu, status, techniques, isLoading, error, onRetry }) {
   const { t } = useTranslation();
+
+  // Локальное состояние "какая техника сейчас открыта в видео-модалке" —
+  // НЕ связано с useRequiredTechniques/RPC вообще: открытие/закрытие
+  // модалки никогда не вызывает повторную загрузку списка техник (тот же
+  // кэш по studentId продолжает работать как есть).
+  const [videoTechnique, setVideoTechnique] = useState(null);
 
   const groups = useMemo(() => groupTechniquesByCategory(techniques ?? []), [techniques]);
 
@@ -71,7 +78,7 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
                   <div className={styles.categoryTitle}>{category}</div>
                   <div className={styles.grid}>
                     {categoryTechniques.map((technique) => (
-                      <RequiredTechniqueCard key={technique.id} technique={technique} />
+                      <RequiredTechniqueCard key={technique.id} technique={technique} onPlay={setVideoTechnique} />
                     ))}
                   </div>
                 </div>
@@ -80,6 +87,8 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
           ))}
         </div>
       )}
+
+      <JudoTechniqueVideoModal technique={videoTechnique} onClose={() => setVideoTechnique(null)} />
     </div>
   );
 }

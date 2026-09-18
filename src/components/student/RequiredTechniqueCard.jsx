@@ -7,12 +7,12 @@ import styles from './RequiredTechniqueCard.module.css';
 // Student Page — НЕ TechniqueSelectCard (там checkbox/toggle для
 // конструктора /trainer/kyu-program, другой процесс). Здесь нет ни
 // выбора, ни удаления, ни completion/progress — только изображение,
-// название, категория и (если у техники есть referenceVideo) простая
-// внешняя ссылка на YouTube, тот же safe-паттерн, что уже используется
-// для reference-видео в остальном проекте (открывается в новой вкладке,
-// без встроенного плеера/модалки — отдельный video workflow здесь не
-// создаётся).
-export default function RequiredTechniqueCard({ technique }) {
+// название, категория и (если у техники есть reference-видео) кнопка,
+// открывающая его ВНУТРИ Student Page через модалку
+// (RequiredTechniquesSection сам решает, что открыть, — эта карточка
+// только сообщает "по какой технике кликнули", никакого iframe/route
+// здесь нет).
+export default function RequiredTechniqueCard({ technique, onPlay }) {
   const { t } = useTranslation();
   const hasVideo = Boolean(technique.youtube_video_id);
 
@@ -22,15 +22,10 @@ export default function RequiredTechniqueCard({ technique }) {
       <span className={`${styles.name} ltr-isolate`}>{technique.name}</span>
       <span className={styles.category}>{technique.category}</span>
       {hasVideo && (
-        <a
-          className={styles.videoLink}
-          href={technique.youtube_url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <button type="button" className={styles.videoButton} onClick={() => onPlay(technique)}>
           <Icon name="play" size={12} />
           {t('requiredTechniques.watchVideo')}
-        </a>
+        </button>
       )}
     </div>
   );
