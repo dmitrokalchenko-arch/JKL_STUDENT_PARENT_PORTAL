@@ -4,6 +4,7 @@ import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
 import TrainerKyuTechniqueGrid from '../../components/trainer/TrainerKyuTechniqueGrid.jsx';
 import SelectedTechniquesStrip from '../../components/trainer/SelectedTechniquesStrip.jsx';
 import Icon from '../../components/common/Icon.jsx';
+import KyuBeltImage from '../../components/trainer/KyuBeltImage.jsx';
 import { useJudoTechniques } from '../../hooks/useJudoTechniques.js';
 import { getKyuLevels } from '../../services/kyuLookupService.js';
 import { getTrainerKyuProgram, saveTrainerKyuProgram } from '../../services/trainerKyuProgramService.js';
@@ -165,7 +166,8 @@ export default function TrainerKyuProgramPage() {
                     className={`${styles.kyuButton} ${level.id === selectedKyuId ? styles.kyuButtonActive : ''}`}
                     onClick={() => handleSelectKyu(level.id)}
                   >
-                    {level.kyuGrad}
+                    <KyuBeltImage kyuGrad={level.kyuGrad} className={styles.kyuBeltIcon} />
+                    <span>{level.kyuGrad}</span>
                   </button>
                 ))}
               </div>
