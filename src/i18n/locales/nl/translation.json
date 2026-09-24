@@ -206,6 +206,9 @@
   },
   "trainerTechniques": {
     "title": "Techniekencatalogus",
+    "bonusSectionTitle": "Bonustechnieken",
+    "bonusPoolTitle": "Beschikbare bonustechnieken",
+    "bonusPoolEmpty": "De club heeft nog geen bonustechnieken ingesteld voor het huidige Kyu-niveau van deze leerling.",
     "searchPlaceholder": "Techniek zoeken…",
     "loading": "Technieken worden geladen…",
     "loadError": "Technieken konden niet worden geladen.",
@@ -265,7 +268,9 @@
     "settingsPageScopeNote": "Algemene instellingen voor de leerlingpagina's van de club",
     "settingsPageTemplateName": "Leerlingpagina",
     "kyuProgramTitle": "Vereiste technieken per Kyu instellen",
-    "kyuProgramDescription": "Kies de technieken die nodig zijn voor elk Kyu-niveau"
+    "kyuProgramDescription": "Kies de technieken die nodig zijn voor elk Kyu-niveau",
+    "kyuBonusProgramTitle": "Bonustechnieken per Kyu instellen",
+    "kyuBonusProgramDescription": "Kies de technieken die als bonus tellen voor elk al behaald Kyu-niveau"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Geselecteerd:",

@@ -226,6 +226,9 @@
   },
   "trainerTechniques": {
     "title": "Katalog technik",
+    "bonusSectionTitle": "Techniki bonusowe",
+    "bonusPoolTitle": "Dostępne techniki bonusowe",
+    "bonusPoolEmpty": "Klub nie skonfigurował jeszcze technik bonusowych dla aktualnego stopnia Kyu tego ucznia.",
     "searchPlaceholder": "Szukaj techniki…",
     "loading": "Wczytywanie technik…",
     "loadError": "Nie udało się wczytać technik.",
@@ -285,7 +288,9 @@
     "settingsPageScopeNote": "Ogólne ustawienia stron uczniów klubu",
     "settingsPageTemplateName": "Strona ucznia",
     "kyuProgramTitle": "Skonfiguruj wymagane techniki dla Kyu",
-    "kyuProgramDescription": "Wybierz techniki wymagane dla każdego stopnia Kyu"
+    "kyuProgramDescription": "Wybierz techniki wymagane dla każdego stopnia Kyu",
+    "kyuBonusProgramTitle": "Skonfiguruj techniki bonusowe dla Kyu",
+    "kyuBonusProgramDescription": "Wybierz techniki liczone jako bonus dla każdego już osiągniętego stopnia Kyu"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Wybrano:",

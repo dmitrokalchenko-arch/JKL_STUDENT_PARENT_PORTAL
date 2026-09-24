@@ -216,6 +216,9 @@
   },
   "trainerTechniques": {
     "title": "Catalog de tehnici",
+    "bonusSectionTitle": "Tehnici bonus",
+    "bonusPoolTitle": "Tehnici bonus disponibile",
+    "bonusPoolEmpty": "Clubul nu a configurat încă tehnici bonus pentru nivelul de Kyu actual al acestui elev.",
     "searchPlaceholder": "Caută o tehnică…",
     "loading": "Se încarcă tehnicile…",
     "loadError": "Tehnicile nu au putut fi încărcate.",
@@ -275,7 +278,9 @@
     "settingsPageScopeNote": "Setări generale ale paginilor elevilor clubului",
     "settingsPageTemplateName": "Pagina elevului",
     "kyuProgramTitle": "Configurează tehnicile necesare pentru Kyu",
-    "kyuProgramDescription": "Alege tehnicile necesare pentru fiecare nivel de Kyu"
+    "kyuProgramDescription": "Alege tehnicile necesare pentru fiecare nivel de Kyu",
+    "kyuBonusProgramTitle": "Configurează tehnicile bonus pentru Kyu",
+    "kyuBonusProgramDescription": "Alege tehnicile care se numără ca bonus pentru fiecare nivel de Kyu deja atins"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Selectat:",

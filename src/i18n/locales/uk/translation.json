@@ -226,6 +226,9 @@
   },
   "trainerTechniques": {
     "title": "Каталог технік",
+    "bonusSectionTitle": "Бонусні техніки",
+    "bonusPoolTitle": "Доступні бонусні техніки",
+    "bonusPoolEmpty": "Клуб ще не налаштував бонусні техніки для поточного рівня Kyu цього учня.",
     "searchPlaceholder": "Пошук техніки…",
     "loading": "Завантаження технік…",
     "loadError": "Не вдалося завантажити техніки.",
@@ -285,7 +288,9 @@
     "settingsPageScopeNote": "Загальні налаштування сторінок учнів клубу",
     "settingsPageTemplateName": "Сторінка учня",
     "kyuProgramTitle": "Налаштування необхідних технік на Kyu",
-    "kyuProgramDescription": "Обрати техніки, необхідні для кожного рівня Kyu"
+    "kyuProgramDescription": "Обрати техніки, необхідні для кожного рівня Kyu",
+    "kyuBonusProgramTitle": "Налаштування бонусних технік на Kyu",
+    "kyuBonusProgramDescription": "Обрати техніки, які зараховуються як бонус для кожного вже досягнутого рівня Kyu"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Обрано:",
