@@ -317,6 +317,11 @@
         "description": "Международная система экзаменационных требований",
         "emptyTemplate": "Шаблон Go Kyu для {{kyu}} пока не настроен."
       }
+    },
+    "block": {
+      "required_nage": "Обязательные техники Nage-waza",
+      "required_katame": "Обязательные техники Katame-waza",
+      "additional": "Дополнительные техники"
     }
   },
   "trainerStudentSearch": {
