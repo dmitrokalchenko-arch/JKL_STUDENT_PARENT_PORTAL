@@ -111,6 +111,37 @@
   flex: none;
 }
 
+/* Карточка DJB показывает и check, и ⚙️ одновременно, когда active —
+   сдвигаем check влево, чтобы не перекрывались (см. задание, раздел 1). */
+.checkIndicatorShifted {
+  right: 38px;
+}
+
+.gearButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-chip);
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.gearButton:hover,
+.gearButton:focus-visible {
+  color: var(--color-gold-light);
+  border-color: var(--color-gold);
+  outline: none;
+}
+
 @media (min-width: 768px) {
   .cardsRow {
     flex-direction: row;

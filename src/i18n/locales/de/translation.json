@@ -313,6 +313,24 @@
       "required_nage": "Pflichttechniken Nage-waza",
       "required_katame": "Pflichttechniken Katame-waza",
       "additional": "Zusätzliche Techniken"
+    },
+    "djb": {
+      "editTemplate": "DJB-Vorlage bearbeiten",
+      "applyConfirm": "Es gibt ungespeicherte Änderungen. Die DJB-Vorlage trotzdem als Entwurf übernehmen?",
+      "editorTitle": "DJB-Vorlage einrichten — {{kyu}}",
+      "editorTitleGeneric": "DJB-Vorlage einrichten",
+      "unknownKyu": "Dieser Kyu-Grad wurde nicht gefunden.",
+      "loadingTemplate": "DJB-Vorlage wird geladen…",
+      "loadTemplateError": "Die DJB-Vorlage konnte nicht geladen werden."
+    },
+    "goKyu": {
+      "editTemplate": "Go-Kyu-Vorlage bearbeiten",
+      "applyConfirm": "Es gibt ungespeicherte Änderungen. Die Go-Kyu-Vorlage trotzdem als Entwurf übernehmen?",
+      "editorTitle": "Go-Kyu-Vorlage einrichten — {{kyu}}",
+      "editorTitleGeneric": "Go-Kyu-Vorlage einrichten",
+      "unknownKyu": "Dieser Kyu-Grad wurde nicht gefunden.",
+      "loadingTemplate": "Go-Kyu-Vorlage wird geladen…",
+      "loadTemplateError": "Die Go-Kyu-Vorlage konnte nicht geladen werden."
     }
   },
   "trainerStudentSearch": {

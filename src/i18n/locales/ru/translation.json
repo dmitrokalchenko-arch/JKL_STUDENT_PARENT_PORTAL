@@ -322,6 +322,24 @@
       "required_nage": "Обязательные техники Nage-waza",
       "required_katame": "Обязательные техники Katame-waza",
       "additional": "Дополнительные техники"
+    },
+    "djb": {
+      "editTemplate": "Настроить шаблон DJB",
+      "applyConfirm": "Есть несохранённые изменения. Всё равно применить шаблон DJB как черновик?",
+      "editorTitle": "Настройка DJB — {{kyu}}",
+      "editorTitleGeneric": "Настройка DJB",
+      "unknownKyu": "Этот Kyu не найден.",
+      "loadingTemplate": "Загрузка шаблона DJB…",
+      "loadTemplateError": "Не удалось загрузить шаблон DJB."
+    },
+    "goKyu": {
+      "editTemplate": "Настроить шаблон Go Kyu",
+      "applyConfirm": "Есть несохранённые изменения. Всё равно применить шаблон Go Kyu как черновик?",
+      "editorTitle": "Настройка Go Kyu — {{kyu}}",
+      "editorTitleGeneric": "Настройка Go Kyu",
+      "unknownKyu": "Этот Kyu не найден.",
+      "loadingTemplate": "Загрузка шаблона Go Kyu…",
+      "loadTemplateError": "Не удалось загрузить шаблон Go Kyu."
     }
   },
   "trainerStudentSearch": {
