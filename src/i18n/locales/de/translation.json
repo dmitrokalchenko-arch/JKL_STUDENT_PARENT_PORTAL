@@ -291,7 +291,24 @@
     "saveButton": "Speichern",
     "saveError": "Das Programm konnte nicht gespeichert werden.",
     "switchConfirm": "Es gibt ungespeicherte Änderungen. Zu einem anderen Kyu-Grad wechseln, ohne zu speichern?",
-    "stripEmpty": "Noch keine Techniken ausgewählt"
+    "stripEmpty": "Noch keine Techniken ausgewählt",
+    "source": {
+      "infoBar": "Wählen Sie eine Quelle, um die für {{kyu}} empfohlenen Techniken zu sehen. Sie können jederzeit manuell Techniken hinzufügen oder entfernen.",
+      "all": {
+        "title": "Alle Techniken",
+        "description": "Vollständiger Technikkatalog (individuell anpassbar)"
+      },
+      "djb": {
+        "subtitle": "Deutscher Judo-Bund",
+        "description": "Deutsches Prüfungssystem für Kyu-Grade",
+        "emptyTemplate": "Die DJB-Vorlage für {{kyu}} ist noch nicht eingerichtet."
+      },
+      "goKyu": {
+        "title": "Go Kyu",
+        "description": "Internationales Prüfungssystem für Kyu-Grade",
+        "emptyTemplate": "Die Go-Kyu-Vorlage für {{kyu}} ist noch nicht eingerichtet."
+      }
+    }
   },
   "trainerStudentSearch": {
     "nachnameLabel": "Nachname",

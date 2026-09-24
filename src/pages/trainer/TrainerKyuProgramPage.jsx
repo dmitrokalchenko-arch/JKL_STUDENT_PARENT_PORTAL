@@ -5,6 +5,7 @@ import TrainerKyuTechniqueGrid from '../../components/trainer/TrainerKyuTechniqu
 import SelectedTechniquesStrip from '../../components/trainer/SelectedTechniquesStrip.jsx';
 import Icon from '../../components/common/Icon.jsx';
 import KyuBeltImage from '../../components/trainer/KyuBeltImage.jsx';
+import KyuSourceCards from '../../components/trainer/KyuSourceCards.jsx';
 import { useJudoTechniques } from '../../hooks/useJudoTechniques.js';
 import { getKyuLevels } from '../../services/kyuLookupService.js';
 import { getTrainerKyuProgram, saveTrainerKyuProgram } from '../../services/trainerKyuProgramService.js';
@@ -52,6 +53,10 @@ export default function TrainerKyuProgramPage() {
   const [programError, setProgramError] = useState(null);
   const [saveState, setSaveState] = useState('idle'); // idle | saving | saved | error
   const [query, setQuery] = useState('');
+  // Источник программы (DJB/Все техники/Go Kyu) — ТОЛЬКО frontend
+  // view-переключатель, нигде не сохраняется (см. KyuSourceCards.jsx).
+  // Не влияет и не сбрасывает draftSelectedIds/savedSelectedIds.
+  const [sourceMode, setSourceMode] = useState('all');
 
   useEffect(() => {
     let isCancelled = false;
@@ -206,6 +211,13 @@ export default function TrainerKyuProgramPage() {
                 </div>
               </div>
 
+              <KyuSourceCards mode={sourceMode} onSelect={setSourceMode} />
+
+              <div className={styles.sourceInfoBar}>
+                <Icon name="info" size={16} className={styles.sourceInfoIcon} />
+                <span>{t('trainerKyuProgram.source.infoBar', { kyu: selectedKyuLabel })}</span>
+              </div>
+
               <SelectedTechniquesStrip
                 techniques={techniques}
                 selectedIds={draftSelectedIds}
@@ -243,7 +255,7 @@ export default function TrainerKyuProgramPage() {
               <div className={styles.plainStateBox}>{t('trainerKyuProgram.loadingProgram')}</div>
             )}
 
-            {canEditSelection && (
+            {canEditSelection && sourceMode === 'all' && (
               <TrainerKyuTechniqueGrid
                 techniques={techniques}
                 isLoading={isCatalogLoading}
@@ -253,6 +265,12 @@ export default function TrainerKyuProgramPage() {
                 selectedIds={draftSelectedIds}
                 onToggle={handleToggleTechnique}
               />
+            )}
+
+            {canEditSelection && sourceMode !== 'all' && (
+              <div className={styles.plainStateBox}>
+                {t(`trainerKyuProgram.source.${sourceMode}.emptyTemplate`, { kyu: selectedKyuLabel })}
+              </div>
             )}
           </div>
         </>

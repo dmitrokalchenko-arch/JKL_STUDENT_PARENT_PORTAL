@@ -1,0 +1,124 @@
+.cardsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-card-alt);
+}
+
+.cardActive {
+  border-color: var(--color-gold);
+  background: rgba(217, 164, 65, 0.1);
+  box-shadow: 0 0 0 1px rgba(217, 164, 65, 0.35), 0 0 18px rgba(217, 164, 65, 0.16);
+}
+
+.cardActive:hover {
+  background: rgba(217, 164, 65, 0.14);
+}
+
+.badge {
+  flex: none;
+  width: 60px;
+  height: 68px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Логотипы DJB/Go Kyu лежат на светлой подложке: у DJB.png есть чёрный
+   текст на прозрачном фоне — на тёмной карточке он был бы нечитаем без
+   собственной светлой площадки под собой (см. задание, раздел 3). */
+.badgeLight {
+  background: #efece2;
+}
+
+.badgeNeutral {
+  background: var(--color-bg-card-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.badgeImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  padding: 6px;
+}
+
+.badgeBookIcon {
+  color: var(--color-text-secondary);
+}
+
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gold-light);
+}
+
+.description {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.checkIndicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-chip);
+  background: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #17171b;
+  flex: none;
+}
+
+@media (min-width: 768px) {
+  .cardsRow {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
