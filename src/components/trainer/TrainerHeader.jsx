@@ -20,7 +20,14 @@ import styles from './TrainerHeader.module.css';
 // вызывающая страница передаёт уже готовую функцию (симметрично тому,
 // как FamilyHeader принимает onLogout от FamilyDashboard, не вызывая
 // signOutFamily сам).
-export default function TrainerHeader({ title, showBack, onLogout }) {
+//
+// backTo (этап "DJB template", раздел 2): опциональный проп, по
+// умолчанию '/trainer' — ВСЕ 4 существующих вызова не передают его и
+// продолжают вести себя ровно как раньше. TrainerKyuTemplatePage.jsx —
+// единственная страница, передающая backTo="/trainer/kyu-program"
+// (кнопка «Назад» должна вернуть на Kyu-Programm, а не на dashboard —
+// см. задание).
+export default function TrainerHeader({ title, showBack, onLogout, backTo = '/trainer' }) {
   const { t } = useTranslation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -47,7 +54,7 @@ export default function TrainerHeader({ title, showBack, onLogout }) {
             type="button"
             className={styles.backButton}
             onClick={() => {
-              window.location.href = '/trainer';
+              window.location.href = backTo;
             }}
           >
             <Icon name="arrowRight" size={14} className={styles.backIcon} />

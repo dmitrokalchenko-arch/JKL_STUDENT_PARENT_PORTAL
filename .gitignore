@@ -7,6 +7,7 @@ build/
 *.log
 
 .local-supabase-test/
+supabase/.temp/
 
 # Local Netlify folder
 .netlify

@@ -9,6 +9,7 @@ import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerKyuProgramPage from './pages/trainer/TrainerKyuProgramPage.jsx';
+import TrainerKyuTemplatePage from './pages/trainer/TrainerKyuTemplatePage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
 import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
 import StudentPageDemoRoute from './pages/dev/StudentPageDemoRoute.jsx';
@@ -68,6 +69,21 @@ function parseTrainerView(pathname) {
   if (pathname === '/trainer/settings') {
     return { view: 'settings' };
   }
+  // /trainer/kyu-program/djb/:kyuId и /trainer/kyu-program/go-kyu/:kyuId
+  // ПЕРЕД точным '/trainer/kyu-program' — тот же порядок, что studentMatch
+  // выше точного пути: более специфичный под-путь проверяется первым,
+  // иначе он молча попал бы в общий 'kyu-program'. Оба ведут на один и
+  // тот же компонент TrainerKyuTemplatePage с разным templateType (см.
+  // задание "Go Kyu template", раздел 12 — DJB и Go Kyu структурно
+  // идентичны, отдельный компонент под каждый не нужен).
+  const djbTemplateMatch = pathname.match(/^\/trainer\/kyu-program\/djb\/([^/]+)\/?$/);
+  if (djbTemplateMatch) {
+    return { view: 'kyu-program-template', templateType: 'djb', kyuId: djbTemplateMatch[1] };
+  }
+  const goKyuTemplateMatch = pathname.match(/^\/trainer\/kyu-program\/go-kyu\/([^/]+)\/?$/);
+  if (goKyuTemplateMatch) {
+    return { view: 'kyu-program-template', templateType: 'goKyu', kyuId: goKyuTemplateMatch[1] };
+  }
   if (pathname === '/trainer/kyu-program') {
     return { view: 'kyu-program' };
   }
@@ -94,6 +110,8 @@ export default function App() {
       trainerContent = <TrainerSettingsPage />;
     } else if (trainerView.view === 'kyu-program') {
       trainerContent = <TrainerKyuProgramPage />;
+    } else if (trainerView.view === 'kyu-program-template') {
+      trainerContent = <TrainerKyuTemplatePage kyuId={trainerView.kyuId} templateType={trainerView.templateType} />;
     } else if (trainerView.view === 'student') {
       trainerContent = <TrainerStudentPage studentId={trainerView.studentId} />;
     } else {
