@@ -1,0 +1,62 @@
+.blocksRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+
+.block:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-card-alt);
+}
+
+.blockActive {
+  border-color: var(--color-gold);
+  background: rgba(217, 164, 65, 0.1);
+  box-shadow: 0 0 0 1px rgba(217, 164, 65, 0.35), 0 0 18px rgba(217, 164, 65, 0.16);
+}
+
+.blockActive:hover {
+  background: rgba(217, 164, 65, 0.14);
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.blockTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.blockCount {
+  flex: none;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: var(--radius-chip);
+  background: var(--color-bg-card-alt);
+  color: var(--color-gold);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.blockActive .blockCount {
+  background: var(--color-gold);
+  color: #17171b;
+}

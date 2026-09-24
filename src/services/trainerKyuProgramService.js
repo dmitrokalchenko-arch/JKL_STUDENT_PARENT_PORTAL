@@ -11,15 +11,27 @@ import { isSupabaseConfigured } from './supabaseClient.js';
  * @property {string} youtube_url
  * @property {string|null} youtube_video_id
  * @property {number} sort_order
+ * @property {'required_nage'|'required_katame'|'additional'} block_type
+ */
+
+/**
+ * @typedef {Object} KyuProgramItemInput
+ * @property {string} technique_id
+ * @property {'required_nage'|'required_katame'|'additional'} block_type
  */
 
 // Тонкие обёртки над get_trainer_kyu_program/save_trainer_kyu_program
-// (миграция 20260917120060, уже применена к production) — club_id нигде
-// не передаётся с клиента, RPC резолвит его сама из сессии текущего
-// тренера (см. комментарии самой миграции). trainerSupabase — тот же
-// клиент, что уже используют все остальные тренерские RPC
-// (studentPageConfigService.js) — не service_role, обычная authenticated
-// сессия тренера.
+// (миграции 20260917120060 и 20260927100072, обе уже применены к
+// production — вторая добавила block_type и сменила сигнатуру save на
+// jsonb) — club_id нигде не передаётся с клиента, RPC резолвит его сама
+// из сессии текущего тренера (см. комментарии самих миграций).
+// trainerSupabase — тот же клиент, что уже используют все остальные
+// тренерские RPC (studentPageConfigService.js) — не service_role,
+// обычная authenticated сессия тренера.
+//
+// saveTrainerKyuProgram теперь принимает items (technique_id + block_type)
+// вместо плоского массива id — соответствует новой сигнатуре
+// save_trainer_kyu_program(bigint, jsonb) из 20260927100072.
 export async function getTrainerKyuProgram(kyuLookupId) {
   if (!isSupabaseConfigured) return [];
 
@@ -38,14 +50,14 @@ export async function getTrainerKyuProgram(kyuLookupId) {
 // (см. studentPageConfigService.js) — false означает "нет активной сессии
 // тренера", отдельное от сетевой/валидационной ошибки (та приходит через
 // error и превращается в throw).
-export async function saveTrainerKyuProgram(kyuLookupId, techniqueIds) {
+export async function saveTrainerKyuProgram(kyuLookupId, items) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase не настроен.');
   }
 
   const { data, error } = await trainerSupabase.rpc('save_trainer_kyu_program', {
     p_kyu_lookup_id: kyuLookupId,
-    p_technique_ids: techniqueIds
+    p_items: items
   });
 
   if (error) {

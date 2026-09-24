@@ -308,6 +308,11 @@
         "description": "Internationales Prüfungssystem für Kyu-Grade",
         "emptyTemplate": "Die Go-Kyu-Vorlage für {{kyu}} ist noch nicht eingerichtet."
       }
+    },
+    "block": {
+      "required_nage": "Pflichttechniken Nage-waza",
+      "required_katame": "Pflichttechniken Katame-waza",
+      "additional": "Zusätzliche Techniken"
     }
   },
   "trainerStudentSearch": {
