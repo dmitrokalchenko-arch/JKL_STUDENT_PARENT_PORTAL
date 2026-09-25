@@ -354,7 +354,13 @@
     "unmappedKyu": "Der aktuelle Grad des Schülers wird für die Bestimmung des nächsten Kyu noch nicht unterstützt.",
     "maxLevel": "Für den aktuellen Grad ist kein nächster Kyu vorgesehen.",
     "titleForKyu": "Erforderliche Techniken für {{kyu}}",
-    "emptyProgram": "Der Verein hat die erforderlichen Techniken für {{kyu}} noch nicht festgelegt."
+    "emptyProgram": "Der Verein hat die erforderlichen Techniken für {{kyu}} noch nicht festgelegt.",
+    "block": {
+      "required_nage": "Pflichttechniken Nage-waza",
+      "required_katame": "Pflichttechniken Katame-waza",
+      "additional": "Zusätzliche Techniken"
+    },
+    "blockEmpty": "Noch keine Techniken ausgewählt"
   },
   "studentPage": {
     "accessMode": {
@@ -396,5 +402,10 @@
     "unsavedChanges": "Es gibt ungespeicherte Änderungen",
     "saving": "Wird gespeichert…",
     "bonusDescription": "Fortschritt beim Erlernen der Bonus-Techniken für den aktuellen Gurt."
+  },
+  "studentPageAccess": {
+    "inactiveBadge": "Nicht aktiv",
+    "inactiveTitle": "Schülerseite nicht aktiv",
+    "inactiveText": "Der Zugang zur Schülerseite dieses Kindes ist derzeit nicht aktiv. Das Kind bleibt im Familienkonto. Bitte wenden Sie sich an den Verein, um den Zugang wieder freizuschalten."
   }
 }

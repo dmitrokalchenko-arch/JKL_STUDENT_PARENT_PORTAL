@@ -735,6 +735,35 @@ Supabase CLI/подключения, только файлы. Требуется
 - **Production не менялся.** Commit/push не выполнялись — ждут отдельного
   подтверждения пользователя.
 
+## Необходимые техники по трём блокам + Family Student Page gate — этап 1 (2026-09-25)
+
+- Branch `feature/required-techniques-blocks-family-gate` от `origin/main`
+  (`ca857d4`). PR открыт в main, **не смержен, не задеплоен**.
+- Migration `20260929100074_required_techniques_block_type.sql` (**не
+  применена к production**): `get_required_techniques_for_student` теперь
+  возвращает `techniques[].block_type` (фактический
+  `club_kyu_program_items.block_type`) и сортирует required_nage ->
+  required_katame -> additional, затем sort_order, name. Обёртки Family/
+  Trainer, `resolve_next_kyu_lookup_id`, статусы и grants не изменены
+  (EXECUTE resolver'а по-прежнему только service_role).
+- Student Page «Необходимые техники»: три блока всегда (пустой блок —
+  «Техники пока не выбраны» / «Noch keine Techniken ausgewählt»), key =
+  block_type + id (одна техника в двух блоках показывается дважды). Если
+  backend ещё отдаёт старый контракт без block_type — прежняя группировка
+  main_group/category (block_type не угадывается).
+- Family gate: `studentPageActive` = server-derived
+  `family_subscription_allows_access` из `get_current_family_children()`.
+  Неактивная Student Page: ребёнок остаётся в Familienkonto и в выборе
+  ребёнка (метка «Не активна»), вместо Student Page — состояние
+  «Страница ученика не активна», per-student RPC не вызываются. У Family
+  нет отдельного URL на ребёнка — gate в FamilyDashboard закрывает и
+  прямую навигацию.
+- Не сделано сознательно (следующие этапы): individual program ученика
+  (Save/Reset/источник), кнопка «Редактировать». Остаточный риск:
+  `get_current_family_children()` и `get_student_technique_progress`
+  server-side не ограничены подпиской — прямой RPC-вызов семьёй всё ещё
+  вернёт профиль/прогресс своего ребёнка (см. отчёт PR).
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять

@@ -22,11 +22,16 @@ export default function ChildSelector({ children, selectedId, onSelect }) {
       <div className={styles.chips}>
         {children.map((child) => {
           const active = child.id === selectedId;
+          // Student Page ребёнка неактивна (server-derived, см.
+          // familyDataService.js) — ребёнок остаётся в списке и выбирается
+          // как обычно, чип только помечается; саму страницу закрывает
+          // FamilyDashboard.
+          const pageInactive = child.studentPageActive === false;
           return (
             <button
               key={child.id}
               type="button"
-              className={`${styles.chip} ${active ? styles.chipActive : ''}`}
+              className={`${styles.chip} ${active ? styles.chipActive : ''} ${pageInactive ? styles.chipInactive : ''}`}
               onClick={() => onSelect(child.id)}
               aria-pressed={active}
             >
@@ -35,6 +40,7 @@ export default function ChildSelector({ children, selectedId, onSelect }) {
                 {child.firstName} {child.lastName}
                 {child.age != null ? ` (${t('common.years', { count: child.age })})` : ''}
               </span>
+              {pageInactive && <span className={styles.inactiveBadge}>{t('studentPageAccess.inactiveBadge')}</span>}
               <Icon name="chevronDown" size={14} />
             </button>
           );
