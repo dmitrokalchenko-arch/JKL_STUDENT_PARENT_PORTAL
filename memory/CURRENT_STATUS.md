@@ -760,15 +760,38 @@ Supabase CLI/подключения, только файлы. Требуется
   прямую навигацию.
 - Не сделано сознательно (следующие этапы): individual program ученика
   (Save/Reset/источник), кнопка «Редактировать».
+- **Production reconciliation (read-only, Supabase SQL Editor, 2026-09-25):**
+  - migrations `20260720120004`–`007` (+ `20260829120001`) — старый Technique
+    Progress module — **намеренно не развёрнуты**; в production НЕТ
+    `student_technique_progress`, `get_student_technique_progress`,
+    `resolve_student_current_belt`, `is_family_in_club`, `club_belts`/
+    `club_techniques`/..., buckets `technique-videos`/`technique-images`;
+  - актуальная production-архитектура выполненных техник:
+    `student_technique_records` + `judo_techniques` (+ private bucket
+    `student-technique-videos`); Kyu-программа: `club_kyu_program_items`;
+  - 072 (`block_type`) и 073 (`club_kyu_template_items`) в production есть,
+    074 ещё не применена; `supabase_migrations.schema_migrations` в production
+    нет (миграции применялись вручную) — заголовки файлов миграций
+    («применено/не применено») не являются надёжным источником.
 - Security follow-up, migration `20260929110075_enforce_family_student_page_paid_content_gate.sql`
-  (**не применена к production**): Family server-side пути, которые
-  проверяли только relationship, переведены на существующий
-  `can_family_access_student_page`: `get_student_technique_progress`
-  (отказ — прежний exception 42501), RLS `student_technique_progress`,
-  Storage `technique-videos`. `get_current_family_children()` по-прежнему
-  отдаёт строку ребёнка (Family Account shell: id, имя, club_id, access-
-  поля), но профиль Student Page — NULL при неактивной странице. Trainer-
-  пути не менялись.
+  (**не применена к production**), **переработана под реальную production-
+  схему**: первая версия ошибочно меняла объекты неразвёрнутого модуля
+  004–007 (`get_student_technique_progress`, RLS `student_technique_progress`,
+  Storage `technique-videos`) — эти части удалены. Сейчас 075 меняет ТОЛЬКО
+  `get_current_family_children()`: строка ребёнка (Family Account shell: id,
+  имя, club_id, access-поля) остаётся, профиль Student Page — NULL при
+  неактивной странице (через существующий `get_student_page_access`).
+  Остальные реальные Family-пути уже закрыты миграцией 065 и не менялись:
+  `get_family_required_techniques` (`can_family_access_student_page`),
+  `student_technique_records` (только Trainer-policies), Storage
+  `student-technique-videos` (Family SELECT через
+  `can_family_access_student_page`). Trainer-пути и Super Admin Preview
+  (service_role) не менялись.
+- Pre-existing, вне scope этапа 1: Family-блок прогресса
+  (`techniqueProgressService.js` → `get_student_technique_progress`,
+  buckets `technique-images`/`technique-videos`) обращается к объектам,
+  которых нет в production, — отсюда известная ошибка «Не удалось загрузить
+  прогресс техник». Утечки нет (объектов нет), исправление — отдельная задача.
 - Известный pre-existing риск вне scope портала: legacy-таблица
   `students` (JCL_Gruppen) по аудиту 2026-07-20 имеет policies
   `anon`/`public` с `qual = true` — профильные данные ученика читаемы
