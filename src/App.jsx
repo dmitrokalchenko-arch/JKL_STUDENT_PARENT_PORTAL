@@ -7,6 +7,7 @@ import AccountRoleChoice from './pages/auth/AccountRoleChoice.jsx';
 import TrainerDashboard from './pages/trainer/TrainerDashboard.jsx';
 import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
+import TrainerStudentKyuProgramPage from './pages/trainer/TrainerStudentKyuProgramPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerKyuProgramPage from './pages/trainer/TrainerKyuProgramPage.jsx';
 import TrainerKyuTemplatePage from './pages/trainer/TrainerKyuTemplatePage.jsx';
@@ -59,6 +60,13 @@ function isTrainerRoute(pathname) {
 // это новая точка входа после логина вместо прежнего прямого показа
 // TrainerPage (см. TrainerAuthGuard ниже).
 function parseTrainerView(pathname) {
+  // /trainer/student/:studentId/required-techniques — редактор индивидуальной
+  // программы ученика. Target Kyu в URL НЕ передаётся: его определяет и
+  // подтверждает сервер (get_trainer_required_techniques / Save / Reset).
+  const studentKyuProgramMatch = pathname.match(/^\/trainer\/student\/([^/]+)\/required-techniques\/?$/);
+  if (studentKyuProgramMatch) {
+    return { view: 'student-kyu-program', studentId: studentKyuProgramMatch[1] };
+  }
   const studentMatch = pathname.match(/^\/trainer\/student\/([^/]+)\/?$/);
   if (studentMatch) {
     return { view: 'student', studentId: studentMatch[1] };
@@ -112,6 +120,8 @@ export default function App() {
       trainerContent = <TrainerKyuProgramPage />;
     } else if (trainerView.view === 'kyu-program-template') {
       trainerContent = <TrainerKyuTemplatePage kyuId={trainerView.kyuId} templateType={trainerView.templateType} />;
+    } else if (trainerView.view === 'student-kyu-program') {
+      trainerContent = <TrainerStudentKyuProgramPage studentId={trainerView.studentId} />;
     } else if (trainerView.view === 'student') {
       trainerContent = <TrainerStudentPage studentId={trainerView.studentId} />;
     } else {

@@ -87,6 +87,19 @@ export default function TrainerStudentPage({ studentId }) {
   // useActiveSection(), что уже использует FamilyDashboard.jsx.
   const { activeSection, selectSection } = useActiveSection();
 
+  // Возврат из редактора индивидуальной программы
+  // (TrainerStudentKyuProgramPage, «Назад»/Save — полный reload через
+  // window.location.href) приходит сюда с ?section=techniques — тот же
+  // одноразовый приём, что readReturnContext в TrainerKyuProgramPage:
+  // открыть раздел «Необходимые техники» и сразу подчистить URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('section') === 'techniques') {
+      selectSection('techniques');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [selectSection]);
+
   const {
     data: requiredTechniques,
     isLoading: isRequiredTechniquesLoading,
@@ -144,6 +157,9 @@ export default function TrainerStudentPage({ studentId }) {
       isRequiredTechniquesLoading={isRequiredTechniquesLoading}
       requiredTechniquesError={requiredTechniquesError}
       onRetryRequiredTechniques={refetchRequiredTechniques}
+      onEditRequiredTechniques={() => {
+        window.location.href = `/trainer/student/${encodeURIComponent(student.id)}/required-techniques`;
+      }}
     />
   );
 }
