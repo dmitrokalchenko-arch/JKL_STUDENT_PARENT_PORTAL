@@ -759,10 +759,21 @@ Supabase CLI/подключения, только файлы. Требуется
   нет отдельного URL на ребёнка — gate в FamilyDashboard закрывает и
   прямую навигацию.
 - Не сделано сознательно (следующие этапы): individual program ученика
-  (Save/Reset/источник), кнопка «Редактировать». Остаточный риск:
-  `get_current_family_children()` и `get_student_technique_progress`
-  server-side не ограничены подпиской — прямой RPC-вызов семьёй всё ещё
-  вернёт профиль/прогресс своего ребёнка (см. отчёт PR).
+  (Save/Reset/источник), кнопка «Редактировать».
+- Security follow-up, migration `20260929110075_enforce_family_student_page_paid_content_gate.sql`
+  (**не применена к production**): Family server-side пути, которые
+  проверяли только relationship, переведены на существующий
+  `can_family_access_student_page`: `get_student_technique_progress`
+  (отказ — прежний exception 42501), RLS `student_technique_progress`,
+  Storage `technique-videos`. `get_current_family_children()` по-прежнему
+  отдаёт строку ребёнка (Family Account shell: id, имя, club_id, access-
+  поля), но профиль Student Page — NULL при неактивной странице. Trainer-
+  пути не менялись.
+- Известный pre-existing риск вне scope портала: legacy-таблица
+  `students` (JCL_Gruppen) по аудиту 2026-07-20 имеет policies
+  `anon`/`public` с `qual = true` — профильные данные ученика читаемы
+  напрямую anon-ключом независимо от RPC-gate портала. Закрытие требует
+  изменения JCL_Gruppen/legacy RLS и отдельного решения пользователя.
 
 ## Следующий этап
 
