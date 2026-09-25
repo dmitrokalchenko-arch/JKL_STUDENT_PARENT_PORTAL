@@ -92,6 +92,7 @@ export default function StudentPageContent({
   isRequiredTechniquesLoading,
   requiredTechniquesError,
   onRetryRequiredTechniques,
+  onEditRequiredTechniques,
   children
 }) {
   const { t } = useTranslation();
@@ -216,6 +217,9 @@ export default function StudentPageContent({
               isLoading={isRequiredTechniquesLoading}
               error={requiredTechniquesError}
               onRetry={onRetryRequiredTechniques}
+              source={requiredTechniques?.source ?? null}
+              canEdit={requiredTechniques?.canEdit === true}
+              onEdit={onEditRequiredTechniques}
             />
           )}
 

@@ -360,7 +360,13 @@
       "required_katame": "Pflichttechniken Katame-waza",
       "additional": "Zusätzliche Techniken"
     },
-    "blockEmpty": "Noch keine Techniken ausgewählt"
+    "blockEmpty": "Noch keine Techniken ausgewählt",
+    "individual": {
+      "badge": "Individuelles Programm",
+      "customize": "Individuell anpassen",
+      "edit": "Bearbeiten",
+      "editUnavailable": "Bearbeitung nicht möglich: Schülerseite nicht aktiv."
+    }
   },
   "studentPage": {
     "accessMode": {
@@ -407,5 +413,25 @@
     "inactiveBadge": "Nicht aktiv",
     "inactiveTitle": "Schülerseite nicht aktiv",
     "inactiveText": "Der Zugang zur Schülerseite dieses Kindes ist derzeit nicht aktiv. Das Kind bleibt im Familienkonto. Bitte wenden Sie sich an den Verein, um den Zugang wieder freizuschalten."
+  },
+  "trainerStudentKyuProgram": {
+    "title": "Individuelles Programm — {{name}} — {{kyu}}",
+    "titleGeneric": "Individuelles Programm",
+    "targetKyu": "Ziel-Kyu:",
+    "sourceIndividual": "Individuelles Programm · Version {{version}}",
+    "sourceClub": "Grundlage: Vereinsprogramm",
+    "clubStartHint": "Derzeit gilt das Vereinsprogramm für {{kyu}}. Änderungen werden nur für diesen Schüler gespeichert — das Vereinsprogramm bleibt unverändert.",
+    "resetButton": "Vereinsprogramm wiederherstellen",
+    "resetConfirm": "Dem Schüler wieder das aktuelle Vereinsprogramm zuweisen? Das individuelle Programm bleibt im Verlauf erhalten, wird aber nicht mehr verwendet.",
+    "resetDone": "Vereinsprogramm wiederhergestellt",
+    "unavailable": "Für diesen Schüler kann derzeit kein individuelles Programm festgelegt werden.",
+    "errors": {
+      "version_conflict": "Das Programm wurde von einem anderen Trainer geändert. Bitte laden Sie die Seite neu.",
+      "target_kyu_changed": "Der Kyu-Grad des Schülers hat sich geändert. Bitte laden Sie die Seite neu.",
+      "page_inactive": "Bearbeitung nicht möglich: Schülerseite nicht aktiv.",
+      "not_allowed": "Kein Zugriff auf diesen Schüler.",
+      "invalid_items": "Speichern nicht möglich: ungültige Technikauswahl.",
+      "generic": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen."
+    }
   }
 }

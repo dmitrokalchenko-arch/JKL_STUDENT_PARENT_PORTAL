@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import RequiredTechniqueCard from './RequiredTechniqueCard.jsx';
+import Icon from '../common/Icon.jsx';
 import JudoTechniqueVideoModal from '../trainer/JudoTechniqueVideoModal.jsx';
 import { KYU_PROGRAM_BLOCK_TYPES } from '../trainer/KyuProgramBlocks.jsx';
 import { groupTechniquesByCategory } from '../../utils/judoTechniques.js';
@@ -34,7 +35,23 @@ import styles from './RequiredTechniquesSection.module.css';
 // Fallback: если backend ещё отдаёт старый контракт без block_type
 // (миграция 20260929100074 не применена) — показывается прежняя
 // группировка по main_group/category, block_type НЕ угадывается.
-export default function RequiredTechniquesSection({ nextKyu, status, techniques, isLoading, error, onRetry }) {
+//
+// ИНДИВИДУАЛЬНАЯ ПРОГРАММА (этап 2, миграция 20260930100076): onEdit
+// передаёт ТОЛЬКО Trainer-страница — у Family этот проп всегда undefined,
+// поэтому ни бейдж, ни кнопка, ни пояснение для неё вообще не рендерятся.
+// canEdit — серверное EDIT-право (группы + активная Student Page, без
+// trainer_access_after_expiry). source — 'club' | 'individual'.
+export default function RequiredTechniquesSection({
+  nextKyu,
+  status,
+  techniques,
+  isLoading,
+  error,
+  onRetry,
+  source,
+  canEdit = false,
+  onEdit
+}) {
   const { t } = useTranslation();
 
   // Локальное состояние "какая техника сейчас открыта в видео-модалке" —
@@ -88,7 +105,24 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
   // этого статуса (см. get_required_techniques_for_student).
   return (
     <div className={styles.wrap}>
-      <h3 className={styles.title}>{t('requiredTechniques.titleForKyu', { kyu: nextKyu })}</h3>
+      <div className={styles.titleRow}>
+        <h3 className={styles.title}>{t('requiredTechniques.titleForKyu', { kyu: nextKyu })}</h3>
+        {onEdit && (
+          <div className={styles.titleActions}>
+            {source === 'individual' && (
+              <span className={styles.individualBadge}>{t('requiredTechniques.individual.badge')}</span>
+            )}
+            {canEdit ? (
+              <button type="button" className={styles.editButton} onClick={onEdit}>
+                <Icon name="gear" size={14} />
+                {source === 'individual' ? t('requiredTechniques.individual.edit') : t('requiredTechniques.individual.customize')}
+              </button>
+            ) : (
+              <span className={styles.editUnavailable}>{t('requiredTechniques.individual.editUnavailable')}</span>
+            )}
+          </div>
+        )}
+      </div>
 
       {list.length === 0 && (
         <div className={styles.stateBox}>{t('requiredTechniques.emptyProgram', { kyu: nextKyu })}</div>

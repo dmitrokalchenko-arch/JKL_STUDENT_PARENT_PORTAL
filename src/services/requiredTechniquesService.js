@@ -43,7 +43,16 @@ function mapResponse(data) {
     currentKyu: data?.currentKyu ?? null,
     nextKyu: data?.nextKyu ?? null,
     status: data?.status ?? 'no_current_kyu',
-    techniques
+    techniques,
+    // Effective program metadata (миграция 20260930100076): source —
+    // 'club' | 'individual' (null для старого контракта/статусов не 'ok'),
+    // version — версия индивидуальной программы, nextKyuLookupId — target
+    // Kyu, подтверждённый сервером. canEdit приходит ТОЛЬКО от Trainer RPC
+    // (EDIT-право, без trainer_access_after_expiry); у Family всегда false.
+    source: data?.source ?? null,
+    version: data?.version ?? null,
+    nextKyuLookupId: data?.nextKyuLookupId ?? null,
+    canEdit: data?.canEdit === true
   };
 }
 

@@ -836,6 +836,26 @@ Supabase CLI/подключения, только файлы. Требуется
 - **Individual Student Kyu Program** — не реализована; будущий этап
   (рекомендованная модель — full snapshot с версиями).
 
+## Individual Student Kyu Program — этап 2 (2026-09-25) — В РАЗРАБОТКЕ
+
+- Branch `feature/individual-student-kyu-program` от `main` (`88784cf`).
+  **Не применено к production, не задеплоено, PR не создан.**
+- Migration `20260930100076_create_individual_student_kyu_programs.sql`:
+  таблицы `student_kyu_programs` / `student_kyu_program_items` (FULL SNAPSHOT,
+  immutable versioning, active/superseded/reset, триггеры неизменяемости, RLS без
+  policy, прямого доступа нет), `private.can_trainer_edit_student_page` (EDIT =
+  группы + активная Student Page, без `trainer_access_after_expiry`), resolver
+  effective program (individual → club, + `source`/`version`/`nextKyuLookupId`),
+  `canEdit` в `get_trainer_required_techniques`, RPC Save/Reset с
+  `p_expected_version` (version_conflict) и advisory lock.
+- Frontend: кнопка «Настроить индивидуально» / бейдж + «Изменить» (только
+  Trainer), экран `/trainer/student/:id/required-techniques`, RU/DE.
+- Решения и будущие Promote Kyu / exam snapshot / Bonus Techniques —
+  `docs/architecture/INDIVIDUAL_STUDENT_KYU_PROGRAM.md`; ТЗ —
+  `prompts/shared/individual_student_kyu_program.md`; ручная SQL-проверка —
+  `docs/database/INDIVIDUAL_STUDENT_KYU_PROGRAM_SQL_VERIFICATION.md`.
+- PR #19 не затронут; legacy `public.students` и PIN-вход не менялись.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
