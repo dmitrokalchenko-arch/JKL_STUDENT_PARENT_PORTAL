@@ -735,6 +735,69 @@ Supabase CLI/подключения, только файлы. Требуется
 - **Production не менялся.** Commit/push не выполнялись — ждут отдельного
   подтверждения пользователя.
 
+## Необходимые техники по трём блокам + Family Student Page gate — этап 1 (2026-09-25)
+
+- Branch `feature/required-techniques-blocks-family-gate` от `origin/main`
+  (`ca857d4`). PR открыт в main, **не смержен, не задеплоен**.
+- Migration `20260929100074_required_techniques_block_type.sql` (**не
+  применена к production**): `get_required_techniques_for_student` теперь
+  возвращает `techniques[].block_type` (фактический
+  `club_kyu_program_items.block_type`) и сортирует required_nage ->
+  required_katame -> additional, затем sort_order, name. Обёртки Family/
+  Trainer, `resolve_next_kyu_lookup_id`, статусы и grants не изменены
+  (EXECUTE resolver'а по-прежнему только service_role).
+- Student Page «Необходимые техники»: три блока всегда (пустой блок —
+  «Техники пока не выбраны» / «Noch keine Techniken ausgewählt»), key =
+  block_type + id (одна техника в двух блоках показывается дважды). Если
+  backend ещё отдаёт старый контракт без block_type — прежняя группировка
+  main_group/category (block_type не угадывается).
+- Family gate: `studentPageActive` = server-derived
+  `family_subscription_allows_access` из `get_current_family_children()`.
+  Неактивная Student Page: ребёнок остаётся в Familienkonto и в выборе
+  ребёнка (метка «Не активна»), вместо Student Page — состояние
+  «Страница ученика не активна», per-student RPC не вызываются. У Family
+  нет отдельного URL на ребёнка — gate в FamilyDashboard закрывает и
+  прямую навигацию.
+- Не сделано сознательно (следующие этапы): individual program ученика
+  (Save/Reset/источник), кнопка «Редактировать».
+- **Production reconciliation (read-only, Supabase SQL Editor, 2026-09-25):**
+  - migrations `20260720120004`–`007` (+ `20260829120001`) — старый Technique
+    Progress module — **намеренно не развёрнуты**; в production НЕТ
+    `student_technique_progress`, `get_student_technique_progress`,
+    `resolve_student_current_belt`, `is_family_in_club`, `club_belts`/
+    `club_techniques`/..., buckets `technique-videos`/`technique-images`;
+  - актуальная production-архитектура выполненных техник:
+    `student_technique_records` + `judo_techniques` (+ private bucket
+    `student-technique-videos`); Kyu-программа: `club_kyu_program_items`;
+  - 072 (`block_type`) и 073 (`club_kyu_template_items`) в production есть,
+    074 ещё не применена; `supabase_migrations.schema_migrations` в production
+    нет (миграции применялись вручную) — заголовки файлов миграций
+    («применено/не применено») не являются надёжным источником.
+- Security follow-up, migration `20260929110075_enforce_family_student_page_paid_content_gate.sql`
+  (**не применена к production**), **переработана под реальную production-
+  схему**: первая версия ошибочно меняла объекты неразвёрнутого модуля
+  004–007 (`get_student_technique_progress`, RLS `student_technique_progress`,
+  Storage `technique-videos`) — эти части удалены. Сейчас 075 меняет ТОЛЬКО
+  `get_current_family_children()`: строка ребёнка (Family Account shell: id,
+  имя, club_id, access-поля) остаётся, профиль Student Page — NULL при
+  неактивной странице (через существующий `get_student_page_access`).
+  Остальные реальные Family-пути уже закрыты миграцией 065 и не менялись:
+  `get_family_required_techniques` (`can_family_access_student_page`),
+  `student_technique_records` (только Trainer-policies), Storage
+  `student-technique-videos` (Family SELECT через
+  `can_family_access_student_page`). Trainer-пути и Super Admin Preview
+  (service_role) не менялись.
+- Pre-existing, вне scope этапа 1: Family-блок прогресса
+  (`techniqueProgressService.js` → `get_student_technique_progress`,
+  buckets `technique-images`/`technique-videos`) обращается к объектам,
+  которых нет в production, — отсюда известная ошибка «Не удалось загрузить
+  прогресс техник». Утечки нет (объектов нет), исправление — отдельная задача.
+- Известный pre-existing риск вне scope портала: legacy-таблица
+  `students` (JCL_Gruppen) по аудиту 2026-07-20 имеет policies
+  `anon`/`public` с `qual = true` — профильные данные ученика читаемы
+  напрямую anon-ключом независимо от RPC-gate портала. Закрытие требует
+  изменения JCL_Gruppen/legacy RLS и отдельного решения пользователя.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять

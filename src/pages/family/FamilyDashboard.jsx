@@ -5,6 +5,8 @@ import FamilyHeader from '../../components/family/FamilyHeader.jsx';
 import ChildSelector from '../../components/family/ChildSelector.jsx';
 import AgeIndicator from '../../components/family/AgeIndicator.jsx';
 import RatingIndicator from '../../components/family/RatingIndicator.jsx';
+import Icon from '../../components/common/Icon.jsx';
+import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 
 import { useFamilyData } from '../../hooks/useFamilyData.js';
 import { useSelectedChild } from '../../hooks/useSelectedChild.js';
@@ -32,6 +34,19 @@ export default function FamilyDashboard() {
   const { selectedChild, selectedId, selectChild } = useSelectedChild(children);
   const { activeSection, selectSection } = useActiveSection();
 
+  // STUDENT PAGE ACCESS GATE: studentPageActive — server-derived
+  // (family_subscription_allows_access, см. familyDataService.js). Для
+  // неактивной Student Page ребёнок ОСТАЁТСЯ в семье/ChildSelector, но
+  // платная Student Page не рендерится, и её per-student RPC
+  // (get_student_technique_progress/get_family_required_techniques) не
+  // вызываются вовсе — studentId для них = null. У Family нет отдельного
+  // URL на ребёнка: единственный путь к Student Page — этот компонент,
+  // поэтому gate здесь закрывает и прямую навигацию (/ всегда приходит
+  // сюда). get_family_required_techniques дополнительно закрыт
+  // server-side тем же правилом (can_family_access_student_page).
+  const isStudentPageActive = selectedChild?.studentPageActive !== false;
+  const paidPageStudentId = isStudentPageActive ? selectedChild?.id : null;
+
   // Club-wide видимость полей/секций/навигации (см.
   // src/config/studentPageConfig.js) — загружается один раз при появлении
   // authenticated-сессии. Ошибка/RPC ещё не задеплоен (миграция
@@ -56,7 +71,7 @@ export default function FamilyDashboard() {
     isLoading: isTechniqueProgressLoading,
     error: techniqueProgressError,
     refetch: refetchTechniqueProgress
-  } = useTechniqueProgress(selectedChild?.id);
+  } = useTechniqueProgress(paidPageStudentId);
 
   // LAZY: RPC вызывается только когда activeSection действительно
   // "techniques" — не при каждом открытии Student Page/смене ребёнка
@@ -67,7 +82,7 @@ export default function FamilyDashboard() {
     isLoading: isRequiredTechniquesLoading,
     error: requiredTechniquesError,
     refetch: refetchRequiredTechniques
-  } = useRequiredTechniques(getFamilyRequiredTechniques, selectedChild?.id, activeSection === 'techniques');
+  } = useRequiredTechniques(getFamilyRequiredTechniques, paidPageStudentId, activeSection === 'techniques');
 
   // Ошибка выхода намеренно проглатывается здесь: сама сессия проверяется
   // заново при следующей загрузке (useFamilySession), пользователю нечего
@@ -157,6 +172,24 @@ export default function FamilyDashboard() {
     );
   }
 
+  const header = <FamilyHeader familyName={family.displayName} onLogout={handleLogout} />;
+  const selector = <ChildSelector children={children} selectedId={selectedId} onSelect={selectChild} />;
+
+  // Неактивная Student Page выбранного ребёнка — вместо StudentPageContent
+  // (профиль, техники, навигационные разделы) только header + выбор
+  // ребёнка + понятное состояние. Никаких данных платной страницы здесь нет.
+  if (!isStudentPageActive) {
+    return (
+      <DashboardLayout header={header} selector={selector}>
+        <div className={styles.inactiveCard} role="status">
+          <Icon name="info" size={20} className={styles.inactiveIcon} />
+          <div className={styles.inactiveTitle}>{t('studentPageAccess.inactiveTitle')}</div>
+          <div className={styles.inactiveText}>{t('studentPageAccess.inactiveText')}</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   // REAL FAMILY LOGIN — CONNECT TO SHARED STUDENT PAGE: тот же
   // presentation-каркас, что уже использует Super Admin Preview
   // (StudentPreviewPage, accessMode="superadmin") и демо-стенд —
@@ -174,19 +207,8 @@ export default function FamilyDashboard() {
   return (
     <StudentPageContent
       accessMode="family"
-      header={
-        <FamilyHeader
-          familyName={family.displayName}
-          onLogout={handleLogout}
-        />
-      }
-      selector={
-        <ChildSelector
-          children={children}
-          selectedId={selectedId}
-          onSelect={selectChild}
-        />
-      }
+      header={header}
+      selector={selector}
       student={selectedChild}
       studentPageConfig={studentPageConfig}
       techniqueProgress={techniqueProgress}

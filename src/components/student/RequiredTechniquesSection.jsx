@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import RequiredTechniqueCard from './RequiredTechniqueCard.jsx';
 import JudoTechniqueVideoModal from '../trainer/JudoTechniqueVideoModal.jsx';
+import { KYU_PROGRAM_BLOCK_TYPES } from '../trainer/KyuProgramBlocks.jsx';
 import { groupTechniquesByCategory } from '../../utils/judoTechniques.js';
 import styles from './RequiredTechniquesSection.module.css';
 
@@ -18,6 +19,21 @@ import styles from './RequiredTechniquesSection.module.css';
 // (error проп, отдельная ветка с Retry). Completion/progress/чекбоксы
 // здесь намеренно отсутствуют — read-only список программы, не прогресс
 // выполнения (см. итоговый отчёт задачи).
+//
+// ТРИ БЛОКА (этап 1 задачи "Student → Необходимые техники по блокам"):
+// верхний уровень группировки — ФАКТИЧЕСКИЙ block_type сохранённой
+// программы Kyu (required_nage/required_katame/additional, тот же порядок
+// KYU_PROGRAM_BLOCK_TYPES, что в Trainer → Kyu-Программа), а НЕ
+// main_group/category глобального каталога: kata-guruma (required_nage) и
+// kibisu-gaeshi (additional) не должны слипаться в "Nage-waza → TE-WAZA"
+// только потому, что обе — Nage-waza. category остаётся подписью на самой
+// карточке. Все три блока показываются всегда (пустой — спокойный empty
+// state). Одна technique_id может стоять в двух блоках — это две разные
+// записи программы, поэтому key = block_type + id, дедупликации нет.
+//
+// Fallback: если backend ещё отдаёт старый контракт без block_type
+// (миграция 20260929100074 не применена) — показывается прежняя
+// группировка по main_group/category, block_type НЕ угадывается.
 export default function RequiredTechniquesSection({ nextKyu, status, techniques, isLoading, error, onRetry }) {
   const { t } = useTranslation();
 
@@ -27,7 +43,19 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
   // кэш по studentId продолжает работать как есть).
   const [videoTechnique, setVideoTechnique] = useState(null);
 
-  const groups = useMemo(() => groupTechniquesByCategory(techniques ?? []), [techniques]);
+  const { list, hasBlockTypes, blocks, legacyGroups } = useMemo(() => {
+    const items = techniques ?? [];
+    const withBlockTypes = items.every((technique) => KYU_PROGRAM_BLOCK_TYPES.includes(technique.block_type));
+    return {
+      list: items,
+      hasBlockTypes: withBlockTypes,
+      blocks: KYU_PROGRAM_BLOCK_TYPES.map((blockType) => ({
+        blockType,
+        techniques: items.filter((technique) => technique.block_type === blockType)
+      })),
+      legacyGroups: withBlockTypes ? [] : groupTechniquesByCategory(items)
+    };
+  }, [techniques]);
 
   if (isLoading) {
     return <div className={styles.stateBox}>{t('requiredTechniques.loading')}</div>;
@@ -57,19 +85,42 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
   }
 
   // status === 'ok' далее — nextKyu гарантированно задан на бэкенде для
-  // этого статуса (см. get_family_required_techniques/
-  // get_trainer_required_techniques).
+  // этого статуса (см. get_required_techniques_for_student).
   return (
     <div className={styles.wrap}>
       <h3 className={styles.title}>{t('requiredTechniques.titleForKyu', { kyu: nextKyu })}</h3>
 
-      {(!techniques || techniques.length === 0) && (
+      {list.length === 0 && (
         <div className={styles.stateBox}>{t('requiredTechniques.emptyProgram', { kyu: nextKyu })}</div>
       )}
 
-      {techniques && techniques.length > 0 && (
+      {hasBlockTypes ? (
+        <div className={styles.blocks}>
+          {blocks.map(({ blockType, techniques: blockTechniques }) => (
+            <section key={blockType} className={styles.block}>
+              <h4 className={styles.blockTitle}>
+                {t(`requiredTechniques.block.${blockType}`)}
+                <span className={styles.blockCount}>{blockTechniques.length}</span>
+              </h4>
+              {blockTechniques.length === 0 ? (
+                <div className={styles.blockEmpty}>{t('requiredTechniques.blockEmpty')}</div>
+              ) : (
+                <div className={styles.grid}>
+                  {blockTechniques.map((technique) => (
+                    <RequiredTechniqueCard
+                      key={`${blockType}:${technique.id}`}
+                      technique={technique}
+                      onPlay={setVideoTechnique}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          ))}
+        </div>
+      ) : (
         <div className={styles.groups}>
-          {groups.map(({ mainGroup, categories }) => (
+          {legacyGroups.map(({ mainGroup, categories }) => (
             <div key={mainGroup} className={styles.mainGroup}>
               <h4 className={styles.mainGroupTitle}>{mainGroup}</h4>
 
@@ -77,8 +128,8 @@ export default function RequiredTechniquesSection({ nextKyu, status, techniques,
                 <div key={category} className={styles.category}>
                   <div className={styles.categoryTitle}>{category}</div>
                   <div className={styles.grid}>
-                    {categoryTechniques.map((technique) => (
-                      <RequiredTechniqueCard key={technique.id} technique={technique} onPlay={setVideoTechnique} />
+                    {categoryTechniques.map((technique, index) => (
+                      <RequiredTechniqueCard key={`${technique.id}:${index}`} technique={technique} onPlay={setVideoTechnique} />
                     ))}
                   </div>
                 </div>

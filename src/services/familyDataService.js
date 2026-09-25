@@ -13,9 +13,29 @@ function getMockFamilyChildren() {
       id: String(child.id),
       firstName: child.firstName,
       lastName: child.lastName,
-      clubId: ''
+      clubId: '',
+      studentPageActive: true
     }))
   };
+}
+
+// STUDENT PAGE ACCESS GATE (Family): доступ к платной Student Page
+// ребёнка определяет ТОЛЬКО сервер — family_subscription_allows_access из
+// get_current_family_children() (миграция 20260920100065), вычисленный
+// public.get_student_page_access(): manual_disabled имеет высший приоритет,
+// отсутствие строки student_page_access ИЛИ access_until IS NULL = активна
+// (backward compatibility), истёкший access_until = не активна;
+// trainer_access_after_expiry на Family не влияет. Здесь НЕТ собственного
+// расчёта expiry — только чтение готового boolean.
+//
+// Колонки нет в ответе (старый контракт до миграции 065) -> true: в этом
+// состоянии сервер ещё вообще не ограничивает Family по подписке, значит
+// и frontend не вводит своё ограничение. Колонка есть, но не true -> false.
+function resolveStudentPageActive(row) {
+  if (!Object.prototype.hasOwnProperty.call(row, 'family_subscription_allows_access')) {
+    return true;
+  }
+  return row.family_subscription_allows_access === true;
 }
 
 // Реальная семья и список активных детей текущего auth.uid() — см.
@@ -87,7 +107,8 @@ export async function getCurrentFamilyChildren() {
       phone: row.telefon ?? null,
       email: row.email ?? null,
       photoUrl: row.foto_url || null,
-      contractStatus: row.contract_status ?? null
+      contractStatus: row.contract_status ?? null,
+      studentPageActive: resolveStudentPageActive(row)
     }))
   };
 }

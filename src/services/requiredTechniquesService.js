@@ -8,7 +8,7 @@ import { getTechniqueImageUrl } from './techniqueImageUrl.js';
  * @property {string|null} currentKyu
  * @property {string|null} nextKyu
  * @property {RequiredTechniquesStatus} status
- * @property {Array<{id:string,name:string,category:string,main_group:string,image_url:string|null,youtube_url:string,youtube_video_id:string|null}>} techniques
+ * @property {Array<{id:string,name:string,category:string,main_group:string,image_url:string|null,youtube_url:string,youtube_video_id:string|null,block_type:'required_nage'|'required_katame'|'additional'|null}>} techniques
  */
 
 // Read-path для "Необходимые техники" (миграция 20260918100061, уже
@@ -31,7 +31,12 @@ function mapResponse(data) {
     main_group: t.main_group,
     image_url: getTechniqueImageUrl(t.image_path),
     youtube_url: t.youtube_url,
-    youtube_video_id: t.youtube_video_id ?? null
+    youtube_video_id: t.youtube_video_id ?? null,
+    // Фактический club_kyu_program_items.block_type (миграция
+    // 20260929100074) — required_nage/required_katame/additional. null,
+    // если backend ещё отдаёт старый контракт без этого поля
+    // (RequiredTechniquesSection тогда откатывается на прежнюю группировку).
+    block_type: t.block_type ?? null
   }));
 
   return {
