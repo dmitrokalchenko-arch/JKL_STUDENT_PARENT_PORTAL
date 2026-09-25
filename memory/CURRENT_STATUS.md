@@ -738,9 +738,11 @@ Supabase CLI/подключения, только файлы. Требуется
 ## Необходимые техники по трём блокам + Family Student Page gate — этап 1 (2026-09-25)
 
 - Branch `feature/required-techniques-blocks-family-gate` от `origin/main`
-  (`ca857d4`). PR открыт в main, **не смержен, не задеплоен**.
-- Migration `20260929100074_required_techniques_block_type.sql` (**не
-  применена к production**): `get_required_techniques_for_student` теперь
+  (`ca857d4`). **PR #25 смержен в main** (merge commit `909a347`, коммиты
+  `248f421`, `5b3479d`, `2ad238a`); frontend задеплоен на production
+  (Netlify, bundle содержит код этапа 1 — проверено 2026-09-25).
+- Migration `20260929100074_required_techniques_block_type.sql` (**применена
+  к production вручную владельцем и проверена**, см. итог ниже): `get_required_techniques_for_student` теперь
   возвращает `techniques[].block_type` (фактический
   `club_kyu_program_items.block_type`) и сортирует required_nage ->
   required_katame -> additional, затем sort_order, name. Обёртки Family/
@@ -774,7 +776,7 @@ Supabase CLI/подключения, только файлы. Требуется
     нет (миграции применялись вручную) — заголовки файлов миграций
     («применено/не применено») не являются надёжным источником.
 - Security follow-up, migration `20260929110075_enforce_family_student_page_paid_content_gate.sql`
-  (**не применена к production**), **переработана под реальную production-
+  (**применена к production вручную владельцем и проверена**, см. итог ниже), **переработана под реальную production-
   схему**: первая версия ошибочно меняла объекты неразвёрнутого модуля
   004–007 (`get_student_technique_progress`, RLS `student_technique_progress`,
   Storage `technique-videos`) — эти части удалены. Сейчас 075 меняет ТОЛЬКО
@@ -797,6 +799,42 @@ Supabase CLI/подключения, только файлы. Требуется
   `anon`/`public` с `qual = true` — профильные данные ученика читаемы
   напрямую anon-ключом независимо от RPC-gate портала. Закрытие требует
   изменения JCL_Gruppen/legacy RLS и отдельного решения пользователя.
+
+### Этап 1 — итог (2026-09-25): COMPLETE
+
+- **PR #25** «Student Required Techniques blocks + Family Student Page access
+  gate» — MERGED в main (`909a347`).
+- **Production frontend** (https://jkl-student-parent-portal.netlify.app) —
+  задеплоен; ручной smoke test владельца PASS: Bogdan Milus, 7. Kyu → 6. Kyu,
+  три блока: «Обязательные техники Nage-waza» — kata-guruma; «Обязательные
+  техники Katame-waza» — «Техники пока не выбраны»; «Дополнительные техники» —
+  kibisu-gaeshi; карточки, изображения и кнопки Video на месте.
+- **Migration 074** — применена владельцем вручную, проверена: block_type_check
+  PASS, three_blocks_check PASS, EXECUTE anon=false / authenticated=false /
+  service_role=true; resolver для student_id=69: kata-guruma → required_nage,
+  kibisu-gaeshi → additional.
+- **Migration 075** — применена владельцем вручную, проверена:
+  migration_075_check PASS, EXECUTE anon=false / authenticated=true /
+  service_role=true. Family access E2E в production (транзакции с ROLLBACK):
+  ACTIVE, MANUAL DISABLED, EXPIRED, TRAINER EXCEPTION, BOUNDARY DATE
+  (access_until = today), MANUAL DISABLED highest priority — все PASS.
+- Trainer access semantics не менялись. PR #19
+  (`feature/trainer-bonus-techniques-v2`) не затронут.
+
+### Отложено (OUT OF SCOPE этапа 1)
+
+- **Security Migration Block 1** — legacy `public.students` доступна слишком
+  широко (anon/public/authenticated: SELECT/INSERT/UPDATE/DELETE, подтверждено
+  в production); JCL_Gruppen (47 прямых обращений, PIN-вход как anon) зависит
+  от этой архитектуры — исправление отдельной задачей (см. аудит 2026-09-25).
+- **Trainer page_inactive** — `get_trainer_required_techniques` при отказе по
+  подписке возвращает `no_current_kyu`; возможная корректировка — отдельный
+  status `page_inactive`.
+- **Technique Progress** — Family frontend всё ещё вызывает
+  `get_student_technique_progress`, которой нет в production; относится к
+  будущей Bonus/Progress работе (пересекается с PR #19).
+- **Individual Student Kyu Program** — не реализована; будущий этап
+  (рекомендованная модель — full snapshot с версиями).
 
 ## Следующий этап
 
