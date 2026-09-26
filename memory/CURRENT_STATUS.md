@@ -856,6 +856,28 @@ Supabase CLI/подключения, только файлы. Требуется
   `docs/database/INDIVIDUAL_STUDENT_KYU_PROGRAM_SQL_VERIFICATION.md`.
 - PR #19 не затронут; legacy `public.students` и PIN-вход не менялись.
 
+## Security Hotfix перед portal_role (2026-10-01) — ПОДГОТОВЛЕН, НЕ ПРИМЕНЁН
+
+- Production PRECHECK 1–8 (read-only) перед `trainer_accounts.portal_role`
+  завершены: GO для проектирования Portal Role при условии отдельного узкого
+  security hotfix.
+- Branch `fix/harden-trainer-account-grants` от `origin/main` (`b754fd5`).
+  Migration `20261001100077_harden_trainer_account_grants.sql` — только
+  REVOKE/GRANT + read-only самопроверка в явной транзакции. Hardened объекты:
+  1. `public.trainer_accounts` — все права у PUBLIC/anon/authenticated
+     отозваны, service_role: SELECT/INSERT/UPDATE/DELETE;
+  2. `public.rename_trainer_login(uuid,text)` — EXECUTE только service_role;
+  3. `public.log_trainer_account_operation(bigint,uuid,bigint,text,text,text)` —
+     EXECUTE только service_role;
+  4. `public.rename_family_nickname(uuid,text)` — EXECUTE только service_role.
+- Проверка и smoke tests —
+  `docs/database/TRAINER_ACCOUNT_GRANTS_HOTFIX_VERIFICATION.md`.
+- **Production НЕ изменён. `portal_role` НЕ создан.** Legacy
+  `public.trainers.rolle` (anon UPDATE, используется `manage-trainer-account`)
+  остаётся вне hotfix — Security Migration Block 1. Rating (branch
+  `feature/trainer-rating-settings-entry`) — отдельная работа. PR #19 не
+  затронут.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
