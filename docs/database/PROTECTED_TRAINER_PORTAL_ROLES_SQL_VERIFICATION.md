@@ -74,7 +74,7 @@ select * from (
               then 'FAIL' else 'PASS' end
   union all
   select 'P04', 'trainer_accounts constraints', '(info) portal_role check absent',
-         (select string_agg(c.conname || ':' || c.contype, ', ' order by c.conname) from pg_constraint c
+         (select string_agg(c.conname || ':' || c.contype::text, ', ' order by c.conname) from pg_constraint c
            where c.conrelid = (select ta from t)),
          case when exists (select 1 from pg_constraint c where c.conrelid = (select ta from t)
                             and c.conname = 'trainer_accounts_portal_role_check') then 'FAIL' else 'PASS' end
@@ -85,7 +85,7 @@ select * from (
          'INFO'
   union all
   select 'P06', 'trainer_accounts triggers', '(info) last-admin trigger absent',
-         (select string_agg(tg.tgname || ':' || tg.tgenabled, ', ' order by tg.tgname) from pg_trigger tg
+         (select string_agg(tg.tgname || ':' || tg.tgenabled::text, ', ' order by tg.tgname) from pg_trigger tg
            where tg.tgrelid = (select ta from t) and not tg.tgisinternal),
          case when exists (select 1 from pg_trigger tg where tg.tgrelid = (select ta from t)
                             and tg.tgname = 'trg_trainer_accounts_last_active_admin') then 'FAIL' else 'PASS' end
@@ -352,7 +352,7 @@ select * from (
               then 'PASS' else 'FAIL' end
   union all
   select 'V09', 'last-active-admin trigger', 'present, enabled, BEFORE UPDATE OR DELETE',
-         coalesce((select tg.tgname || ' enabled=' || tg.tgenabled || ' | ' || pg_get_triggerdef(tg.oid)
+         coalesce((select tg.tgname || ' enabled=' || tg.tgenabled::text || ' | ' || pg_get_triggerdef(tg.oid)
                    from pg_trigger tg where tg.tgrelid = (select ta from t) and tg.tgname = 'trg_trainer_accounts_last_active_admin'), 'MISSING'),
          case when exists (select 1 from pg_trigger tg where tg.tgrelid = (select ta from t)
                             and tg.tgname = 'trg_trainer_accounts_last_active_admin' and tg.tgenabled <> 'D')
