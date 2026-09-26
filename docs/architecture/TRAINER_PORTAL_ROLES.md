@@ -1,9 +1,11 @@
 # Trainer Portal roles — protected `portal_role`
 
 Статус: migration `20261002100078_add_protected_trainer_portal_roles.sql`
-подготовлена, **в production не применена**. Первый Portal Admin **не назначен**.
-`manage-trainer-account` **остаётся отключённой** (403, см.
-`docs/security/TRAINER_ACCOUNT_MANAGEMENT_HOTFIX.md`).
+**применена в production** (post-migration verification V01–V18 PASS).
+Первый Portal Admin **назначен** owner-controlled bootstrap (PASS; клуб `jcl`,
+см. `memory/CURRENT_STATUS.md`). `manage-trainer-account` **остаётся
+отключённой** (403, см. `docs/security/TRAINER_ACCOUNT_MANAGEMENT_HOTFIX.md`).
+Frontend-этап (раздел 6) ещё не реализован.
 
 ## 1. Источник истины
 
