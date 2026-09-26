@@ -878,6 +878,34 @@ Supabase CLI/подключения, только файлы. Требуется
   `feature/trainer-rating-settings-entry`) — отдельная работа. PR #19 не
   затронут.
 
+## Security Hotfix: manage-trainer-account временно отключена (2026-10)
+
+- Статус предыдущего hotfix: migration 077 применена владельцем в production
+  и проверена (15/15 PASS, структурные fingerprints PRE/POST совпали);
+  PR #27 смержен в main (`abf8e1e`).
+- Причина: production PRECHECK подтвердил, что оба источника
+  Admin-авторизации `manage-trainer-account` недоверенные — путь A (Portal
+  JWT + legacy `trainers.rolle='Admin'`) и путь B (Admin PIN session,
+  доверие которой построено на legacy `public.trainers`): у anon эффективные
+  SELECT/INSERT/UPDATE/DELETE на `public.trainers`. Через функцию можно было
+  создать, (де)активировать, переименовать Trainer Account и сменить его пароль.
+- Branch `fix/disable-trainer-account-management` от `origin/main`
+  (`abf8e1e`): `manage-trainer-account` отвечает 403
+  `trainer_account_management_disabled` на любой запрос кроме CORS-preflight
+  OPTIONS — до разбора запроса и любого обращения к Auth/БД. Остальной код
+  функции не менялся (временно недостижим).
+- **Управление Trainer Portal Accounts временно недоступно** (форма
+  «Trainerportal-Zugang» в JCL_Gruppen показывает общую ошибку). Обычный вход
+  в Trainer Portal, работа тренера с учениками, Family Portal и Super Admin не
+  затронуты. `admin-pin-login` / `admin-pin-logout` не менялись.
+- Без миграции, без изменений БД и frontend. **Edge Function в production ещё
+  НЕ задеплоена.** Проверка — `docs/security/TRAINER_ACCOUNT_MANAGEMENT_HOTFIX.md`.
+- Следующий шаг: защищённая архитектура `trainer_accounts.portal_role`;
+  управление аккаунтами будет включено только с авторизацией active
+  `trainer_accounts` + `portal_role='admin'`. Legacy `trainers.rolle` и Admin
+  PIN session больше не принимаются. `public.trainers` / legacy PIN —
+  Security Migration Block 1.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять

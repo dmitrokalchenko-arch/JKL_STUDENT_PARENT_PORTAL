@@ -57,6 +57,12 @@ interface ManageTrainerAccountBody {
   isActive: boolean;
 }
 
+// SECURITY HOTFIX:
+// Trainer Portal Account management is temporarily disabled.
+// Legacy trainers.rolle and Admin PIN sessions are not trusted
+// authorization sources. Re-enable only with protected portal_role.
+const TRAINER_ACCOUNT_MANAGEMENT_DISABLED = true;
+
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_LOGIN_NAME_LENGTH = 100;
 const MAX_DISPLAY_NAME_LENGTH = 200;
@@ -88,6 +94,10 @@ async function sha256Hex(input: string): Promise<string> {
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
+  if (TRAINER_ACCOUNT_MANAGEMENT_DISABLED) {
+    return jsonResponse({ error: 'trainer_account_management_disabled' }, 403);
   }
 
   if (req.method !== 'POST') {
