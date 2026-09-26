@@ -906,6 +906,83 @@ Supabase CLI/подключения, только файлы. Требуется
   PIN session больше не принимаются. `public.trainers` / legacy PIN —
   Security Migration Block 1.
 
+## Protected Trainer Portal roles — migration 078 (2026-10) — ПРИМЕНЕНА В PRODUCTION, первый Admin назначен
+
+(Исходная запись этапа подготовки ниже сохранена как история; актуальное
+production-состояние — в подразделе «Production state» в конце раздела.)
+
+- Статус предыдущего hotfix: PR #28 смержен (`07b906a`); `manage-trainer-account`
+  задеплоена в production (v4, `verify_jwt=false` сохранён) и проверена:
+  OPTIONS 204, POST → 403 `trainer_account_management_disabled`. Функция
+  остаётся отключённой; 078 её не включает.
+- Branch `feature/protected-trainer-portal-roles` от `origin/main` (`07b906a`).
+  Migration `20261002100078_add_protected_trainer_portal_roles.sql` (явная
+  транзакция + самопроверка):
+  `trainer_accounts.portal_role` (`trainer`|`admin`, NOT NULL DEFAULT `trainer`,
+  CHECK) — все существующие аккаунты `trainer`, Admin НЕ назначается;
+  `private.current_trainer_portal_role()` / `private.is_current_trainer_portal_admin()`
+  (definer, без клиентского EXECUTE); `get_current_trainer_profile()` + своя
+  `portal_role` (только UI); Admin видит всех учеников своего клуба
+  (`can_trainer_access_student`, `search_trainer_students`); club-wide save RPC и
+  Admin-редакторы Kyu program / templates — только Admin;
+  `get_trainer_student_page_config` доступна Trainer как раньше; триггер защиты
+  последнего активного Admin (advisory lock по клубу); аудит
+  `promote_admin`/`demote_admin`. Тела изменённых функций скопированы без
+  изменений, добавлен только guard.
+- Архитектура — `docs/architecture/TRAINER_PORTAL_ROLES.md`; PRECHECK, проверка
+  после применения, runtime-тест с гарантированным откатом, шаблон bootstrap —
+  `docs/database/PROTECTED_TRAINER_PORTAL_ROLES_SQL_VERIFICATION.md`.
+- **Production НЕ изменён. Первый Portal Admin НЕ назначен** (отдельный
+  owner-controlled шаг после проверки 078). Legacy `trainers.rolle` не является
+  источником Portal-роли. Frontend (скрытие карточек + AdminRouteGuard) и
+  восстановление `manage-trainer-account` — следующие отдельные этапы.
+  Rating, Kyu History, PR #19, Family / Super Admin авторизация, legacy
+  `public.trainers` / `public.students` не затронуты.
+
+### Production state (подтверждено владельцем)
+
+- **Migration 078 применена в production** вручную владельцем через Supabase
+  SQL Editor (файл ветки `feature/protected-trainer-portal-roles` @ `a143040`,
+  SHA-256 `c1644101cf628db2aa582adab072b905bbbe420f62b382d59e2e0370ededbc66`):
+  «Success. No rows returned». Production PRECHECK P01–P25 до применения — PASS.
+- **Post-migration verification V01–V18 — PASS**: колонка `portal_role`
+  (text, NOT NULL, default `trainer`), CHECK только `trainer`/`admin`, роли
+  после миграции 1 trainer / 0 admin, private-хелперы (definer,
+  `search_path=""`, без клиентского EXECUTE), `get_current_trainer_profile`
+  возвращает `portal_role` (definer, anon=false, authenticated=true), аудит
+  допускает `promote_admin`/`demote_admin`, триггер последнего Admin включён
+  (definer, без клиентского EXECUTE), права из 077 сохранены, service_role CRUD,
+  RLS true/false/0 policies, `rolle` не используется в функциях 078, Admin-гейты
+  7/7, `get_trainer_student_page_config` без гейта, неожиданных операций аудита
+  0, `default_transaction_isolation = read committed`.
+- **Owner-controlled bootstrap первого Portal Admin — PASS** (read-only
+  precheck B01–B12 PASS; одна транзакция: повышение ровно одной строки по
+  точному id, проверка ровно одного активного admin клуба, аудит
+  `promote_admin`). Первый Portal Admin:
+  `trainer_account_id = 006f5fd3-9878-41fa-8c8e-3d301fe92ec4`, `club_id = jcl`,
+  `display_name = Kalchenko Dmytro`, `is_active = true`, `portal_role = admin`.
+- Модель авторизации (действует в production):
+  - единственный источник Portal-роли — `public.trainer_accounts.portal_role`
+    (`trainer` | `admin`); активность — `trainer_accounts.is_active`;
+  - legacy `public.trainers.rolle`, legacy Admin PIN и JWT metadata НЕ являются
+    источником Portal-авторизации;
+  - Admin — все ученики только своего `club_id`; Trainer — по группам, как
+    раньше; club-wide настройки (Student Page config, Kyu program, DJB/Go Kyu
+    templates) — только Admin; функции уровня ученика — Trainer + Admin по
+    существующим правилам;
+  - защита последнего активного Portal Admin — ACTIVE.
+- **`manage-trainer-account` остаётся намеренно отключённой** (production v4,
+  403); новая версия в этом этапе НЕ деплоится. Будущая авторизация — только
+  JWT → активный `trainer_accounts` → `portal_role='admin'` → тот же `club_id`;
+  legacy `trainers.rolle` и Admin PIN больше не используются для управления
+  Portal Accounts.
+- Migration 077 остаётся в силе. Legacy `public.trainers` / `public.students` —
+  без изменений (Security Migration Block 1). Rating и PR #19 / Bonus
+  Techniques не затронуты.
+- Следующие отдельные этапы: frontend (Admin-карточки дашборда +
+  AdminRouteGuard), затем восстановление `manage-trainer-account` на
+  `portal_role`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
