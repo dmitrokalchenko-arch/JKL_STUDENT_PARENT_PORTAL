@@ -906,6 +906,36 @@ Supabase CLI/подключения, только файлы. Требуется
   PIN session больше не принимаются. `public.trainers` / legacy PIN —
   Security Migration Block 1.
 
+## Protected Trainer Portal roles — migration 078 (2026-10) — ПОДГОТОВЛЕНА, НЕ ПРИМЕНЕНА
+
+- Статус предыдущего hotfix: PR #28 смержен (`07b906a`); `manage-trainer-account`
+  задеплоена в production (v4, `verify_jwt=false` сохранён) и проверена:
+  OPTIONS 204, POST → 403 `trainer_account_management_disabled`. Функция
+  остаётся отключённой; 078 её не включает.
+- Branch `feature/protected-trainer-portal-roles` от `origin/main` (`07b906a`).
+  Migration `20261002100078_add_protected_trainer_portal_roles.sql` (явная
+  транзакция + самопроверка):
+  `trainer_accounts.portal_role` (`trainer`|`admin`, NOT NULL DEFAULT `trainer`,
+  CHECK) — все существующие аккаунты `trainer`, Admin НЕ назначается;
+  `private.current_trainer_portal_role()` / `private.is_current_trainer_portal_admin()`
+  (definer, без клиентского EXECUTE); `get_current_trainer_profile()` + своя
+  `portal_role` (только UI); Admin видит всех учеников своего клуба
+  (`can_trainer_access_student`, `search_trainer_students`); club-wide save RPC и
+  Admin-редакторы Kyu program / templates — только Admin;
+  `get_trainer_student_page_config` доступна Trainer как раньше; триггер защиты
+  последнего активного Admin (advisory lock по клубу); аудит
+  `promote_admin`/`demote_admin`. Тела изменённых функций скопированы без
+  изменений, добавлен только guard.
+- Архитектура — `docs/architecture/TRAINER_PORTAL_ROLES.md`; PRECHECK, проверка
+  после применения, runtime-тест с гарантированным откатом, шаблон bootstrap —
+  `docs/database/PROTECTED_TRAINER_PORTAL_ROLES_SQL_VERIFICATION.md`.
+- **Production НЕ изменён. Первый Portal Admin НЕ назначен** (отдельный
+  owner-controlled шаг после проверки 078). Legacy `trainers.rolle` не является
+  источником Portal-роли. Frontend (скрытие карточек + AdminRouteGuard) и
+  восстановление `manage-trainer-account` — следующие отдельные этапы.
+  Rating, Kyu History, PR #19, Family / Super Admin авторизация, legacy
+  `public.trainers` / `public.students` не затронуты.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
