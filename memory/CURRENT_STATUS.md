@@ -1091,6 +1091,21 @@ production-состояние — в подразделе «Production state» �
 - Rating bootstrap, этапы, записи, `students.kyu_grad` не затронуты. PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_KYU_HISTORY_RPC_082_SQL_VERIFICATION.md`.
 
+## Rating B3 — Club Rating Config + bootstrap foundation, migration 083 (2026-09-27) — PR, НЕ применена
+
+- Branch `feature/rating-bootstrap-b3-083` от `main` (`79b2482`, PR #36 merged).
+  Migration `20261007100083_create_club_rating_config_bootstrap.sql`:
+  `public.club_rating_config` (неизменяемая; строка `jcl / 2026-06-22 /
+  rating_includes_dan=false`), private `club_rating_start` /
+  `club_rating_includes_dan` (fail closed), `classify_student_rating_bootstrap`,
+  `ensure_initial_rating_stage` (блокировка `jkl.student_rating`, идемпотентно),
+  `bootstrap_club_rating_stages(club, dry_run default true)` — только владелец.
+- Решения: начальные этапы только Kyu (Dan — политика клуба), Option 2 для
+  даты старта, без журнала запусков. Миграция bootstrap не запускает.
+- Production НЕ применена; dry-run и bootstrap НЕ выполнялись; этапов нет.
+  Ограничение: будущий Rebase поздней даты ступени после записей B4. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_RATING_B3_BOOTSTRAP_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
