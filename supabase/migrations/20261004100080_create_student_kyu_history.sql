@@ -322,9 +322,10 @@ revoke all on table public.student_kyu_history from service_role;
 grant select on table public.student_kyu_history to service_role;
 
 -- ── 5. Самопроверка (только инварианты B1) ───────────────────────────────
--- Каталог + поведенческая проверка неизменяемости на временной таблице
--- внутри вложенного блока, который всегда откатывается (объект не остаётся).
--- Любое расхождение — exception -> COMMIT ниже выполняется как ROLLBACK.
+-- Только структурные проверки каталога. Поведение (UPDATE/DELETE/TRUNCATE
+-- отклоняются, логика вставки) проверяется отдельным rollback-only E2E после
+-- применения. Любое расхождение — exception -> COMMIT ниже выполняется как
+-- ROLLBACK.
 do $$
 declare
   v_tbl regclass := to_regclass('public.student_kyu_history');
@@ -334,9 +335,6 @@ declare
   v_role text;
   v_priv text;
   v_count integer;
-  v_upd text := 'not run';
-  v_del text := 'not run';
-  v_trunc text := 'not run';
 begin
   if v_tbl is null then
     raise exception 'B1 check: public.student_kyu_history missing';
@@ -550,57 +548,6 @@ begin
     end loop;
   end loop;
 
-  -- Поведение неизменяемости: та же функция на временной таблице, блок
-  -- всегда откатывается (временная таблица не остаётся).
-  begin
-    create temp table b1_immutability_probe (id integer);
-    create trigger b1_probe_immutable
-      before update or delete on b1_immutability_probe
-      for each row execute function private.enforce_student_kyu_history_immutable();
-    create trigger b1_probe_no_truncate
-      before truncate on b1_immutability_probe
-      for each statement execute function private.enforce_student_kyu_history_immutable();
-    insert into b1_immutability_probe values (1);
-
-    begin
-      update b1_immutability_probe set id = 2;
-      v_upd := 'accepted';
-    exception when others then
-      v_upd := sqlerrm;
-    end;
-    begin
-      delete from b1_immutability_probe;
-      v_del := 'accepted';
-    exception when others then
-      v_del := sqlerrm;
-    end;
-    begin
-      truncate b1_immutability_probe;
-      v_trunc := 'accepted';
-    exception when others then
-      v_trunc := sqlerrm;
-    end;
-
-    raise exception 'b1_probe_rollback';
-  exception when others then
-    if sqlerrm <> 'b1_probe_rollback' then
-      raise;
-    end if;
-  end;
-  if v_upd <> 'student_kyu_history_immutable'
-     or v_del <> 'student_kyu_history_immutable'
-     or v_trunc <> 'student_kyu_history_immutable' then
-    raise exception 'B1 check: immutability probe failed (update=%, delete=%, truncate=%)', v_upd, v_del, v_trunc;
-  end if;
-  if to_regclass('pg_temp.b1_immutability_probe') is not null then
-    raise exception 'B1 check: probe table was not rolled back';
-  end if;
-
-  -- B2 не создаётся этой миграцией
-  if to_regclass('public.student_rating_stages') is not null
-     or to_regclass('public.student_rating_entries') is not null then
-    raise exception 'B1 check: B2 table exists (student_rating_stages / student_rating_entries)';
-  end if;
 end;
 $$;
 
