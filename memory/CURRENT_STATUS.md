@@ -1067,6 +1067,23 @@ production-состояние — в подразделе «Production state» �
   PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_RATING_B2_SQL_VERIFICATION.md`.
 
+## Student Kyu History RPCs — migration 082 (2026-09-27) — PR, НЕ применена
+
+- Branch `feature/student-kyu-history-rpcs-082` от `main` (`d5c7611`, PR #34 merged).
+  Migration `20261006100082_create_student_kyu_history_rpcs.sql`:
+  `record_student_kyu_date` (Trainer/Admin), `correct_student_kyu_date` и
+  `retract_student_kyu_date` (только Admin, причина обязательна),
+  `get_trainer_student_kyu_history` (Trainer — действующие даты, Admin — полная
+  цепочка) + private `judo_grade_rank` / `resolve_judo_grade_lookup_id` /
+  `student_kyu_history_chronology_ok`. Доступ — `can_trainer_access_student`
+  (без оплаченной Student Page); блокировка `jkl.student_rating`; хронология
+  жёсткая; ступень выше текущей отклоняется.
+- Production PRECHECK 082 выполнен владельцем (PASS). Migration 082 в production
+  НЕ применена; поведенческий E2E НЕ выполнялся (путь Trainer заблокирован:
+  нет активного не-Admin Trainer-аккаунта). Rating bootstrap, этапы, записи,
+  `students.kyu_grad` не затронуты. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_KYU_HISTORY_RPC_082_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
