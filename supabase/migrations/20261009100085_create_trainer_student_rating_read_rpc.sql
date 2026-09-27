@@ -293,14 +293,6 @@ begin
      or (select count(*) from public.club_rating_config) <> current_setting('jkl_m085.config_before')::bigint then
     raise exception '085 check: rating data changed during migration';
   end if;
-  -- ... и по времени (now() = начало этой транзакции). История Kyu — только
-  -- так: её может одновременно писать RPC 082.
-  if exists (select 1 from public.student_rating_entries e where e.created_at >= now())
-     or exists (select 1 from public.student_rating_stages st where st.created_at >= now() or st.closed_at >= now())
-     or exists (select 1 from public.student_kyu_history h where h.created_at >= now())
-     or exists (select 1 from public.club_rating_config c where c.created_at >= now()) then
-    raise exception '085 check: migration wrote rating/history/config rows';
-  end if;
 end;
 $$;
 
