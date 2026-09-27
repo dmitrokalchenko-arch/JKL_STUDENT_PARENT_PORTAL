@@ -33,6 +33,15 @@ Migration: `supabase/migrations/20261005100081_create_student_rating_stages_ledg
   (`student_rating_stages_one_root_uidx`), `UNIQUE(previous_stage_id)`,
   составной FK на этап того же ученика/клуба; предыдущий этап должен быть
   `closed`.
+- **Этапы не перекрываются.** Инвариант: для любого этапа с
+  `previous_stage_id` — `starts_on > previous.ends_on` (строго: `ends_on` —
+  последний включённый день предыдущего этапа). Равенство
+  `starts_on = previous.ends_on + 1` **не** требуется — промежуток допустим
+  (будущий audited rebase / bootstrap policy). Нарушение →
+  `student_rating_stages_overlapping_previous`. Проверяется триггером вставки
+  (`private.enforce_student_rating_stages_insert`); отдельного ограничения/
+  индекса нет, поэтому структурная самопроверка его не покрывает — покрывает
+  поведенческий E2E. Семантику дня повышения это не решает.
 - `ends_on` — последний **включённый** день закрытого этапа, `NULL` у active.
 - Единственное изменение строки — `active → closed` (триггер): прочие поля
   неизменны, `closed_at = now()`, `ends_on <= club_today`, в журнале нет
@@ -170,6 +179,10 @@ kyu_lookup, student_kyu_history, 079/080.
 7. закрытие `active → closed` → OK; изменение других полей → `…_immutable`;
    запись в закрытый этап → `…_stage_closed`; закрытие с `ends_on` раньше
    существующей записи → `…_entries_after_end`;
+7a. последовательность этапов: предыдущий закрыт с `ends_on = X`;
+   новый этап с `previous_stage_id` и `starts_on <= X` (включая `= X`) →
+   `…_overlapping_previous`; новый этап с `starts_on > X` → OK (и с
+   промежутком, например `X + 5`, → OK);
 8. UPDATE / DELETE / TRUNCATE entries и DELETE / TRUNCATE stages → `…_immutable`;
 9. `ROLLBACK`.
 

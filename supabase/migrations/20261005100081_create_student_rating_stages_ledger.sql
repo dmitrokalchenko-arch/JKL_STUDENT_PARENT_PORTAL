@@ -16,7 +16,8 @@
 --     хардкодит.
 --   * не более одного active этапа на ученика; этапы ученика — линейная
 --     цепочка через previous_stage_id (один корень, каждый этап продолжается
---     не более одного раза).
+--     не более одного раза); этапы не перекрываются: starts_on нового строго
+--     больше ends_on предыдущего (промежуток допустим).
 --   * ends_on — последний включённый день этапа (NULL у active). Единственное
 --     разрешённое изменение — active -> closed (promotion | rebase) будущим
 --     definer-workflow. К какому этапу относится день повышения, решает будущий
@@ -310,6 +311,7 @@ declare
   v_hist_kind text;
   v_hist_obtained date;
   v_prev_status text;
+  v_prev_ends date;
   v_author_club text;
   v_author_active boolean;
   v_author_role text;
@@ -370,7 +372,7 @@ begin
   end if;
 
   if new.previous_stage_id is not null then
-    select p.status into v_prev_status
+    select p.status, p.ends_on into v_prev_status, v_prev_ends
     from public.student_rating_stages p
     where p.id = new.previous_stage_id
       and p.student_id = new.student_id
@@ -380,6 +382,13 @@ begin
     end if;
     if v_prev_status <> 'closed' then
       raise exception 'student_rating_stages_previous_not_closed';
+    end if;
+    -- Этапы ученика не перекрываются: ends_on — последний ВКЛЮЧЁННЫЙ день
+    -- предыдущего этапа, поэтому новый начинается строго позже. Промежуток
+    -- между этапами допустим; граница дня повышения — решение Promote RPC.
+    if v_prev_ends is null or new.starts_on <= v_prev_ends then
+      raise exception 'student_rating_stages_overlapping_previous'
+        using detail = format('starts_on %s must be after previous stage ends_on %s', new.starts_on, v_prev_ends);
     end if;
     if exists (select 1 from public.student_rating_stages n where n.previous_stage_id = new.previous_stage_id) then
       raise exception 'student_rating_stages_previous_already_continued';
@@ -412,7 +421,7 @@ $$;
 
 alter function private.enforce_student_rating_stages_insert() owner to postgres;
 comment on function private.enforce_student_rating_stages_insert() is
-  'BEFORE INSERT student_rating_stages: только active; ученик (клуб, judo), ступень и снимок; starts_on <= club_today; kyu_obtained -> действующий факт истории и starts_on = obtained_on; previous — закрытый этап того же ученика, не продолженный ранее; один корень и один active; автор — активный аккаунт клуба с текущей ролью. SECURITY DEFINER. Migration B2.';
+  'BEFORE INSERT student_rating_stages: только active; ученик (клуб, judo), ступень и снимок; starts_on <= club_today; kyu_obtained -> действующий факт истории и starts_on = obtained_on; previous — закрытый этап того же ученика, не продолженный ранее, и starts_on > previous.ends_on (без перекрытия, промежуток допустим); один корень и один active; автор — активный аккаунт клуба с текущей ролью. SECURITY DEFINER. Migration B2.';
 revoke all on function private.enforce_student_rating_stages_insert() from public, anon, authenticated;
 revoke all on function private.enforce_student_rating_stages_insert() from service_role;
 
