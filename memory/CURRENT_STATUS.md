@@ -1015,6 +1015,20 @@ production-состояние — в подразделе «Production state» �
   Значения — иллюстративные значения прототипа, не официальные нормы DJB
   (пометка `mockNote` уточнена в RU/DE). PR #19 не затронут.
 
+## Club Calendar Foundation — migration 079 (2026-09-27) — локальный commit, НЕ применена
+
+- Rating Database Design, Migration A. Branch `feature/club-calendar-foundation`
+  от `main` (`ceb06e1`). Migration `20261003100079_club_calendar_foundation.sql`:
+  `public.club_portal_settings` (IANA-пояс клуба, проверка клуба и
+  `pg_timezone_names` триггером), `private.club_timezone` / `private.club_today`
+  (fail closed: `club_timezone_not_configured`, без fallback).
+- JCL: `jcl` = `Europe/Berlin` (решение C3). Остальные клубы — строк нет,
+  пояс не настроен → fail closed.
+- Production НЕ применена. Rating backend дальше календаря НЕ начат (нет
+  таблиц истории Kyu / этапов / журнала / настроек, нет RPC, нет bootstrap).
+  `get_student_page_access` не изменён. PR #19 не затронут.
+- Проверка: `docs/database/CLUB_CALENDAR_FOUNDATION_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
