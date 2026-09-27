@@ -520,6 +520,7 @@ as $$
 declare
   v_is_admin boolean;
   v_club text;
+  v_sport text;
   v_kyu_grad text;
   v_current_id bigint;
   v_current_grade text;
@@ -533,10 +534,13 @@ begin
 
   v_is_admin := private.is_current_trainer_portal_admin();
 
-  select s.club_id, s.kyu_grad into v_club, v_kyu_grad
+  select s.club_id, s.sport_id, s.kyu_grad into v_club, v_sport, v_kyu_grad
   from public.students s where s.id = p_student_id;
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'not_allowed');
+  end if;
+  if v_sport is distinct from 'judo' then
+    return jsonb_build_object('ok', false, 'reason', 'not_judo');
   end if;
 
   v_current_id := private.resolve_judo_grade_lookup_id(v_kyu_grad);

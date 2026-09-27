@@ -87,6 +87,11 @@ definer-RPC (выполняются как `postgres`). Права на `student
 
 ## Чтение
 
+Чтение, как и запись, **только для Judo**: сначала проверка доступа
+(недоступный или несуществующий ученик → `not_allowed`, вид спорта не
+раскрывается), затем для доступного ученика с `sport_id` ≠ `'judo'` →
+`{ok:false, reason:'not_judo'}` без каких-либо других данных ученика.
+
 `{ok, currentGrade:{raw, kyuLookupId, kyuGrad, resolved}, grades:[…], canCorrect}`.
 Каждая ступень с историей: `kyuLookupId`, `kyuGrad`, `isCurrentGrade`,
 `effectiveObtainedOn`, `terminalKind`, `hasAuditHistory`. Admin дополнительно
