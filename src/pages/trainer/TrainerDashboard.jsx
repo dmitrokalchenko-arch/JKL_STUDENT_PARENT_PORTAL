@@ -3,6 +3,8 @@ import TrainerHeader from '../../components/trainer/TrainerHeader.jsx';
 import TrainerDashboardCard from '../../components/trainer/TrainerDashboardCard.jsx';
 import { trainerDashboardSections } from '../../config/trainerDashboardSections.js';
 import { signOutTrainer } from '../../services/trainerAuthService.js';
+import { useCurrentTrainerProfile } from '../../components/trainer/TrainerProfileContext.js';
+import { isPortalAdmin } from '../../utils/trainerPortalRole.js';
 import styles from './TrainerDashboard.module.css';
 
 // Точка входа тренерской области после успешного логина (см. App.jsx).
@@ -22,6 +24,10 @@ import styles from './TrainerDashboard.module.css';
 // Unified Login, что прямо противоречит заданию.
 export default function TrainerDashboard() {
   const { t } = useTranslation();
+  // Admin-карточки (requiresPortalAdmin) — только portal_role='admin'
+  // (fail closed). Прямой URL закрыт отдельно TrainerAdminRoute в App.jsx.
+  const isAdmin = isPortalAdmin(useCurrentTrainerProfile());
+  const visibleSections = trainerDashboardSections.filter((section) => !section.requiresPortalAdmin || isAdmin);
 
   const handleLogout = async () => {
     await signOutTrainer();
@@ -33,7 +39,7 @@ export default function TrainerDashboard() {
       <TrainerHeader title={t('trainerDashboard.title')} onLogout={handleLogout} />
 
       <div className={styles.grid}>
-        {trainerDashboardSections.map((section) => (
+        {visibleSections.map((section) => (
           <TrainerDashboardCard
             key={section.id}
             title={t(section.titleKey)}

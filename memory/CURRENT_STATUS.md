@@ -983,6 +983,22 @@ production-состояние — в подразделе «Production state» �
   AdminRouteGuard), затем восстановление `manage-trainer-account` на
   `portal_role`.
 
+## Trainer Portal: роли в UI (2026-09-27) — локальный commit, НЕ задеплоено
+
+- Branch `feature/trainer-portal-role-ui` от `main` (`2e2e8cc`, PR #29 merged).
+- Роль только из `get_current_trainer_profile().portal_role` (профиль уже
+  загружает `TrainerAuthGuard`, отдаётся через `TrainerProfileContext`).
+  `isPortalAdmin` (`src/utils/trainerPortalRole.js`) — fail closed:
+  `is_active === true && portal_role === 'admin'`.
+- Дашборд: карточки с `requiresPortalAdmin` (Student Page settings, Kyu
+  program) — только Admin; Trainer видит только «Найти ученика».
+- `TrainerAdminRoute` в `App.jsx` для `/trainer/settings`,
+  `/trainer/kyu-program`, `/trainer/kyu-program/djb|go-kyu/:kyuId`: не-admin →
+  replace на `/trainer`, страница не рендерится. `/trainer/rating-settings`
+  в `main` нет (Rating-ветка не смержена) — при её слиянии добавить view в
+  `ADMIN_ONLY_TRAINER_VIEWS`. Student-level маршруты — Trainer + Admin.
+- UI — только UX-слой; граница безопасности — серверные проверки 078.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять

@@ -12,6 +12,7 @@ import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerKyuProgramPage from './pages/trainer/TrainerKyuProgramPage.jsx';
 import TrainerKyuTemplatePage from './pages/trainer/TrainerKyuTemplatePage.jsx';
 import TrainerAuthGuard from './components/trainer/TrainerAuthGuard.jsx';
+import TrainerAdminRoute from './components/trainer/TrainerAdminRoute.jsx';
 import StudentPreviewPage from './pages/preview/StudentPreviewPage.jsx';
 import StudentPageDemoRoute from './pages/dev/StudentPageDemoRoute.jsx';
 import { useFamilySession } from './hooks/useFamilySession.js';
@@ -59,6 +60,13 @@ function isTrainerRoute(pathname) {
 // любой нераспознанный под-путь внутри '/trainer/*' попадают в 'dashboard' —
 // это новая точка входа после логина вместо прежнего прямого показа
 // TrainerPage (см. TrainerAuthGuard ниже).
+// Admin-only представления Trainer Portal (club-wide настройки) — оборачиваются
+// в TrainerAdminRoute (portal_role='admin', migration 078). Будущие
+// /trainer/rating-settings и /trainer/events добавляются сюда своим view.
+// Student-level представления (students, student, student-kyu-program) —
+// Trainer + Admin, доступ к ученику решает сервер.
+const ADMIN_ONLY_TRAINER_VIEWS = new Set(['settings', 'kyu-program', 'kyu-program-template']);
+
 function parseTrainerView(pathname) {
   // /trainer/student/:studentId/required-techniques — редактор индивидуальной
   // программы ученика. Target Kyu в URL НЕ передаётся: его определяет и
@@ -126,6 +134,10 @@ export default function App() {
       trainerContent = <TrainerStudentPage studentId={trainerView.studentId} />;
     } else {
       trainerContent = <TrainerDashboard />;
+    }
+
+    if (ADMIN_ONLY_TRAINER_VIEWS.has(trainerView.view)) {
+      trainerContent = <TrainerAdminRoute>{trainerContent}</TrainerAdminRoute>;
     }
 
     return <TrainerAuthGuard>{trainerContent}</TrainerAuthGuard>;
