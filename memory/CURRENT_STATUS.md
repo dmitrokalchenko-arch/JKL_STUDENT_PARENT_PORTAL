@@ -1119,6 +1119,20 @@ production-состояние — в подразделе «Production state» �
   НЕ выполнялись. PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_RATING_B4_ATTENDANCE_SQL_VERIFICATION.md`.
 
+## Rating B5 — Trainer/Admin student Rating read RPC, migration 085 (2026-09-27) — ветка, НЕ применена
+
+- B4 (084) по данным владельца применена и проверена в production: 182 записи
+  attendance_day, 35 активных этапов, повторный dry-run без изменений.
+- Branch `feature/rating-read-b5-085` от `main` (`c95156b`, PR #38 merged).
+  Migration `20261009100085_create_trainer_student_rating_read_rpc.sql`:
+  `public.get_trainer_student_rating(bigint) → jsonb` (STABLE, SECURITY DEFINER,
+  EXECUTE только authenticated; доступ `can_trainer_access_student`, без оплаченной
+  Student Page; итог = SUM всех записей активного этапа; Dan по политике →
+  `dan_policy_excluded`; отказ/нет ученика — одинаковый `not_allowed`).
+- Реализация на feature-ветке; PR не создан; в production НЕ применена; E2E НЕ
+  выполнялся. Frontend (B6) не начат. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_RATING_B5_READ_RPC_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
