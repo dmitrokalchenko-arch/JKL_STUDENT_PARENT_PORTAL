@@ -1106,6 +1106,19 @@ production-состояние — в подразделе «Production state» �
   Ограничение: будущий Rebase поздней даты ступени после записей B4. PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_RATING_B3_BOOTSTRAP_SQL_VERIFICATION.md`.
 
+## Rating B4 — Attendance → Rating Ledger, migration 084 (2026-09-27) — ветка, НЕ применена
+
+- Branch `feature/rating-attendance-b4-084` от `main` (`1a46529`, PR #37 merged;
+  по данным владельца 083 применена и bootstrap выполнен: 35 этапов Kyu).
+  Migration `20261008100084_create_attendance_rating_reconciliation.sql`:
+  `private.attendance_rating_days` (единственная каноническая логика, STABLE),
+  `private.sync_student_attendance_rating` (блокировка, INSERT только
+  ELIGIBLE_MISSING), `private.reconcile_club_attendance_rating(club, dry_run
+  default true)`. Уникальность — индекс 081; STALE/REVERSED/CLOSED — только отчёт.
+- Миграция начисление НЕ выполняет. Production НЕ применена; dry-run и backfill
+  НЕ выполнялись. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_RATING_B4_ATTENDANCE_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
