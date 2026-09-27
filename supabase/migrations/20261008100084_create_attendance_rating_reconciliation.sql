@@ -41,6 +41,24 @@
 begin;
 
 -- ══════════════════════════════════════════════════════════════════════
+-- 0. Снимок счётчиков до миграции (для самопроверки в конце)
+-- ══════════════════════════════════════════════════════════════════════
+-- set_config(..., true) — только для этой транзакции, ничего не сохраняется.
+-- Журнал и этапы пишутся только private-функциями владельца, поэтому
+-- конкурентных изменений во время применения быть не должно; любое
+-- расхождение останавливает миграцию (fail closed).
+do $$
+begin
+  perform set_config('jkl_m084.entries_before',
+                      (select count(*) from public.student_rating_entries)::text, true);
+  perform set_config('jkl_m084.stages_before',
+                      (select count(*) from public.student_rating_stages)::text, true);
+  perform set_config('jkl_m084.stages_closed_before',
+                      (select count(*) from public.student_rating_stages where status = 'closed')::text, true);
+end;
+$$;
+
+-- ══════════════════════════════════════════════════════════════════════
 -- 1. Каноническая логика (только чтение)
 -- ══════════════════════════════════════════════════════════════════════
 -- Строка на каждую пару (ученик, местный день) с посещаемостью JA клуба, плюс
@@ -214,7 +232,10 @@ declare
   v_club text;
   v_row record;
   v_created jsonb := '[]'::jsonb;
+  v_raced jsonb := '[]'::jsonb;
   v_entry_id uuid;
+  v_errmsg text;
+  v_constraint text;
 begin
   if p_student_id is null then
     raise exception 'sync_student_attendance_rating_null_student';
@@ -235,28 +256,59 @@ begin
     where d.status = 'ELIGIBLE_MISSING'
     order by d.attendance_day
   loop
-    insert into public.student_rating_entries (
-      club_id, student_id, stage_id, source_type, effective_on, points,
-      reversal_of_entry_id, reaward_after_entry_id, idempotency_key, reason,
-      created_by_kind
-    ) values (
-      v_club, p_student_id, v_row.stage_id, 'attendance_day', v_row.attendance_day, 1,
-      null, null, null, null,
-      'system'
-    )
-    returning id into v_entry_id;
-    v_created := v_created || jsonb_build_array(jsonb_build_object(
-      'entryId', v_entry_id, 'stageId', v_row.stage_id, 'attendanceDay', v_row.attendance_day));
+    -- Вложенный блок = точка сохранения на одну вставку. Гонка с писателем,
+    -- не берущим блокировку jkl.student_rating, проявляется как:
+    --   (a) исключение триггера 081 student_rating_entries_attendance_day_exists
+    --       (триггер блокирует строку этапа и видит уже зафиксированный корень), или
+    --   (b) unique_violation по student_rating_entries_attendance_root_uidx.
+    -- Только эти два случая считаются безопасными — и только если повторная
+    -- каноническая оценка ИМЕННО этой пары (этап, день) даёт ALREADY_REPRESENTED.
+    -- Всё остальное пробрасывается (fail closed).
+    begin
+      insert into public.student_rating_entries (
+        club_id, student_id, stage_id, source_type, effective_on, points,
+        reversal_of_entry_id, reaward_after_entry_id, idempotency_key, reason,
+        created_by_kind
+      ) values (
+        v_club, p_student_id, v_row.stage_id, 'attendance_day', v_row.attendance_day, 1,
+        null, null, null, null,
+        'system'
+      )
+      returning id into v_entry_id;
+      v_created := v_created || jsonb_build_array(jsonb_build_object(
+        'entryId', v_entry_id, 'stageId', v_row.stage_id, 'attendanceDay', v_row.attendance_day));
+    exception
+      when unique_violation or raise_exception then
+        get stacked diagnostics v_errmsg = message_text, v_constraint = constraint_name;
+        if not (
+             (sqlstate = '23505' and v_constraint = 'student_rating_entries_attendance_root_uidx')
+             or (sqlstate = 'P0001' and v_errmsg = 'student_rating_entries_attendance_day_exists')
+           )
+           or not exists (
+             select 1
+             from private.attendance_rating_days(v_club, p_student_id) d
+             where d.stage_id = v_row.stage_id
+               and d.attendance_day = v_row.attendance_day
+               and d.status = 'ALREADY_REPRESENTED'
+           ) then
+          raise;
+        end if;
+        v_raced := v_raced || jsonb_build_array(jsonb_build_object(
+          'stageId', v_row.stage_id, 'attendanceDay', v_row.attendance_day,
+          'result', 'already_represented_concurrently'));
+    end;
   end loop;
 
   return jsonb_build_object('studentId', p_student_id, 'result', 'synced',
-                            'created', jsonb_array_length(v_created), 'createdEntries', v_created);
+                            'created', jsonb_array_length(v_created), 'createdEntries', v_created,
+                            'alreadyRepresentedConcurrently', jsonb_array_length(v_raced),
+                            'racedDays', v_raced);
 end;
 $$;
 
 alter function private.sync_student_attendance_rating(bigint) owner to postgres;
 comment on function private.sync_student_attendance_rating(bigint) is
-  'Один ученик: блокировка jkl.student_rating -> private.attendance_rating_days -> INSERT attendance_day (+1, system) только для ELIGIBLE_MISSING. Прочие статусы не трогаются (отчёт — через reconcile). Уникальность — индекс 081. Без клиентского EXECUTE. Migration 084.';
+  'Один ученик: блокировка jkl.student_rating -> private.attendance_rating_days -> INSERT attendance_day (+1, system) только для ELIGIBLE_MISSING. Каждая вставка — в точке сохранения: гонка с писателем без блокировки (исключение триггера 081 attendance_day_exists или unique_violation по attendance_root_uidx) считается безопасной, только если повторная оценка этой пары (этап, день) даёт ALREADY_REPRESENTED; иначе ошибка пробрасывается. Прочие статусы не трогаются. Без клиентского EXECUTE. Migration 084.';
 revoke all on function private.sync_student_attendance_rating(bigint) from public, anon, authenticated;
 revoke all on function private.sync_student_attendance_rating(bigint) from service_role;
 
@@ -280,6 +332,7 @@ declare
   v_sync jsonb;
   v_syncs jsonb := '[]'::jsonb;
   v_created integer := 0;
+  v_raced integer := 0;
 begin
   if p_club_id is null or p_dry_run is null then
     raise exception 'reconcile_club_attendance_rating_invalid_arguments';
@@ -307,8 +360,10 @@ begin
     loop
       v_sync := private.sync_student_attendance_rating(v_student);
       v_created := v_created + (v_sync ->> 'created')::integer;
+      v_raced := v_raced + (v_sync ->> 'alreadyRepresentedConcurrently')::integer;
       v_syncs := v_syncs || jsonb_build_array(jsonb_build_object(
-        'studentId', v_student, 'created', (v_sync ->> 'created')::integer));
+        'studentId', v_student, 'created', (v_sync ->> 'created')::integer,
+        'alreadyRepresentedConcurrently', (v_sync ->> 'alreadyRepresentedConcurrently')::integer));
     end loop;
 
     select coalesce(jsonb_agg(jsonb_build_object(
@@ -332,6 +387,7 @@ begin
     'wouldCreate', (select pg_catalog.count(*) from jsonb_array_elements(v_before) e
                     where e ->> 'status' = 'ELIGIBLE_MISSING'),
     'created', v_created,
+    'alreadyRepresentedConcurrently', v_raced,
     'skipped', (select pg_catalog.count(*) from jsonb_array_elements(v_before) e
                 where e ->> 'action' = 'SKIP'),
     'anomalies', (select pg_catalog.count(*) from jsonb_array_elements(v_before) e
@@ -460,7 +516,22 @@ begin
     raise exception '084 check: public.attendance lacks student_id/datum/anwesenheit/club_id';
   end if;
 
-  -- Миграция ничего не записала (now() = начало этой транзакции)
+  -- Миграция ничего не записала: точные счётчики до/после (снимок из раздела 0) ...
+  if current_setting('jkl_m084.entries_before', true) is null
+     or current_setting('jkl_m084.stages_before', true) is null
+     or current_setting('jkl_m084.stages_closed_before', true) is null then
+    raise exception '084 check: before-counts snapshot missing';
+  end if;
+  if (select count(*) from public.student_rating_entries) <> current_setting('jkl_m084.entries_before')::bigint then
+    raise exception '084 check: student_rating_entries count changed during migration';
+  end if;
+  if (select count(*) from public.student_rating_stages) <> current_setting('jkl_m084.stages_before')::bigint
+     or (select count(*) from public.student_rating_stages where status = 'closed')
+        <> current_setting('jkl_m084.stages_closed_before')::bigint then
+    raise exception '084 check: student_rating_stages count/closed count changed during migration';
+  end if;
+
+  -- ... и по времени создания (now() = начало этой транзакции)
   if exists (select 1 from public.student_rating_entries e where e.created_at >= now()) then
     raise exception '084 check: migration created rating entries';
   end if;
