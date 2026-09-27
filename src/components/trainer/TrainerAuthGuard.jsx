@@ -3,6 +3,7 @@ import TrainerLogin from '../../pages/trainer/TrainerLogin.jsx';
 import { useTrainerSession } from '../../hooks/useTrainerSession.js';
 import { useTrainerProfile } from '../../hooks/useTrainerProfile.js';
 import { isSupabaseConfigured } from '../../services/supabaseClient.js';
+import { TrainerProfileContext } from './TrainerProfileContext.js';
 import styles from './TrainerAuthGuard.module.css';
 
 // Защита тренерской зоны портала. Спроектировано так, чтобы в будущем
@@ -49,5 +50,7 @@ export default function TrainerAuthGuard({ children }) {
     );
   }
 
-  return children;
+  // Профиль (в т.ч. portal_role) отдаётся потомкам через контекст —
+  // TrainerAdminRoute и дашборд читают роль отсюда без повторного RPC.
+  return <TrainerProfileContext.Provider value={profile}>{children}</TrainerProfileContext.Provider>;
 }

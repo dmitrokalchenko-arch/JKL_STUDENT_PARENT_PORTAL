@@ -11,13 +11,15 @@ export const trainerDashboardSections = [
     titleKey: 'trainerDashboard.settingsTitle',
     descriptionKey: 'trainerDashboard.settingsDescription',
     icon: 'gear',
-    path: '/trainer/settings'
+    path: '/trainer/settings',
+    requiresPortalAdmin: true
   },
   {
     id: 'kyu-program',
     titleKey: 'trainerDashboard.kyuProgramTitle',
     descriptionKey: 'trainerDashboard.kyuProgramDescription',
     icon: 'belt',
-    path: '/trainer/kyu-program'
+    path: '/trainer/kyu-program',
+    requiresPortalAdmin: true
   }
 ];
