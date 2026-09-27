@@ -1043,6 +1043,22 @@ production-состояние — в подразделе «Production state» �
   начаты. PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_KYU_HISTORY_B1_SQL_VERIFICATION.md`.
 
+## Rating Stages + Ledger — migration 081 / B2 (2026-09-27) — feature-ветка, НЕ применена
+
+- Migration 080 (B1, PR #33) применена в production владельцем: structural
+  self-check + rollback-only E2E PASS.
+- Branch `feature/rating-stages-ledger-b2` от `main` (`c196cd3`). Migration
+  `20261005100081_create_student_rating_stages_ledger.sql`:
+  `student_rating_stages` (один active на ученика, линейная цепочка,
+  kyu_obtained → действующий факт истории, club_rating_start без факта, только
+  active → closed) и `student_rating_entries` (неизменяемый журнал:
+  attendance_day / admin_adjustment / reversal, цепочка reversal/reaward, итог
+  этапа = SUM ≥ 0 под блокировкой строки этапа).
+- Production НЕ применена. Bootstrap, RPC, Promote, Rebase, сверка, UI — НЕ
+  начаты. Отложены: bootstrap policy (источник технического старта, ранняя
+  obtained_on), граница дня повышения. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_RATING_B2_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
