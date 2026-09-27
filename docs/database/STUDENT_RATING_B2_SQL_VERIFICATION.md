@@ -1,9 +1,28 @@
 # Student Rating B2 — Rating Stages + Immutable Ledger (migration 081)
 
 Migration: `supabase/migrations/20261005100081_create_student_rating_stages_ledger.sql`
-(Rating Database Design, Migration B2). **Статус: создана на feature-ветке,
-в production НЕ применена.** Зависит от 079 (`private.club_today`) и 080
-(`student_kyu_history`), обе применены в production.
+(Rating Database Design, Migration B2). Зависит от 079 (`private.club_today`)
+и 080 (`student_kyu_history`), обе применены в production.
+
+## Статус production (2026-09-27)
+
+- **Migration 081 применена в production** вручную владельцем
+  (SHA-256 `cd7a16947e1ff6ca917f846da915ba3549c3d015c37cdf9b76cb51abd5ba73bc`).
+- **Структурная проверка production: 30/30 PASS** — обе таблицы существуют,
+  21 / 15 колонок, RLS включён на обеих, policies нет, private-функции и
+  триггеры B2 на месте, service_role — только SELECT (записать не может);
+  сама миграция создала 0 этапов и 0 записей; фундамент 079/080 доступен.
+- **Rollback-only поведенческий E2E в production: PASS** (итог
+  `B2_BEHAVIORAL_E2E_PASS`). После финального `ROLLBACK`:
+  `student_rating_stages = 0`, `student_rating_entries = 0`,
+  `student_kyu_history = 0` (тестовых строк не осталось), `jcl_today = 2026-09-27`.
+  Более ранние неудачные попытки E2E — ошибки тестового скрипта, откатаны,
+  данных не оставили.
+- **Bootstrap/backfill НЕ выполнялся.** Реальных Rating Stages и Rating
+  Entries пока нет.
+- Будущая работа: bootstrap, сверка/генерация посещаемости, прикладные RPC,
+  Promote, Rebase, Rating UI.
+- PR #19 не затронут.
 
 ## Модель данных
 

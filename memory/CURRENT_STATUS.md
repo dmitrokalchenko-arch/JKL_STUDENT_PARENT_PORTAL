@@ -1015,7 +1015,7 @@ production-состояние — в подразделе «Production state» �
   Значения — иллюстративные значения прототипа, не официальные нормы DJB
   (пометка `mockNote` уточнена в RU/DE). PR #19 не затронут.
 
-## Club Calendar Foundation — migration 079 (2026-09-27) — локальный commit, НЕ применена
+## Club Calendar Foundation — migration 079 (2026-09-27) — ПРИМЕНЕНА В PRODUCTION (PR #32, post-apply 16/16 PASS)
 
 - Rating Database Design, Migration A. Branch `feature/club-calendar-foundation`
   от `main` (`ceb06e1`). Migration `20261003100079_club_calendar_foundation.sql`:
@@ -1029,7 +1029,7 @@ production-состояние — в подразделе «Production state» �
   `get_student_page_access` не изменён. PR #19 не затронут.
 - Проверка: `docs/database/CLUB_CALENDAR_FOUNDATION_SQL_VERIFICATION.md`.
 
-## Student Kyu History — migration 080 / B1 (2026-09-27) — feature-ветка, НЕ применена
+## Student Kyu History — migration 080 / B1 (2026-09-27) — ПРИМЕНЕНА В PRODUCTION (PR #33)
 
 - Migration 079 (Club Calendar Foundation) применена в production владельцем
   (post-apply 16/16 PASS). Production precheck B1/B2 выполнен владельцем.
@@ -1039,11 +1039,11 @@ production-состояние — в подразделе «Production state» �
   recorded → corrected/retracted через `supersedes_id`; один корень на
   ученик+ступень; corrected/retracted — только Admin с причиной; неизвестная
   дата = нет строки. RLS без policies, service_role только SELECT.
-- Production НЕ применена. B2 (Rating Stages / Ledger), RPC, bootstrap — НЕ
-  начаты. PR #19 не затронут.
+- Применена в production владельцем: structural self-check + rollback-only
+  E2E PASS (см. раздел B2 ниже). PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_KYU_HISTORY_B1_SQL_VERIFICATION.md`.
 
-## Rating Stages + Ledger — migration 081 / B2 (2026-09-27) — feature-ветка, НЕ применена
+## Rating Stages + Ledger — migration 081 / B2 (2026-09-27) — ПРИМЕНЕНА В PRODUCTION
 
 - Migration 080 (B1, PR #33) применена в production владельцем: structural
   self-check + rollback-only E2E PASS.
@@ -1054,9 +1054,17 @@ production-состояние — в подразделе «Production state» �
   active → closed) и `student_rating_entries` (неизменяемый журнал:
   attendance_day / admin_adjustment / reversal, цепочка reversal/reaward, итог
   этапа = SUM ≥ 0 под блокировкой строки этапа).
-- Production НЕ применена. Bootstrap, RPC, Promote, Rebase, сверка, UI — НЕ
-  начаты. Отложены: bootstrap policy (источник технического старта, ранняя
-  obtained_on), граница дня повышения. PR #19 не затронут.
+- Этапы одного ученика не перекрываются: `starts_on > previous.ends_on`
+  (коммит `e01a2dc`, PR #34).
+- **Применена в production** вручную владельцем (SHA-256 `cd7a1694…ba73bc`).
+  Структурная проверка 30/30 PASS; rollback-only поведенческий E2E PASS
+  (`B2_BEHAVIORAL_E2E_PASS`), после ROLLBACK: stages 0, entries 0, тестовых
+  строк истории Kyu 0 — тестовых данных не осталось.
+- Bootstrap/backfill НЕ выполнялся; реальных Rating Stages / Entries нет.
+  Будущая работа: bootstrap, сверка/генерация посещаемости, прикладные RPC,
+  Promote, Rebase, Rating UI. Отложены: bootstrap policy (источник
+  технического старта, ранняя obtained_on), граница дня повышения.
+  PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_RATING_B2_SQL_VERIFICATION.md`.
 
 ## Следующий этап

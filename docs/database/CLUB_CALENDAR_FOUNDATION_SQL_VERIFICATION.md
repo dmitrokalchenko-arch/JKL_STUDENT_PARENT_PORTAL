@@ -1,8 +1,8 @@
 # Club Calendar Foundation — проверка migration 079
 
 Migration: `supabase/migrations/20261003100079_club_calendar_foundation.sql`
-(Rating Database Design, Migration A). **Статус: создана локально, в
-production НЕ применена.**
+(Rating Database Design, Migration A). **Статус: применена в production
+владельцем (PR #32); post-apply проверка 16/16 PASS.**
 
 ## Что создаёт
 
