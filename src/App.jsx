@@ -8,6 +8,7 @@ import TrainerDashboard from './pages/trainer/TrainerDashboard.jsx';
 import TrainerStudentsScreen from './pages/trainer/TrainerStudentsScreen.jsx';
 import TrainerStudentPage from './pages/trainer/TrainerStudentPage.jsx';
 import TrainerStudentKyuProgramPage from './pages/trainer/TrainerStudentKyuProgramPage.jsx';
+import TrainerRatingSettingsPage from './pages/trainer/TrainerRatingSettingsPage.jsx';
 import TrainerSettingsPage from './pages/trainer/TrainerSettingsPage.jsx';
 import TrainerKyuProgramPage from './pages/trainer/TrainerKyuProgramPage.jsx';
 import TrainerKyuTemplatePage from './pages/trainer/TrainerKyuTemplatePage.jsx';
@@ -61,11 +62,11 @@ function isTrainerRoute(pathname) {
 // это новая точка входа после логина вместо прежнего прямого показа
 // TrainerPage (см. TrainerAuthGuard ниже).
 // Admin-only представления Trainer Portal (club-wide настройки) — оборачиваются
-// в TrainerAdminRoute (portal_role='admin', migration 078). Будущие
-// /trainer/rating-settings и /trainer/events добавляются сюда своим view.
+// в TrainerAdminRoute (portal_role='admin', migration 078). Будущий
+// /trainer/events добавляется сюда своим view.
 // Student-level представления (students, student, student-kyu-program) —
 // Trainer + Admin, доступ к ученику решает сервер.
-const ADMIN_ONLY_TRAINER_VIEWS = new Set(['settings', 'kyu-program', 'kyu-program-template']);
+const ADMIN_ONLY_TRAINER_VIEWS = new Set(['settings', 'kyu-program', 'kyu-program-template', 'rating-settings']);
 
 function parseTrainerView(pathname) {
   // /trainer/student/:studentId/required-techniques — редактор индивидуальной
@@ -84,6 +85,9 @@ function parseTrainerView(pathname) {
   }
   if (pathname === '/trainer/settings') {
     return { view: 'settings' };
+  }
+  if (pathname === '/trainer/rating-settings') {
+    return { view: 'rating-settings' };
   }
   // /trainer/kyu-program/djb/:kyuId и /trainer/kyu-program/go-kyu/:kyuId
   // ПЕРЕД точным '/trainer/kyu-program' — тот же порядок, что studentMatch
@@ -124,6 +128,8 @@ export default function App() {
       trainerContent = <TrainerStudentsScreen />;
     } else if (trainerView.view === 'settings') {
       trainerContent = <TrainerSettingsPage />;
+    } else if (trainerView.view === 'rating-settings') {
+      trainerContent = <TrainerRatingSettingsPage />;
     } else if (trainerView.view === 'kyu-program') {
       trainerContent = <TrainerKyuProgramPage />;
     } else if (trainerView.view === 'kyu-program-template') {

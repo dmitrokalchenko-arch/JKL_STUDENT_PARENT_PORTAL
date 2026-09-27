@@ -21,5 +21,15 @@ export const trainerDashboardSections = [
     icon: 'belt',
     path: '/trainer/kyu-program',
     requiresPortalAdmin: true
+  },
+  {
+    // Точка входа будущих настроек рейтинга ученика (сейчас — только
+    // UI-прототип, см. docs/architecture/STUDENT_RATING.md). Admin-only.
+    id: 'rating-settings',
+    titleKey: 'trainerDashboard.ratingSettingsTitle',
+    descriptionKey: 'trainerDashboard.ratingSettingsDescription',
+    icon: 'trophy',
+    path: '/trainer/rating-settings',
+    requiresPortalAdmin: true
   }
 ];
