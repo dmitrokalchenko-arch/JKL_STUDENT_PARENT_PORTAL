@@ -5,9 +5,11 @@ Migration: `supabase/migrations/20261006100082_create_student_kyu_history_rpcs.s
 | Статус | Значение |
 |---|---|
 | Production PRECHECK для 082 | выполнен владельцем, все требуемые проверки PASS (см. ниже) |
-| Production apply | **НЕ ПРИМЕНЕНА** |
-| Структурная самопроверка в production | НЕ ВЫПОЛНЯЛАСЬ (выполнится при применении) |
-| Поведенческий E2E | **НЕ ВЫПОЛНЯЛСЯ**; путь Trainer заблокирован отсутствием тестового Trainer-аккаунта |
+| PR | #35 merged, merge commit `693090dc73c59c1994465a4ff653451ec412551d` (SHA-256 миграции `d82dfe09d59c7351c1803b8a45203d7d06d40f7c201944c4391f0a70bfd2d27b`) |
+| Production apply | **ПРИМЕНЕНА** вручную владельцем: SUCCESS («No rows returned»). Встроенная структурная самопроверка выполняется внутри той же транзакции миграции — успешное применение означает, что она прошла |
+| Admin Behavioral E2E (rollback-only, production) | **PASS** (`082_BEHAVIORAL_E2E_AFTER_ROLLBACK`) |
+| Rollback cleanup | **PASS**: после ROLLBACK `student_kyu_history = 0`, `student_rating_stages = 0`, `student_rating_entries = 0`; `jcl_today = 2026-09-27`; тестовых данных не осталось |
+| Trainer Behavioral E2E | **NOT RUN / BLOCKED** — в production нет подходящего активного не-Admin Trainer-аккаунта jcl (с привязкой к `trainers` и группам) для безопасного полного теста |
 | Локальное выполнение SQL | НЕ ВЫПОЛНЯЛОСЬ (локального PostgreSQL нет) |
 
 ## Назначение и объём
@@ -132,9 +134,26 @@ history / stages / entries = 0 / 0 / 0; конфликтов имён нет.
 `club_rating_config`; нет UPDATE/DELETE истории; не меняет 079/080/081 и права
 на `student_kyu_history`; не создаёт RLS policies; нет UI.
 
-## Будущий rollback-only E2E (НЕ выполнялся)
+## Rollback-only поведенческий E2E в production
 
-Одна транзакция `BEGIN … ROLLBACK`, подмена пользователя:
+**Результат (выполнен владельцем после применения 082):**
+- **Admin-путь: PASS.** Финальная проверка после ROLLBACK
+  (`082_BEHAVIORAL_E2E_AFTER_ROLLBACK`): история Kyu 0, этапы 0, записи 0,
+  `jcl_today = 2026-09-27`, статус PASS. `students.kyu_grad` тестом не
+  менялся, данные рейтинга не создавались, тестовых строк истории не осталось.
+- Две первые попытки завершились ошибками **тестового скрипта**, а не
+  миграции 082; обе исправлены только в тестовом SQL, миграция после merge не
+  менялась:
+  1. `column trainer_accounts.aktiv does not exist` — в production поле
+     называется `trainer_accounts.is_active`;
+  2. `permission denied for function private.club_today` — тест вызывал
+     private-хелпер напрямую под `SET LOCAL ROLE authenticated`; это ожидаемая
+     защита private-хелпера.
+- **Trainer-путь: NOT RUN / BLOCKED** — см. последний пункт ниже. Ради теста
+  не создаются `auth.users` / `trainer_accounts` / `trainer_groups` и не
+  меняется существующий Admin-аккаунт.
+
+План (сценарии, на которых построен тест). Одна транзакция `BEGIN … ROLLBACK`, подмена пользователя:
 `set local role authenticated; select set_config('request.jwt.claims', json_build_object('sub', '<auth_user_id>', 'role', 'authenticated')::text, true);`
 
 - Admin: record (текущая и прежняя ступень) → ok; повтор → `chain_exists`;

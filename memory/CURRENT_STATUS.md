@@ -1067,7 +1067,7 @@ production-состояние — в подразделе «Production state» �
   PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_RATING_B2_SQL_VERIFICATION.md`.
 
-## Student Kyu History RPCs — migration 082 (2026-09-27) — PR, НЕ применена
+## Student Kyu History RPCs — migration 082 (2026-09-27) — ПРИМЕНЕНА В PRODUCTION (PR #35)
 
 - Branch `feature/student-kyu-history-rpcs-082` от `main` (`d5c7611`, PR #34 merged).
   Migration `20261006100082_create_student_kyu_history_rpcs.sql`:
@@ -1078,10 +1078,17 @@ production-состояние — в подразделе «Production state» �
   `student_kyu_history_chronology_ok`. Доступ — `can_trainer_access_student`
   (без оплаченной Student Page); блокировка `jkl.student_rating`; хронология
   жёсткая; ступень выше текущей отклоняется.
-- Production PRECHECK 082 выполнен владельцем (PASS). Migration 082 в production
-  НЕ применена; поведенческий E2E НЕ выполнялся (путь Trainer заблокирован:
-  нет активного не-Admin Trainer-аккаунта). Rating bootstrap, этапы, записи,
-  `students.kyu_grad` не затронуты. PR #19 не затронут.
+- PR #35 merged: merge commit `693090dc73c59c1994465a4ff653451ec412551d`
+  (включает исправление Judo-only для read RPC, `8a2242e`); SHA-256 миграции
+  `d82dfe09…bfd2d27b`.
+- Production PRECHECK 082 — PASS. **Migration 082 применена в production**
+  владельцем (SUCCESS). Admin rollback-only Behavioral E2E — **PASS**; после
+  ROLLBACK история Kyu / этапы / записи = 0 / 0 / 0, тестовых данных не осталось.
+  Две первые попытки E2E — ошибки тестового скрипта (`aktiv` вместо
+  `is_active`; прямой вызов `private.club_today` под `authenticated`), не миграции.
+- **Trainer Behavioral E2E — NOT RUN / BLOCKED**: нет подходящего активного
+  не-Admin Trainer-аккаунта jcl. 082 закрыта с этим ограничением.
+- Rating bootstrap, этапы, записи, `students.kyu_grad` не затронуты. PR #19 не затронут.
 - Проверка: `docs/database/STUDENT_KYU_HISTORY_RPC_082_SQL_VERIFICATION.md`.
 
 ## Следующий этап
