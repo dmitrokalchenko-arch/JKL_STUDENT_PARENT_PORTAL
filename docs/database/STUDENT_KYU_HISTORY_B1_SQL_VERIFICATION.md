@@ -1,8 +1,9 @@
 # Student Kyu History (B1) — проверка migration 080
 
 Migration: `supabase/migrations/20261004100080_create_student_kyu_history.sql`
-(Rating Database Design, Migration B1). **Статус: создана на feature-ветке,
-в production НЕ применена.**
+(Rating Database Design, Migration B1). **Статус: применена в production
+владельцем (PR #33); structural self-check + rollback-only поведенческий E2E
+PASS, тестовых данных не осталось.**
 
 ## Модель
 
