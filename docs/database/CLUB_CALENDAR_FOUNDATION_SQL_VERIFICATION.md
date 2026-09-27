@@ -21,9 +21,12 @@ production НЕ применена.**
 ни у service_role (как у всех существующих private-хелперов). Authenticated RPC
 для смены пояса нет — изменение только owner-controlled операцией.
 
-Встроенная самопроверка (DO-блок перед COMMIT) проверяет пункты 1–16 ниже,
-включая негативные пробы в savepoint'ах; любое расхождение откатывает всю
-миграцию.
+Встроенная самопроверка (DO-блок перед COMMIT) проверяет только инварианты
+самой миграции — пункты V01–V15 ниже, включая негативные пробы в
+savepoint'ах; любое расхождение откатывает всю миграцию. Она не требует,
+чтобы в таблице была только строка `jcl`, и не проверяет отсутствие
+посторонних объектов базы. V16 (scope: Rating-таблицы не созданы) —
+статическая проверка репозитория / ручной post-apply запрос, не runtime-инвариант.
 
 ## Ожидаемые ошибки (устойчивые сообщения)
 
@@ -60,7 +63,9 @@ order by 1, 2;
 select club_id, timezone,
        exists (select 1 from pg_timezone_names tz where tz.name = s.timezone) as tz_valid
 from public.club_portal_settings s;
--- ожидается ровно одна строка: jcl | Europe/Berlin | true
+-- ожидается: строка jcl | Europe/Berlin | true присутствует ровно один раз (PK).
+-- Сразу после применения 079 других строк нет (миграция создаёт только jcl),
+-- но таблица их не запрещает — это не инвариант миграции.
 
 -- V10–V11: хелперы (выполняется как postgres в SQL Editor)
 select private.club_timezone('jcl') as tz, private.club_today('jcl') as today,
@@ -77,7 +82,7 @@ from (values ('private.club_timezone(text)'), ('private.club_today(text)'),
 order by 1, 2;
 -- ожидается: false везде
 
--- V16: Rating core не создан
+-- V16 (scope, не входит в самопроверку миграции): Rating core не создан 079
 select to_regclass('public.club_rating_config'), to_regclass('public.student_kyu_history'),
        to_regclass('public.student_rating_stages'), to_regclass('public.student_rating_entries'),
        to_regclass('public.club_rating_settings_versions'), to_regclass('public.club_rating_settings_items');

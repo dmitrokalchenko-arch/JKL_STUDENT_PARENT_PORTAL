@@ -306,16 +306,17 @@ begin
     end loop;
   end loop;
 
-  -- Данные: ровно одна строка, только jcl / Europe/Berlin
-  select count(*) into v_count from public.club_portal_settings;
+  -- Seed этой миграции: строка jcl ровно одна и её пояс Europe/Berlin
+  -- (другие club_id таблицей не запрещены и здесь не проверяются)
+  select count(*) into v_count from public.club_portal_settings s where s.club_id = 'jcl';
   if v_count <> 1 then
-    raise exception '079 check: expected exactly 1 row, found %', v_count;
+    raise exception '079 check: expected exactly 1 jcl row, found %', v_count;
   end if;
   if not exists (
     select 1 from public.club_portal_settings s
     where s.club_id = 'jcl' and s.timezone = 'Europe/Berlin'
   ) then
-    raise exception '079 check: jcl row missing or timezone is not Europe/Berlin';
+    raise exception '079 check: jcl timezone is not Europe/Berlin';
   end if;
   if not exists (select 1 from pg_catalog.pg_timezone_names tz where tz.name = 'Europe/Berlin') then
     raise exception '079 check: Europe/Berlin is not in pg_timezone_names';
@@ -381,25 +382,14 @@ begin
     raise exception '079 check: orphan club insert was accepted';
   end if;
 
-  -- После негативных проверок состояние не изменилось
-  if (select count(*) from public.club_portal_settings) <> 1
-     or private.club_timezone('jcl') is distinct from 'Europe/Berlin' then
+  -- После негативных проверок: jcl не изменён, probe-строки нет
+  if not exists (
+       select 1 from public.club_portal_settings s
+       where s.club_id = 'jcl' and s.timezone = 'Europe/Berlin'
+     )
+     or exists (select 1 from public.club_portal_settings s where s.club_id = v_probe) then
     raise exception '079 check: state changed by negative probes';
   end if;
-
-  -- Rating core НЕ создан этой миграцией
-  foreach v_text in array array[
-    'public.club_rating_config',
-    'public.student_kyu_history',
-    'public.student_rating_stages',
-    'public.student_rating_entries',
-    'public.club_rating_settings_versions',
-    'public.club_rating_settings_items'
-  ] loop
-    if to_regclass(v_text) is not null then
-      raise exception '079 check: unexpected Rating table % exists', v_text;
-    end if;
-  end loop;
 end;
 $$;
 
