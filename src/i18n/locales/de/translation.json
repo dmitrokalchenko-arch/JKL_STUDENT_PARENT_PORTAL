@@ -277,7 +277,9 @@
     "settingsPageScopeNote": "Allgemeine Einstellungen für die Schülerseiten des Vereins",
     "settingsPageTemplateName": "Schülerseite",
     "kyuProgramTitle": "Erforderliche Techniken pro Kyu einrichten",
-    "kyuProgramDescription": "Techniken auswählen, die für jeden Kyu-Grad erforderlich sind"
+    "kyuProgramDescription": "Techniken auswählen, die für jeden Kyu-Grad erforderlich sind",
+    "ratingSettingsTitle": "Rating-Einstellungen",
+    "ratingSettingsDescription": "Regeln und Darstellung des Schüler-Ratings konfigurieren"
   },
   "trainerKyuProgram": {
     "kyuSelectedLabel": "Ausgewählt:",
@@ -432,6 +434,70 @@
       "not_allowed": "Kein Zugriff auf diesen Schüler.",
       "invalid_items": "Speichern nicht möglich: ungültige Technikauswahl.",
       "generic": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen."
+    }
+  },
+  "trainerRatingSettings": {
+    "subtitle": "Zulassungsvoraussetzungen und erforderliches Rating für jeden Kyu-Grad festlegen",
+    "djbInfo": {
+      "title": "DJB – offizielle Anforderungen",
+      "text": "Künftig können Mindestalter und Vorbereitungszeit nach den Regeln des Deutschen Judo-Bundes übernommen werden. Das Rating bleibt eine Vereinseinstellung."
+    },
+    "mockNote": "Beispielwerte des Prototyps — keine offiziellen DJB-Vorgaben, werden noch nicht gespeichert.",
+    "fields": {
+      "minAge": "Mindestalter",
+      "monthsInPreviousKyu": "Zeit im vorherigen Kyu",
+      "requiredRating": "Erforderliches Rating"
+    },
+    "units": {
+      "years": "Jahre",
+      "months": "Monate",
+      "points": "Punkte"
+    },
+    "belts": {
+      "white": "Weißgurt",
+      "whiteYellow": "Weiß-Gelbgurt",
+      "yellow": "Gelbgurt",
+      "yellowOrange": "Gelb-Orangegurt",
+      "orange": "Orangegurt",
+      "orangeGreen": "Orange-Grüngurt",
+      "green": "Grüngurt",
+      "blue": "Blaugurt",
+      "brown": "Braungurt"
+    },
+    "djbButtonTitle": "Anforderungen des Deutschen Judo-Bundes für diesen Kyu übernehmen (folgt im nächsten Schritt)",
+    "djbNotImplemented": "Die DJB-Vorgabe wird im nächsten Schritt angebunden. Die Werte wurden nicht geändert.",
+    "resetCard": "Werte dieser Karte zurücksetzen",
+    "rules": {
+      "title": "Regeln und Berechnungslogik",
+      "minAge": {
+        "title": "Mindestalter",
+        "text": "offizielle oder vereinsinterne Anforderung."
+      },
+      "prepTime": {
+        "title": "Zeit im vorherigen Kyu",
+        "text": "Mindestvorbereitungszeit nach dem vorherigen Gürtel."
+      },
+      "djbLimit": {
+        "title": "DJB-Begrenzung",
+        "text": "höchstens 3 anrechenbare Kyu-Graduierungen innerhalb von 365 Tagen. Der 8. Kyu wird nicht gezählt."
+      },
+      "rating": {
+        "title": "Rating",
+        "text": "Vereinsanforderung, wird getrennt von den Kalenderbedingungen geprüft."
+      }
+    },
+    "nextDate": {
+      "title": "Frühestes zulässiges Datum der nächsten Graduierung",
+      "intro": "Künftig ermittelt das System automatisch das späteste der zutreffenden Daten:",
+      "age": "Altersfreigabe;",
+      "prepTime": "Ende der Mindestzeit nach dem vorherigen Kyu;",
+      "djbLimit": "Freigabe nach der Regel „3 Graduierungen in 365 Tagen“.",
+      "note": "Dieses Datum wird nicht vom Trainer bearbeitet. Das Rating wird separat geprüft."
+    },
+    "actions": {
+      "save": "Einstellungen speichern",
+      "resetDjb": "Auf DJB-Einstellungen zurücksetzen",
+      "notConnected": "Das Speichern der Einstellungen wird im nächsten Schritt angebunden."
     }
   }
 }

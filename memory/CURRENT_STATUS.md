@@ -999,6 +999,22 @@ production-состояние — в подразделе «Production state» �
   `ADMIN_ONLY_TRAINER_VIEWS`. Student-level маршруты — Trainer + Admin.
 - UI — только UX-слой; граница безопасности — серверные проверки 078.
 
+## Rating Settings — интеграция с Admin UI (2026-09-27) — локальный commit
+
+- Branch `feature/rating-settings-admin-entry` от `main` (`3035113`, PR #30).
+  Из старой `feature/trainer-rating-settings-entry` (`de2cdaf`, оставлена без
+  изменений как reference) перенесены только файлы Rating UI-прототипа
+  (страница, CSS, mock-конфиг, RU/DE-переводы, `STUDENT_RATING.md`);
+  `App.jsx` и конфиг дашборда дополнены вручную поверх ролевой архитектуры
+  PR #30 (старые версии этих файлов не использовались).
+- `/trainer/rating-settings` — Admin-only (view `rating-settings` в
+  `ADMIN_ONLY_TRAINER_VIEWS`, тот же `TrainerAdminRoute`). Карточка «Настройка
+  рейтинга» — `requiresPortalAdmin`. Admin-дашборд — 4 карточки; Trainer —
+  только «Найти ученика».
+- Rating backend НЕ реализован (нет таблиц, RPC, миграций, записи в БД).
+  Значения — иллюстративные значения прототипа, не официальные нормы DJB
+  (пометка `mockNote` уточнена в RU/DE). PR #19 не затронут.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
