@@ -1029,6 +1029,20 @@ production-состояние — в подразделе «Production state» �
   `get_student_page_access` не изменён. PR #19 не затронут.
 - Проверка: `docs/database/CLUB_CALENDAR_FOUNDATION_SQL_VERIFICATION.md`.
 
+## Student Kyu History — migration 080 / B1 (2026-09-27) — feature-ветка, НЕ применена
+
+- Migration 079 (Club Calendar Foundation) применена в production владельцем
+  (post-apply 16/16 PASS). Production precheck B1/B2 выполнен владельцем.
+- Branch `feature/student-kyu-history-b1` от `main` (`c7c61d4`). Migration
+  `20261004100080_create_student_kyu_history.sql`: неизменяемая история ступеней
+  Judo (Kyu **и** Dan из `kyu_lookup`; ученик с `sport_id = 'judo'`). Цепочка
+  recorded → corrected/retracted через `supersedes_id`; один корень на
+  ученик+ступень; corrected/retracted — только Admin с причиной; неизвестная
+  дата = нет строки. RLS без policies, service_role только SELECT.
+- Production НЕ применена. B2 (Rating Stages / Ledger), RPC, bootstrap — НЕ
+  начаты. PR #19 не затронут.
+- Проверка: `docs/database/STUDENT_KYU_HISTORY_B1_SQL_VERIFICATION.md`.
+
 ## Следующий этап
 
 - Дождаться решения пользователя по итогам Super Admin PIN Session (принять
